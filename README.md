@@ -448,7 +448,8 @@ curl -i http://echo.kubenuggets.dev/echo/
 curl -i http://test.kubenuggets.dev/echo/ 
 
 
-#### Getting traffic in using TLS and LetsEncrypt certificates. <TBD>
+#### Getting traffic in using TLS and LetsEncrypt certificates. 
+TBD
 
 
 ## Service mesh using Linkerd <a name="LINK"></a>
