@@ -452,17 +452,17 @@ curl -i http://test.kubenuggets.dev/echo/
 
 
 ## Service mesh using Linkerd <a name="LINK"></a>
-<TBD>
+TBD
 
 ## Backup using Velero <a name="VELE"></a>
-<TBD>
+TBD
 
 
 ## GitOps using ArgoCD & Sealed Secrets <a name="ARGO"></a>
-<TBD>
+TBD
 
 ## Progressive releases using Argo Rollout <a name="ROLL"></a>
-<TBD>
+TBD
 
 ## Sample Application with Cloudflare CDN <a name="APPL"></a>
-<TBD>
+TBD
