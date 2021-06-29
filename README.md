@@ -1,9 +1,10 @@
 # Day-2 Operations-ready DOKS (DigitalOcean Kubernetes) for Developers
 
-**WORK-IN-PROGRESS**
+**WORK-IN-PROGRESS, initial stage**
 
-**TBD- Complete the sections**
-**TBD- Automation to set up the stack**
+**TBD- Complete the sections** </br>
+**TBD- Opinionated configuration** </br>
+**TBD- Automation to set up the stack** </br>
 
 Kubernetes has become really simple to understand and setup. In a way, it has democratized the cloud. With kubernetes, developers can use the identical tooling and configurations across any cloud.
 
@@ -187,12 +188,12 @@ As there are many vendors, kubernetes API has an ingress spec. The idea is that 
 
 Vendor lanscape of ingress is very mature. NGINX-based ingress (kong, nginx) are used very widely. Envoy-based ingresses (contour, gloo, emissary, istio ingress) have become the preferred choice in recent years. 
 
-We will use Ambassador/Emissary for this tutorial. You can pick ANY ingress/api-gateway as long as it is well-supported, has a vibrant community.
+We will use Ambassador/Emissary for this tutorial. You can pick ANY ingress/api-gateway as long as it is well-supported, has a vibrant community. We may more options for ingress in future.
 
 ### Ambassador/Emissary Ingress
 Instructions - https://www.getambassador.io/docs/emissary/latest/topics/install/helm/
 
-Note that Emissary ingress 2.x is in developer-preview because of major enhancements. That said, 1.x is proven in many large deployments. And it is built on top of envoy. We will use 2.x.
+Note that Emissary-Ingress 2.0 is in Developer Preview because it has a number of breaking changes over the 1.x series. That said, 1.x has been battle-tested in thousands of deployments. Both 1.x and 2.x are built on Envoy Proxy. For production, it is recommended to use 1.x. 
 
 ```
 helm repo add datawire https://app.getambassador.io
