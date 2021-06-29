@@ -2,6 +2,9 @@
 
 **WORK-IN-PROGRESS**
 
+**TBD- Complete the sections**
+**TBD- Automation to set up the stack**
+
 Kubernetes has become really simple to understand and setup. In a way, it has democratized the cloud. With kubernetes, developers can use the identical tooling and configurations across any cloud.
 
 Installing kubernetes is only getting started. Making it operationally ready requires lot more things. The objective of this tutorial is to provide developers an hands-on introduction on how to get started with an operations-ready kubernetes cluster on DO Kubernetes.
