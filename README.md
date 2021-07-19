@@ -453,7 +453,28 @@ curl -i http://test.kubenuggets.dev/echo/
 
 
 #### Getting traffic in using TLS and LetsEncrypt certificates. 
-TBD
+* Run Edge Stack with a free community license. Follow the directions to use ACME to get a certificate. This is definitely the easiest. https://www.getambassador.io/docs/edge-stack/latest/topics/running/host-crd/
+
+*  Use Emissary with cert-manager: https://www.getambassador.io/docs/edge-stack/latest/howtos/cert-manager/#using-cert-manager — note that I haven’t personally tried this, but I know people use it.
+
+The point of the free community license is to make it easy to use the Edge Stack features that make life easier.
+
+  
+
+(1a) Download the edgectl installer or (1b) download it with a curl command:
+
+  
+
+```C
+sudo curl -fL https://metriton.datawire.io/downloads/linux/edgectl -o /usr/local/bin/edgectl && sudo chmod a+x /usr/local/bin/edgectl
+```
+Run the installer with  ``` edgectl install  ```
+
+ The installer will provision a load balancer, configure TLS, and provide you with an edgestack.me subdomain. The edgestack.me subdomain allows Ambassador Edge Stack to automatically provision TLS and HTTPS for a domain name, so you can get started right away.
+
+> Set up Service Catalog to view all of your service metadata in Ambassador Cloud.
+
+>Important Note : We're using the helm charts where our normal setup is that the LB listens on 443 and all is well. When we add 80 to our LB, the pod also gets updated to expose 8080, but then Ambassador appears to stop listening on 8443.
 
 
 ## Service mesh using Linkerd <a name="LINK"></a>
