@@ -453,7 +453,347 @@ curl -i http://test.kubenuggets.dev/echo/
 
 
 #### Getting traffic in using TLS and LetsEncrypt certificates. 
-TBD
+
+#### Getting traffic in using TLS and LetsEncrypt certificates.
+
+* Run Edge Stack with a free community license. Follow the directions to use ACME to get a certificate. This is definitely the easiest. https://www.getambassador.io/docs/edge-stack/latest/topics/running/host-crd/
+
+  
+
+* Use Emissary with cert-manager: https://www.getambassador.io/docs/edge-stack/latest/howtos/cert-manager/#using-cert-manager — note that I haven’t personally tried this, but I know people use it.
+
+  
+
+The point of the free community license is to make it easy to use the Edge Stack features that make life easier.
+
+  
+  
+
+(1a) Download the edgectl installer or (1b) download it with a curl command:
+
+  
+
+```C
+
+sudo curl -fL https://metriton.datawire.io/downloads/linux/edgectl -o /usr/local/bin/edgectl && sudo chmod a+x /usr/local/bin/edgectl
+
+```
+
+Run the installer with ``` edgectl install ```
+
+  
+
+The installer will provision a load balancer, configure TLS, and provide you with an edgestack.me subdomain. The edgestack.me subdomain allows Ambassador Edge Stack to automatically provision TLS and HTTPS for a domain name, so you can get started right away.
+
+  
+
+> Set up Service Catalog to view all of your service metadata in Ambassador Cloud.
+
+  
+
+>Important Note : We're using the helm charts where our normal setup is that the LB listens on 443 and all is well. When we add 80 to our LB, the pod also gets updated to expose 8080, but then Ambassador appears to stop listening on 8443.
+
+  For Admin Dashboard, First time users  will need to download and install the edgectl executable. Once complete, log in to Ambassador with the edgectl command.
+
+### {{Ambassador IP}}/edge_stack/admin/#dashboard
+* Linux :penguin:
+Download with this CLI
+```C
+sudo curl -fL https://metriton.datawire.io/downloads/linux/edgectl -o /usr/local/bin/edgectl && sudo chmod a+x /usr/local/bin/edgectl
+```
+Or download the binary:
+
+[Download edgectl for Linux](https://metriton.datawire.io/downloads/linux/edgectl)
+
+make it executable:
+```C
+chmod a+x ~/Downloads/edgectl
+```
+and place it somewhere in your shell PATH.
+
+* MacOS
+
+Download with this CLI
+```
+sudo curl -fL https://metriton.datawire.io/downloads/darwin/edgectl -o /usr/local/bin/edgectl && sudo chmod a+x /usr/local/bin/edgectl
+````
+Or download the binary:
+[Download edgectl for MacOS](https://metriton.datawire.io/downloads/darwin/edgectl)
+make it executable:
+```
+chmod a+x ~/Downloads/edgectl
+```
+and place it somewhere in your shell PATH.
+
+
+* Windows 
+
+Download the binary:
+
+[Download edgectl for Windows](https://metriton.datawire.io/downloads/windows/edgectl.exe)
+
+and place it somewhere in your Windows System PATH.
+
+### Cert-Manager
+
+we can summarize cert manager issue 3 parts. First part is Instaling Cert Manager. Second one is ACME's `http-01` challenge and the last one is ACME's `dns-01` challenge, or using a non-ACME certificate source.
+
+#### Install Cert-Manager
+There are many different ways to install cert-manager. For simplicity, we will use Helm v3.
+
+(1) Create the cert-manager CRDs.
+
+```
+kubectl apply -f https://github.com/jetstack/cert-manager/releases/latest/download/cert-manager.crds.yaml
+```
+(2) Add the jetstack Helm repository.
+
+```
+helm repo add jetstack https://charts.jetstack.io && helm repo update
+
+```
+(3) Install cert-manager.
+```
+kubectl create ns cert-manager
+helm install cert-manager --namespace cert-manager jetstack/cert-manager
+```
+
+####  DNS-01 challenge
+
+The DNS-01 challenge verifies domain ownership by proving you have control over its DNS records. Issuer configuration will depend on your  [DNS provider](https://cert-manager.readthedocs.io/en/latest/tasks/acme/configuring-dns01/index.html#supported-dns01-providers).
+Issuer.yml :
+```C
+---
+
+apiVersion: cert-manager.io/v1
+
+kind: ClusterIssuer
+
+metadata:
+
+name: letsencrypt-prod
+
+spec:
+
+acme:
+
+email: email@sample.com
+
+server: https://acme-v02.api.letsencrypt.org/directory
+
+privateKeySecretRef:
+
+name: letsencrypt-prod
+
+solvers:
+
+- dns01:
+
+digitalocean:
+
+tokenSecretRef:
+
+name: digitalocean-dns
+
+key: ce28952b5b4e33ea7d98de190f3148a7cc82d31f030bde966ad13b22c1abc524
+```
+
+Create and apply a `Certificate`.
+
+```C
+apiVersion: cert-manager.io/v1alpha2
+
+kind: Certificate
+
+metadata:
+
+name: ambassador-certs
+
+namespace: ambassador
+
+spec:
+
+secretName: ambassador-certs
+
+issuerRef:
+
+name: letsencrypt-prod
+
+kind: ClusterIssuer
+
+dnsNames:
+
+- mandrakee.xyz
+```
+
+Verify the secret is created.
+
+
+#### HTTP-01 challenge
+
+The HTTP-01 challenge verifies ownership of the domain by sending a request for a specific file on that domain. cert-manager accomplishes this by sending a request to a temporary pod with the prefix `/.well-known/acme-challenge/`. To perform this challenge:
+
+**issuer.yml:**
+```C
+apiVersion: cert-manager.io/v1alpha2
+
+kind: ClusterIssuer
+
+metadata:
+
+name: letsencrypt-prod
+
+spec:
+
+acme:
+
+email: email@sample.com
+
+server: https://acme-v02.api.letsencrypt.org/directory
+
+privateKeySecretRef:
+
+name: letsencrypt-prod
+
+solvers:
+
+- http01:
+
+ingress:
+
+class: nginx
+
+selector: {}
+```
+
+**Cert.yml:**
+
+```C
+apiVersion: cert-manager.io/v1alpha2
+
+kind: Certificate
+
+metadata:
+
+name: ambassador-certs
+
+# cert-manager will put the resulting Secret in the same Kubernetes
+
+# namespace as the Certificate. You should create the certificate in
+
+# whichever namespace you want to configure a Host.
+
+namespace: ambassador
+
+spec:
+
+secretName: ambassador-certs
+
+issuerRef:
+
+name: letsencrypt-prod
+
+kind: ClusterIssuer
+
+dnsNames:
+
+- mandrakee.xyz
+```
+**Ingress.yml:**
+
+```C
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+annotations:
+kubernetes.io/ingress.class: ambassador
+cert-manager.io/issuer: letsencrypt-prod
+name: test-ingress
+spec:
+tls:
+- hosts:
+- mandrakee.xyz
+secretName: letsencrypt-prod
+rules:
+- host: mandrakee.xyz
+http:
+paths:
+- backend:
+service:
+name: echo-service
+port:
+number: 80
+path: /
+pathType: Prefix
+```
+**Deployment.yml**
+
+```C
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+name: echo-deployment
+spec:
+replicas: 1
+selector:
+matchLabels:
+app: echo-server
+template:
+metadata:
+labels:
+app: echo-server
+spec:
+containers:
+- name: httpapi-host
+image: jmalloc/echo-server
+imagePullPolicy: Always
+
+resources:
+requests:
+memory: "128Mi"
+cpu: "500m"
+ports:
+- containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+name: echo-service
+spec:
+ports:
+- name: http-port
+port: 80
+targetPort: 8080
+selector:
+app: echo-server
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+annotations:
+kubernetes.io/ingress.class: ambassador
+cert-manager.io/issuer: letsencrypt-prod
+name: test-ingress
+spec:
+tls:
+- hosts:
+- mandrakee.xyz
+secretName: letsencrypt-prod
+rules:
+- host: mandrakee.xyz
+http:
+paths:
+- backend:
+service:
+name: echo-service
+port:
+number: 80
+path: /
+pathType: Prefix
+```
+
+
+
 
 
 ## Service mesh using Linkerd <a name="LINK"></a>
