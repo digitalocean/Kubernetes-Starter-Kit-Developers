@@ -175,624 +175,236 @@ Now connect loki data source to grafana. Go the grafana web console, and add set
 
 Now you can access logs from explore tab of grafana. Make sure to select loki as the data source. Use help button for log search cheat sheet.
 
-
 ## Ingress using Ambassador <a name="AMBA"></a>
-### Options for LB and Ingress 
+
+### Options for LB and Ingress
+
 You will almost always use the LB provided by the cloud provider. In the case of DO, when you configure a service as an LB, DOKS automatically provisions an LB in your account (unless you configure to use an existing one). Now the service is exposed to outside world and can be accessed through LB endpoint. You do not want to use one LB per service, so you need an proxy inside the cluster. That is ingress.
 
-When you install an ingress proxy, it create a service and exposes it as an LB. Now you can have any many services behind ingress, and all accessible through a single LB endpoint. Ingress operates at http layer. 
+  
+
+When you install an ingress proxy, it create a service and exposes it as an LB. Now you can have any many services behind ingress, and all accessible through a single LB endpoint. Ingress operates at http layer.
+
+  
 
 Let us say you are exposing REST or GRPC API's for different tasks (reading account info, writing orders, searching orders etc.). Depending on the API, you want to be able to route to specific target. For this you will need more capabilities built into the ingress proxy. That is API gateway and it can do many more things. For this tutorial, we are going to pick an ingress that can do both http routing and API gateway.
 
-As there are many vendors, kubernetes API has an ingress spec. The idea is that developers should be able to use the ingress api, and it should work with any vendor. That works well, but has limited capability in the current version. The new version of ingress is called Gateway API and is currently in alpha. The idea is same - users should be able to provide a rich set of ingress configuration using gateway API syntax. As long as the vendor supports gateway API, users will be able to manage the ingress in a vendor-agnostic configuration. 
+  
 
-Vendor lanscape of ingress is very mature. NGINX-based ingress (kong, nginx) are used very widely. Envoy-based ingresses (contour, gloo, emissary, istio ingress) have become the preferred choice in recent years. 
+As there are many vendors, kubernetes API has an ingress spec. The idea is that developers should be able to use the ingress api, and it should work with any vendor. That works well, but has limited capability in the current version. The new version of ingress is called Gateway API and is currently in alpha. The idea is same - users should be able to provide a rich set of ingress configuration using gateway API syntax. As long as the vendor supports gateway API, users will be able to manage the ingress in a vendor-agnostic configuration.
 
-We will use Ambassador/Emissary for this tutorial. You can pick ANY ingress/api-gateway as long as it is well-supported, has a vibrant community. We may more options for ingress in future.
 
-### Ambassador/Emissary Ingress
-Instructions - https://www.getambassador.io/docs/emissary/latest/topics/install/helm/
+We will use Ambassador/Edge Stack for this tutorial. You can pick ANY ingress/api-gateway as long as it is well-supported, has a vibrant community. We may more options for ingress in future.
 
-Note that Emissary-Ingress 2.0 is in Developer Preview because it has a number of breaking changes over the 1.x series. That said, 1.x has been battle-tested in thousands of deployments. Both 1.x and 2.x are built on Envoy Proxy. For production, it is recommended to use 1.x. 
+  
+
+### Ambassador/Edge Stack
+
+We can create our starter kit environment with 5 easy steps and for these steps will need 5 yml files. Our sample solution has 2 services signed Acme certifications with Ambassador GateWay. 
+
+```mermaid
+graph LR
+A[Create 2 YMLs : Deploy & Service] -- For Deployment --> B((Deployment.yml))
+A  -- For Service --> C(Service.yml)
+B --> D{Mapping}
+C --> D
+D -->E(Curling)
+```
+> #### <i class="fa fa-gear fa-spin fa-2x" style="color: firebrick"></i> Configuration :capital_abcd:
+> Configuration will help Deployment yaml which can be launched 2 sample services (quote and echo)  from the **Deployment -> Service** . 
+
+ #### :arrow_down_small: Install Ambassador
+ Installing  Ambassador using helm. - stable 1.13 version
+ Instructions - https://www.getambassador.io/docs/edge-stack/1.13/tutorials/getting-started/
 
 ```
-helm repo add datawire https://app.getambassador.io
-helm repo update
-```
+# Add the Repo:
 
-Default values.yaml: https://raw.githubusercontent.com/emissary-ingress/emissary/master/charts/emissary-ingress/values.yaml
+helm repo add datawire https://www.getambassador.io
 
-Install Emissary gateway.
-```
-helm install -n emissary --create-namespace emissary-ingress --devel datawire/emissary-ingress
-kubectl rollout status  -n emissary deployment/emissary-ingress -w
-```
+# Create Namespace and Install:
 
-The default installation created the following. The default request/limit for the proxy are 200MB/600MB memory, and 200m/1 CPU. 
+kubectl create namespace ambassador &&  \
+
+helm install ambassador --namespace ambassador datawire/ambassador &&  \
+
+kubectl -n ambassador wait --for condition=available --timeout=90s deploy -lproduct=aes
 
 ```
-~ k get svc -n emissary  
-NAME                                TYPE           CLUSTER-IP       EXTERNAL-IP       PORT(S)                      AGE
-emissary-ingress-edge-stack         LoadBalancer   10.245.24.155    143.198.246.xxx   80:32472/TCP,443:31327/TCP   9h
-emissary-ingress-edge-stack-admin   ClusterIP      10.245.35.45     <none>            8877/TCP,8005/TCP            9h
-emissary-ingress-edge-stack-redis   ClusterIP      10.245.132.203   <none>            6379/TCP                     9h
-quote                               ClusterIP      10.245.241.66    <none>            80/TCP                       20h
-~ 
+#### :memo: Create Issuer
+   Enabling 2 domains (eg. echo & test ) to be hosted on the cluster, using ACME provider letsencrypt. Issuer.yml will help us. When you look at belowsample,  you will see that only one host, please create example2-host for echo service helps to host multiple TLS-enabled hosts on the same cluster.
+```
+apiVersion: getambassador.io/v2
+kind: Host
+metadata:
+  name: example-host
+  namespace: default
+spec:
+  acmeProvider:
+    authority: 'https://acme-v02.api.letsencrypt.org/directory'
+    email: bikram.gupta-40gmail.com
+  ambassadorId:
+    - default
+  hostname: test.kubenuggets.dev
+  requestPolicy:
+    insecure:
+      action: Redirect
+      additionalPort: 8080
+  selector:
+    matchLabels:
+      hostname: test.kubenuggets.dev
+  tlsSecret:
+    name: tls-cert
+```
+It takes ~30 seconds to get the signed certificate for the hosts.
+ #### :memo: Create Deployment and Service Yaml
 
-~ k get deploy -n emissary 
-NAME                                READY   UP-TO-DATE   AVAILABLE   AGE
-emissary-ingress-edge-stack         3/3     3            3           9h
-emissary-ingress-edge-stack-agent   1/1     1            1           9h
-emissary-ingress-edge-stack-redis   1/1     1            1           9h
+we have multiple TLS-enabled hosts on the same cluster. It means that we have multiple deployment and services. this setup is separated deployment and service eachother. It means:
+>Deployment.yml has 2 deployments: quote for test and echo for echo hosts.
+
+>quote-backend  have container named backend with :whale2: docker.io/datawire/quote:0.4.1 as image.
+
+>echo-backend  have container named echo with :whale2: jmalloc/echo-server as image.
+
+#### :earth_americas: Mapping
+
+Ambassador Edge Stack is designed around a [declarative, self-service management model](https://www.getambassador.io/docs/edge-stack/latest/topics/concepts/gitops-continuous-delivery) It means that you can manage the edge with Ambassador Edge Stack is the `Mapping` resource.
+> More info : :pushpin:
+https://www.getambassador.io/docs/edge-stack/1.13/topics/using/intro-mappings/
+
+Mapping 2 services with prefix,host,service showing below it is totally easy please check above link and understand it's means.
+
+**Mapping.yml**:
+Creating 2 independent mappings - echo services accessible to test.kubenuggets.dev host, and quote service accessible to echo.kubenuggets.dev host.
+```
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: quote-backend
+  namespace: ambassador
+spec:
+  prefix: /backend/
+  host: test.mandrakee.xyz
+  service: quote
+ 
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: echo-backend
+  namespace: ambassador
+spec:
+  prefix: /echo/
+  host: echo.mandrakee.xyz
+  service: echo
+  ```
+
+###  :rocket: Doctl Compute!
+
+Here  hosting 2 hosts (echo.kubenuggets.dev, test.kubenuggets.dev) on the same cluster.
+
+```
+~ doctl compute domain records list kubenuggets.dev  
+ID           Type    Name    Data                    Priority    Port    TTL     Weight  
+158200732    SOA     @       1800                    0           0       1800    0  
+158200733    NS      @       ns1.digitalocean.com    0           0       1800    0  
+158200734    NS      @       ns2.digitalocean.com    0           0       1800    0  
+158200735    NS      @       ns3.digitalocean.com    0           0       1800    0  
+158200782    A       echo    143.244.208.164         0           0       180     0  
+158201299    A       test    143.244.208.164         0           0       180     0  
+~   
+~ kgsvcn ambassador   
+NAME               TYPE           CLUSTER-IP       EXTERNAL-IP       PORT(S)                      AGE  
+ambassador         LoadBalancer   10.245.215.249   143.244.208.164   80:32723/TCP,443:31416/TCP   23h  
+ambassador-admin   ClusterIP      10.245.147.231   <none>            8877/TCP,8005/TCP            23h  
+ambassador-redis   ClusterIP      10.245.12.247    <none>            6379/TCP                     23h  
+quote              ClusterIP      10.245.172.174   <none>            80/TCP                       19h  
 ~
 ```
 
-#### Getting traffic in using LB IP address. 
-What we have so far is that any traffic that comes to DO LB is sent to emissary proxy. Emissary/Ambassador has no idea what to do with it. First, we need to have a principle understanding of how Emissary gateway works. There're 5 custom resources (CRDs), we need to work with.
-- From an operator standpoint, we need to create AmbassadorListener, AmbassadorHost, and TLSContext CRDs.
-* AmbassadorListener defines where, and how, Emissary-ingress should listen for requests from the network, and which AmbassadorHost definitions should be used to process those requests. Think of protocol and ports.
-* AmbassadorHost resource defines how Emissary-ingress will be visible to the outside world. Think of fqdn, TLS. 
-* TLSContext defines TLS options. 
-- From a developer standpoint, we need to deal to AmbassadorMapping CRD.
-*  AmbassadorMapping resource maps a resource (group of URLs with the common prefix) to a backend service. At the most basic level, you just forward a prefix to a backend service. You can also configure auth, circuit breaking, automatic retries, header based routing, method based routing, regex on the header, request rewrite, traffic shadowing, rate limiting etc.
+### :performing_arts: Creating A Proxy
 
-Let us configure a most basic forwarding by using the above resources.
-
-First, create a http echo service. We need this so we can test if client ip is visible to the echo service.
-
+Having also enabled proxy protocol through an annotation, because I am using an L4 LB.
 ```
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: echo-deployment
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: echo-server
-  template:
-    metadata:
-      labels:
-        app: echo-server
-    spec:
-      containers:
-        - name: echo-server
-          image: jmalloc/echo-server
-          ports:
-            - name: http-port
-              containerPort: 8080
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: echo-service
-spec:
-  ports:
-    - name: http-port
-      port: 80
-      targetPort: 8080
-  selector:
-    app: echo-server
-    
+~ kgsvcn ambassador ambassador -o yaml | grep proxy        
+    service.beta.kubernetes.io/do-loadbalancer-enable-proxy-protocol: "true"  
+~
 ```
 
-The echo server is up and running. But it is not exposed to outside world.
+###  :book: Summary
+
+>Checking  configurations 2 hosts with TLS termination and ACME protocol.
 
 ```
-~ kgpo
-NAME                               READY   STATUS    RESTARTS   AGE
-echo-deployment-869b7bf9c7-qpnxk   1/1     Running   0          8s
-~ kgsvc
-NAME           TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)   AGE
-echo-service   ClusterIP   10.245.145.227   <none>        80/TCP    21h
-kubernetes     ClusterIP   10.245.0.1       <none>        443/TCP   7d
-~ 
+~ kg host -A                                                              
+NAMESPACE    NAME                                HOSTNAME                            STATE   PHASE COMPLETED   PHASE PENDING   AGE  
+ambassador   charming-galileo-913.edgestack.me   charming-galileo-913.edgestack.me   Ready                                     13h  
+default      example-host                        test.kubenuggets.dev                Ready                                     18h  
+default      example2-host                       echo.kubenuggets.dev                Ready                                     9m19s
 ```
+> Checking  2 independent mappings. Please be sure mapping is correct such as source host etc.
 
-First we need to tell Emissary to listen on port 80 for all hosts (*). 
+ ```
+ ~ kg mapping -A  
+NAMESPACE    NAME                          SOURCE HOST            SOURCE PREFIX                               DEST SERVICE     STATE   REASON  
+ambassador   ambassador-devportal                                 /documentation/                             127.0.0.1:8500             
+ambassador   ambassador-devportal-api                             /openapi/                                   127.0.0.1:8500             
+ambassador   ambassador-devportal-assets                          /documentation/(assets|styles)/(.*)(.css)   127.0.0.1:8500             
+ambassador   ambassador-devportal-demo                            /docs/                                      127.0.0.1:8500             
+ambassador   quote-backend                 echo.kubenuggets.dev   /backend/                                   quote                      
+default      echo-backend                  test.kubenuggets.dev   /echo/                                      echo-service               
+~ kg mapping -n ambassador echo-backend -o yaml  
+...  
+spec:  
+  host: test.kubenuggets.dev  
+  prefix: /echo/  
+  service: echo-service  
+~   
+~ kg mapping -n ambassador quote-backend -o yaml  
+...  
+spec:  
+  host: echo.kubenuggets.dev  
+  prefix: /backend/  
+  service: quote  
+~
+ ```
 
+###  :speech_balloon: Let's Curl
+
+Checking test service with echo endpoint. Being sure it returns 200 OK.
 ```
----
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorListener
-metadata:
-  name: emissary-ingress-listener-8080
-  namespace: emissary
-spec:
-  port: 8080
-  protocol: HTTP
-  securityModel: XFP
-  hostBinding:
-    namespace:
-      from: ALL
-```
-
-We will skip creating an AmbassadorHost, and use wildcard instead. Let us define an AmbassadorMapping, and that should be all.
-
-```
----
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
-metadata:
-  name: echo-backend
-  namespace: default
-spec:
-  hostname: "*"
-  prefix: /echo/
-  service: echo-service
-```
-
-Now the echo service should be reachable from outside.
-
-```
-~ export LB_ENDPOINT=$(kubectl -n emissary get svc  emissary-ingress \
-  -o "go-template={{range .status.loadBalancer.ingress}}{{or .ip .hostname}}{{end}}")
-
-~ curl -i http://$LB_ENDPOINT/echo/
-HTTP/1.1 200 OK
-content-type: text/plain
-date: Mon, 28 Jun 2021 05:42:31 GMT
-content-length: 337
-x-envoy-upstream-service-time: 0
+~ curl -Li [http://test.kubenuggets.dev/echo/](http://test.kubenuggets.dev/echo/)     
+HTTP/1.1 301 Moved Permanently  
+location: [https://test.kubenuggets.dev/echo/](https://test.kubenuggets.dev/echo/)  
+date: Sun, 25 Jul 2021 22:12:54 GMT  
+server: envoy  
+content-length: 0HTTP/1.1 200 OK  
+content-type: text/plain  
+date: Sun, 25 Jul 2021 22:12:55 GMT  
+content-length: 366  
+x-envoy-upstream-service-time: 1  
 server: envoy
-
-Request served by echo-deployment-869b7bf9c7-r5mmd
-
-HTTP/1.1 GET /
-
-Host: 164.90.247.161
-X-Request-Id: 2bd9da96-0bb4-4108-9e17-b3e47ff943e7
-User-Agent: curl/7.64.1
-Accept: */*
-X-Forwarded-Proto: http
-Content-Length: 0
-X-Forwarded-For: 10.124.0.2
-X-Envoy-Internal: true
-X-Envoy-Expected-Rq-Timeout-Ms: 3000
-X-Envoy-Original-Path: /echo/
+```
+Checking echo service with backend endpoint. Being sure it returns 200 OK.
 
 ```
-
-So it worked well, but there's a challenge. We do not see the actual client IP at the destination pod. We can fix it by using proxy protocol at the LB. 
-
-#### Using Proxy protocol
-
-To configure proxy protocol, edit the spec for emissary-ingress-edge-stack. Add the annotation (service.beta.kubernetes.io/do-loadbalancer-enable-proxy-protocol: "true"). 
-
-You can check the LB configuration using doctl. Get your LB ID from the annotations in your emissary LB service.
-
+~ curl -Li [http://echo.kubenuggets.dev/backend/](http://echo.kubenuggets.dev/backend/)  
+HTTP/1.1 301 Moved Permanently  
+location: [https://echo.kubenuggets.dev/backend/](https://echo.kubenuggets.dev/backend/)  
+date: Sun, 25 Jul 2021 22:12:25 GMT  
+server: envoy  
+content-length: 0HTTP/1.1 200 OK  
+content-type: application/json  
+date: Sun, 25 Jul 2021 22:12:25 GMT  
+content-length: 156  
+x-envoy-upstream-service-time: 0  
+server: envoy{  
+    "server": "gargantuan-kiwi-irbqzsp6",  
+    "quote": "A principal idea is omnipresent, much like candy.",  
+    "time": "2021-07-25T22:12:25.764754935Z"  
+}%
 ```
-~ doctl compute load-balancer get "230926ab-9483-4ba5-aa1a-f7850f63cxxx" -o json
-[
-  {
-    "id": "230926ab-9483-4ba5-aa1a-f7850f63cxxx",
-    "name": "a7a979feb06504072a66238a105756b8",
-...
-```
-
-With proxy protocol enabled, the curl to the service fails.
-
-```
-~ curl -i http://$LB_ENDPOINT/echo/         
-HTTP/1.1 400 Bad Request
-content-length: 11
-content-type: text/plain
-date: Mon, 28 Jun 2021 05:46:21 GMT
-server: envoy
-connection: close
-
-Bad Request%                                                                                                                  ~ 
-```
-
-That is because we need to tell Emissary ingress to treat the traffic coming in with a proxy protocol header.
-
-```
-kubectl apply -f - <<EOF
----
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorListener
-metadata:
-  name: emissary-ingress-listener-8080
-  namespace: emissary
-spec:
-  port: 8080
-  protocol: HTTPPROXY
-  securityModel: XFP
-  hostBinding:
-    namespace:
-      from: ALL
-EOF
-
-```
-
-Now I see the actual client IP at the pod.
-
-```
-~ curl -i http://$LB_ENDPOINT/echo/
-HTTP/1.1 200 OK
-content-type: text/plain
-date: Mon, 28 Jun 2021 05:48:48 GMT
-content-length: 359
-x-envoy-upstream-service-time: 5
-server: envoy
-
-Request served by echo-deployment-869b7bf9c7-r5mmd
-
-HTTP/1.1 GET /
-
-Host: 164.90.247.161
-Accept: */*
-X-Envoy-External-Address: 73.162.138.xxx
-X-Request-Id: 04e0e2a8-8b3b-474d-bc01-7a68d0bb01ed
-User-Agent: curl/7.64.1
-X-Forwarded-For: 73.162.138.xxx
-X-Forwarded-Proto: http
-X-Envoy-Expected-Rq-Timeout-Ms: 3000
-X-Envoy-Original-Path: /echo/
-Content-Length: 0
-
-```
-
-#### Getting traffic in using DNS name
-This is fairly straightforward. We will just add an A record for every host into the DNS. In my case, I added 2 hosts (echo and test) pointing to the same LB.
-
-```
-~ doctl compute domain records list kubenuggets.dev
-ID           Type    Name    Data                    Priority    Port    TTL     Weight
-158200732    SOA     @       1800                    0           0       1800    0
-158200733    NS      @       ns1.digitalocean.com    0           0       1800    0
-158200734    NS      @       ns2.digitalocean.com    0           0       1800    0
-158200735    NS      @       ns3.digitalocean.com    0           0       1800    0
-158200782    A       echo    164.90.247.161          0           0       180     0
-158201299    A       test    164.90.247.161          0           0       180     0
-```
-
-Now I can curl the echo service using any of the following commands.
-curl -i http://echo.kubenuggets.dev/echo/ 
-curl -i http://test.kubenuggets.dev/echo/ 
-
-
-#### Getting traffic in using TLS and LetsEncrypt certificates. 
-
-#### Getting traffic in using TLS and LetsEncrypt certificates.
-
-* Run Edge Stack with a free community license. Follow the directions to use ACME to get a certificate. This is definitely the easiest. https://www.getambassador.io/docs/edge-stack/latest/topics/running/host-crd/
-
-  
-
-* Use Emissary with cert-manager: https://www.getambassador.io/docs/edge-stack/latest/howtos/cert-manager/#using-cert-manager — note that I haven’t personally tried this, but I know people use it.
-
-  
-
-The point of the free community license is to make it easy to use the Edge Stack features that make life easier.
-
-  
-  
-
-(1a) Download the edgectl installer or (1b) download it with a curl command:
-
-  
-
-```C
-
-sudo curl -fL https://metriton.datawire.io/downloads/linux/edgectl -o /usr/local/bin/edgectl && sudo chmod a+x /usr/local/bin/edgectl
-
-```
-
-Run the installer with ``` edgectl install ```
-
-  
-
-The installer will provision a load balancer, configure TLS, and provide you with an edgestack.me subdomain. The edgestack.me subdomain allows Ambassador Edge Stack to automatically provision TLS and HTTPS for a domain name, so you can get started right away.
-
-  
-
-> Set up Service Catalog to view all of your service metadata in Ambassador Cloud.
-
-  
-
->Important Note : We're using the helm charts where our normal setup is that the LB listens on 443 and all is well. When we add 80 to our LB, the pod also gets updated to expose 8080, but then Ambassador appears to stop listening on 8443.
-
-  For Admin Dashboard, First time users  will need to download and install the edgectl executable. Once complete, log in to Ambassador with the edgectl command.
-
-### {{Ambassador IP}}/edge_stack/admin/#dashboard
-* Linux :penguin:
-Download with this CLI
-```C
-sudo curl -fL https://metriton.datawire.io/downloads/linux/edgectl -o /usr/local/bin/edgectl && sudo chmod a+x /usr/local/bin/edgectl
-```
-Or download the binary:
-
-[Download edgectl for Linux](https://metriton.datawire.io/downloads/linux/edgectl)
-
-make it executable:
-```C
-chmod a+x ~/Downloads/edgectl
-```
-and place it somewhere in your shell PATH.
-
-* MacOS
-
-Download with this CLI
-```
-sudo curl -fL https://metriton.datawire.io/downloads/darwin/edgectl -o /usr/local/bin/edgectl && sudo chmod a+x /usr/local/bin/edgectl
-````
-Or download the binary:
-[Download edgectl for MacOS](https://metriton.datawire.io/downloads/darwin/edgectl)
-make it executable:
-```
-chmod a+x ~/Downloads/edgectl
-```
-and place it somewhere in your shell PATH.
-
-
-* Windows 
-
-Download the binary:
-
-[Download edgectl for Windows](https://metriton.datawire.io/downloads/windows/edgectl.exe)
-
-and place it somewhere in your Windows System PATH.
-
-### Cert-Manager
-
-we can summarize cert manager issue 3 parts. First part is Instaling Cert Manager. Second one is ACME's `http-01` challenge and the last one is ACME's `dns-01` challenge, or using a non-ACME certificate source.
-
-#### Install Cert-Manager
-There are many different ways to install cert-manager. For simplicity, we will use Helm v3.
-
-(1) Create the cert-manager CRDs.
-
-```
-kubectl apply -f https://github.com/jetstack/cert-manager/releases/latest/download/cert-manager.crds.yaml
-```
-(2) Add the jetstack Helm repository.
-
-```
-helm repo add jetstack https://charts.jetstack.io && helm repo update
-
-```
-(3) Install cert-manager.
-```
-kubectl create ns cert-manager
-helm install cert-manager --namespace cert-manager jetstack/cert-manager
-```
-
-####  DNS-01 challenge
-
-The DNS-01 challenge verifies domain ownership by proving you have control over its DNS records. Issuer configuration will depend on your  [DNS provider](https://cert-manager.readthedocs.io/en/latest/tasks/acme/configuring-dns01/index.html#supported-dns01-providers).
-Issuer.yml :
-```C
----
-
-apiVersion: cert-manager.io/v1
-
-kind: ClusterIssuer
-
-metadata:
-
-name: letsencrypt-prod
-
-spec:
-
-acme:
-
-email: email@sample.com
-
-server: https://acme-v02.api.letsencrypt.org/directory
-
-privateKeySecretRef:
-
-name: letsencrypt-prod
-
-solvers:
-
-- dns01:
-
-digitalocean:
-
-tokenSecretRef:
-
-name: digitalocean-dns
-
-key: ce28952b5b4e33ea7d98de190f3148a7cc82d31f030bde966ad13b22c1abc524
-```
-
-Create and apply a `Certificate`.
-
-```C
-apiVersion: cert-manager.io/v1alpha2
-
-kind: Certificate
-
-metadata:
-
-name: ambassador-certs
-
-namespace: ambassador
-
-spec:
-
-secretName: ambassador-certs
-
-issuerRef:
-
-name: letsencrypt-prod
-
-kind: ClusterIssuer
-
-dnsNames:
-
-- mandrakee.xyz
-```
-
-Verify the secret is created.
-
-
-#### HTTP-01 challenge
-
-The HTTP-01 challenge verifies ownership of the domain by sending a request for a specific file on that domain. cert-manager accomplishes this by sending a request to a temporary pod with the prefix `/.well-known/acme-challenge/`. To perform this challenge:
-
-**issuer.yml:**
-```C
-apiVersion: cert-manager.io/v1alpha2
-
-kind: ClusterIssuer
-
-metadata:
-
-name: letsencrypt-prod
-
-spec:
-
-acme:
-
-email: email@sample.com
-
-server: https://acme-v02.api.letsencrypt.org/directory
-
-privateKeySecretRef:
-
-name: letsencrypt-prod
-
-solvers:
-
-- http01:
-
-ingress:
-
-class: nginx
-
-selector: {}
-```
-
-**Cert.yml:**
-
-```C
-apiVersion: cert-manager.io/v1alpha2
-
-kind: Certificate
-
-metadata:
-
-name: ambassador-certs
-
-# cert-manager will put the resulting Secret in the same Kubernetes
-
-# namespace as the Certificate. You should create the certificate in
-
-# whichever namespace you want to configure a Host.
-
-namespace: ambassador
-
-spec:
-
-secretName: ambassador-certs
-
-issuerRef:
-
-name: letsencrypt-prod
-
-kind: ClusterIssuer
-
-dnsNames:
-
-- mandrakee.xyz
-```
-**Ingress.yml:**
-
-```C
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-annotations:
-kubernetes.io/ingress.class: ambassador
-cert-manager.io/issuer: letsencrypt-prod
-name: test-ingress
-spec:
-tls:
-- hosts:
-- mandrakee.xyz
-secretName: letsencrypt-prod
-rules:
-- host: mandrakee.xyz
-http:
-paths:
-- backend:
-service:
-name: echo-service
-port:
-number: 80
-path: /
-pathType: Prefix
-```
-**Deployment.yml**
-
-```C
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-name: echo-deployment
-spec:
-replicas: 1
-selector:
-matchLabels:
-app: echo-server
-template:
-metadata:
-labels:
-app: echo-server
-spec:
-containers:
-- name: httpapi-host
-image: jmalloc/echo-server
-imagePullPolicy: Always
-
-resources:
-requests:
-memory: "128Mi"
-cpu: "500m"
-ports:
-- containerPort: 80
----
-apiVersion: v1
-kind: Service
-metadata:
-name: echo-service
-spec:
-ports:
-- name: http-port
-port: 80
-targetPort: 8080
-selector:
-app: echo-server
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-annotations:
-kubernetes.io/ingress.class: ambassador
-cert-manager.io/issuer: letsencrypt-prod
-name: test-ingress
-spec:
-tls:
-- hosts:
-- mandrakee.xyz
-secretName: letsencrypt-prod
-rules:
-- host: mandrakee.xyz
-http:
-paths:
-- backend:
-service:
-name: echo-service
-port:
-number: 80
-path: /
-pathType: Prefix
-```
-
-
 
 
 
