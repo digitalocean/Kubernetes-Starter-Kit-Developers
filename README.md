@@ -406,6 +406,22 @@ server: envoy{
 }%
 ```
 
+### :clapper: Funny Summary
+```mermaid
+sequenceDiagram
+DO->> Lets-encrypt: Hello Lets-encrypt, Please sign my hosts?
+Lets-encrypt-->>DO: Sure IT takes for a while ~30s?
+DO->>Ambassador: Can you create a gateway for my echo and test service?
+Ambassador-->> DO: Sure, But Where is your service and Certs!
+Note right of Ambassador: Ambassador will mapping services <br/>by using Mapping.yml <br/>that's it<br/>
+
+DO-->> Ambassador: Let me check...
+DO->> Lets-encrypt: Yes... Lets-encrypt,what about our certs?
+Lets-encrypt-->>DO: it's done!
+DO->> Ambassador: you can use our Service.yml with signed TLS.
+Ambassador-->>DO:Thank you... Done! Can you check them all please!
+Note right of DO: DO can use <br/> "kg mapping -A" command<br/> on any terminal bonded to  Kubernetes Cluster for watching summary.<br/>
+```
 
 
 ## Service mesh using Linkerd <a name="LINK"></a>
