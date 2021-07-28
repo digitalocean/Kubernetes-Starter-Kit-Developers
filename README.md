@@ -175,7 +175,7 @@ Now connect loki data source to grafana. Go the grafana web console, and add set
 
 Now you can access logs from explore tab of grafana. Make sure to select loki as the data source. Use help button for log search cheat sheet.
 
-## Ingress using Ambassador <a name="AMBA"></a>
+## Ingress using Ambassador
 
 ### Options for LB and Ingress
 
@@ -194,26 +194,23 @@ Let us say you are exposing REST or GRPC API's for different tasks (reading acco
 As there are many vendors, kubernetes API has an ingress spec. The idea is that developers should be able to use the ingress api, and it should work with any vendor. That works well, but has limited capability in the current version. The new version of ingress is called Gateway API and is currently in alpha. The idea is same - users should be able to provide a rich set of ingress configuration using gateway API syntax. As long as the vendor supports gateway API, users will be able to manage the ingress in a vendor-agnostic configuration.
 
 
-We will use Ambassador/Edge Stack for this tutorial. You can pick ANY ingress/api-gateway as long as it is well-supported, has a vibrant community. We may more options for ingress in future.
+We will use Ambassador Edge Stack for this tutorial. You can pick ANY ingress/api-gateway as long as it is well-supported, has a vibrant community. We may more options for ingress in future.
 
   
 
-### Ambassador/Edge Stack
+### Ambassador Edge Stack
+Ambassador Edge Stack is a specialized [control plane for Envoy Proxy](https://blog.getambassador.io/the-importance-of-control-planes-with-service-meshes-and-front-proxies-665f90c80b3d). In this architecture, Ambassador Edge Stack translates configuration (in the form of Kubernetes Custom Resources) to Envoy configuration. All actual traffic is directly handled by the high-performance [Envoy Proxy](https://www.envoyproxy.io/).
 
-We can create our starter kit environment with 5 easy steps and for these steps will need 5 yml files. Our sample solution has 2 services signed Acme certifications with Ambassador GateWay. 
+#### Details
 
-```mermaid
-graph LR
-A[Create 2 YMLs : Deploy & Service] -- For Deployment --> B((Deployment.yml))
-A  -- For Service --> C(Service.yml)
-B --> D{Mapping}
-C --> D
-D -->E(Curling)
-```
-> #### <i class="fa fa-gear fa-spin fa-2x" style="color: firebrick"></i> Configuration :capital_abcd:
-> Configuration will help Deployment yaml which can be launched 2 sample services (quote and echo)  from the **Deployment -> Service** . 
+1.  The service owner defines configuration in Kubernetes manifests.
+2.  When the manifest is applied to the cluster, the Kubernetes API notifies Ambassador Edge Stack of the change.
+3.  Ambassador Edge Stack parses the change and transforms the configuration into a semantic intermediate representation. Envoy configuration is generated from this IR.
+4.  The new configuration is passed to Envoy via the gRPC-based Aggregated Discovery Service (ADS) API.
+5.  Traffic flows through the reconfigured Envoy, without dropping any connections.
 
  #### :arrow_down_small: Install Ambassador
+ We'll start by installing Ambassador Edge Stack into your cluster. Helm helps you manage required packages.
  Installing  Ambassador using helm. - stable 1.13 version
  Instructions - https://www.getambassador.io/docs/edge-stack/1.13/tutorials/getting-started/
 
@@ -405,24 +402,6 @@ server: envoy{
     "time": "2021-07-25T22:12:25.764754935Z"  
 }%
 ```
-
-### :clapper: Funny Summary
-```mermaid
-sequenceDiagram
-DO->> Lets-encrypt: Hello Lets-encrypt, Please sign my hosts?
-Lets-encrypt-->>DO: Sure IT takes for a while ~30s?
-DO->>Ambassador: Can you create a gateway for my echo and test service?
-Ambassador-->> DO: Sure, But Where is your service and Certs!
-Note right of Ambassador: Ambassador will mapping services <br/>by using Mapping.yml <br/>that's it<br/>
-
-DO-->> Ambassador: Let me check...
-DO->> Lets-encrypt: Yes... Lets-encrypt,what about our certs?
-Lets-encrypt-->>DO: it's done!
-DO->> Ambassador: you can use our Service.yml with signed TLS.
-Ambassador-->>DO:Thank you... Done! Can you check them all please!
-Note right of DO: DO can use <br/> "kg mapping -A" command<br/> on any terminal bonded to  Kubernetes Cluster for watching summary.<br/>
-```
-
 
 ## Service mesh using Linkerd <a name="LINK"></a>
 TBD
