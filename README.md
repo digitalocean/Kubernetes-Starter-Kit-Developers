@@ -400,7 +400,7 @@ Ambassador Edge Stack is designed around a [declarative, self-service management
 > More info : :pushpin:
 https://www.getambassador.io/docs/edge-stack/1.13/topics/using/intro-mappings/
 
-Mapping 2 services with prefix,host,service showing below it is totally easy please check above link and understand it's means.
+This Mapping is managing Edge Stack to route all traffic inbound to the /backend/ path to the quote & also /echo/ to the echo service.
 
 **Mapping.yml**:
 Creating 2 independent mappings - echo services accessible to test.kubenuggets.dev host, and quote service accessible to echo.kubenuggets.dev host.
