@@ -235,7 +235,10 @@ By using issuer.yml:
 ```
 ~kapp issuer.yml
 
+
 host.getambassador.io/example-host configured
+host.getambassador.io/example2-host configured
+
 
 ```
 ```
@@ -287,13 +290,110 @@ spec:
 It takes ~30 seconds to get the signed certificate for the hosts.
  #### :memo: Create Deployment and Service Yaml
 
-we have multiple TLS-enabled hosts on the same cluster. It means that we have multiple deployment and services. this setup is separated deployment and service eachother. It means:
+we have multiple TLS-enabled hosts on the same cluster. It means that we have multiple deployments and services. 
+deployment and service are separated from each other in this setup. Echo and quote service will be deployed by using the below code.It means:
 >Deployment.yml has 2 deployments: quote for test and echo for echo hosts.
 
 >quote-backend  have container named backend with :whale2: docker.io/datawire/quote:0.4.1 as image.
 
 >echo-backend  have container named echo with :whale2: jmalloc/echo-server as image.
 
+
+By using Deployment.Yml:
+
+```
+~ kapp deployment.yml 
+  
+  deployment.apps/quote configured
+  deployment.apps/echo configured
+
+```
+
+```
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: quote
+  namespace: ambassador
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: quote
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: quote
+    spec:
+      containers:
+      - name: backend
+        image: docker.io/datawire/quote:0.4.1
+        ports:
+        - name: http
+          containerPort: 8080
+          
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: echo
+  namespace: ambassador
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: echo
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: echo
+    spec:
+      containers:
+      - name: echo
+        image: jmalloc/echo-server
+        ports:
+        - name: http
+          containerPort: 8080
+```
+
+After Deployment, we can use below yml configuration for services up! 
+
+```
+~ kapp service.yml 
+```
+
+```
+apiVersion: v1
+kind: Service
+metadata:
+  name: quote
+  namespace: ambassador
+spec:
+  ports:
+  - name: http
+    port: 80
+    targetPort: 8080
+  selector:
+    app: quote
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: echo
+  namespace: ambassador
+spec:
+  ports:
+  - name: http
+    port: 80
+    targetPort: 8080
+  selector:
+    app: echo
+```
 #### :earth_americas: Mapping
 
 Ambassador Edge Stack is designed around a [declarative, self-service management model](https://www.getambassador.io/docs/edge-stack/latest/topics/concepts/gitops-continuous-delivery) It means that you can manage the edge with Ambassador Edge Stack is the `Mapping` resource.
