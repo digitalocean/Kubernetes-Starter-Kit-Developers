@@ -230,6 +230,11 @@ kubectl -n ambassador wait --for condition=available --timeout=90s deploy -lprod
 ```
 #### :memo: Create Issuer
    Enabling 2 domains (eg. echo & test ) to be hosted on the cluster, using ACME provider letsencrypt. Issuer.yml will help us. When you look at belowsample,  you will see that only one host, please create example2-host for echo service helps to host multiple TLS-enabled hosts on the same cluster.
+
+By using issuer.yml:
+```
+kapp issuer.yml
+```
 ```
 apiVersion: getambassador.io/v2
 kind: Host
@@ -239,17 +244,40 @@ metadata:
 spec:
   acmeProvider:
     authority: 'https://acme-v02.api.letsencrypt.org/directory'
-    email: bikram.gupta-40gmail.com
+    email: test@gmail.com
   ambassadorId:
     - default
-  hostname: test.kubenuggets.dev
+  hostname: test.mandrakee.xyz
   requestPolicy:
     insecure:
       action: Redirect
       additionalPort: 8080
   selector:
     matchLabels:
-      hostname: test.kubenuggets.dev
+      hostname: test.mandrakee.xyz
+  tlsSecret:
+    name: tls-cert
+
+---
+apiVersion: getambassador.io/v2
+kind: Host
+metadata:
+  name: example2-host
+  namespace: default
+spec:
+  acmeProvider:
+    authority: 'https://acme-v02.api.letsencrypt.org/directory'
+    email: test@gmail.com
+  ambassadorId:
+    - default
+  hostname: echo.mandrakee.xyz
+  requestPolicy:
+    insecure:
+      action: Redirect
+      additionalPort: 8080
+  selector:
+    matchLabels:
+      hostname: echo.mandrakee.xyz
   tlsSecret:
     name: tls-cert
 ```
