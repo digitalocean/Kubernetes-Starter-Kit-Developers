@@ -463,7 +463,7 @@ Because of using L4 LB , we have to enable proxy protocol through an annotation.
 
 ###  :book: Summary
 
->Checking  configurations 2 hosts with TLS termination and ACME protocol.
+>Checking configurations 2 hosts with TLS termination and ACME protocol in this setup. test.kubenuggets.dev and echo.kubenuggets.dev are binding directly ambassador gateway. Because of that, having been a map between hosts and ambassador gateways helps clients for using ambassador tls and gateway technologies. When you ping test.kubenuggets.dev, or echo.kubenuggets.dev on the terminal, you can see that it is routing ambassador endpoints. After that, the ambassador is using the mapping feature for mapping target endpoints. 
 
 ```
 ~ kg host -A                                                              
