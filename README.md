@@ -405,6 +405,7 @@ Mapping 2 services with prefix,host,service showing below it is totally easy ple
 **Mapping.yml**:
 Creating 2 independent mappings - echo services accessible to test.kubenuggets.dev host, and quote service accessible to echo.kubenuggets.dev host.
 ```
+~kapp mapping.yml
 ---
 apiVersion: getambassador.io/v2
 kind: Mapping
