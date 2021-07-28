@@ -209,6 +209,9 @@ Ambassador Edge Stack is a specialized [control plane for Envoy Proxy](https://b
 4.  The new configuration is passed to Envoy via the gRPC-based Aggregated Discovery Service (ADS) API.
 5.  Traffic flows through the reconfigured Envoy, without dropping any connections.
 
+More Details and extended explanation please visit: [Yhe Ambassador Edge Stack Architecture](https://www.getambassador.io/docs/edge-stack/2.0/topics/concepts/architecture/) 
+
+
  #### :arrow_down_small: Install Ambassador
  We'll start by installing Ambassador Edge Stack into your cluster. Helm helps you manage required packages.
  Installing  Ambassador using helm. - stable 1.13 version
