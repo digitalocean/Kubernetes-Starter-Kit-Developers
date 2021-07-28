@@ -453,8 +453,8 @@ quote              ClusterIP      10.245.172.174   <none>            80/TCP     
 ```
 
 ### :performing_arts: Creating A Proxy
+Because of using L4 LB , we have to enable proxy protocol through an annotation.After running this command, the public and private load balancers that expose your LB with the PROXY protocol feature enabled.
 
-Having also enabled proxy protocol through an annotation, because I am using an L4 LB.
 ```
 ~ kgsvcn ambassador ambassador -o yaml | grep proxy        
     service.beta.kubernetes.io/do-loadbalancer-enable-proxy-protocol: "true"  
