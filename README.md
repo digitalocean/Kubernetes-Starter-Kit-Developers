@@ -401,6 +401,11 @@ Ambassador Edge Stack is designed around a [declarative, self-service management
 https://www.getambassador.io/docs/edge-stack/1.13/topics/using/intro-mappings/
 
 This Mapping is managing Edge Stack to route all traffic inbound to the /backend/ path to the quote & also /echo/ to the echo service.
+**Details**
+
+* name:	It's a string identifying the Mapping (e.g. in diagnostics)
+* prefix:	It's the URL prefix identifying your resource.
+* service: It's the name of the service handling the resource; must include the namespace (e.g. myservice.othernamespace) if the service is in a different namespace than Ambassador Edge Stack.
 
 **Mapping.yml**:
 Creating 2 independent mappings - echo services accessible to test.kubenuggets.dev host, and quote service accessible to echo.kubenuggets.dev host.
