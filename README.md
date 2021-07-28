@@ -233,7 +233,10 @@ kubectl -n ambassador wait --for condition=available --timeout=90s deploy -lprod
 
 By using issuer.yml:
 ```
-kapp issuer.yml
+~kapp issuer.yml
+
+host.getambassador.io/example-host configured
+
 ```
 ```
 apiVersion: getambassador.io/v2
