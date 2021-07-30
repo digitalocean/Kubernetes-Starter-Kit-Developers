@@ -498,14 +498,20 @@ spec:
   ```
 
 ### Enabling Proxy Protocol
-Because of using L4 LB , we will not see the client IP at the destination. We will see the LB IP. So we need to enable proxy protocol through an annotation on the LB. After running this command, the load balancers that expose your LB with the PROXY protocol feature enabled. [FIX IT]
+There are lot of configuration options available to you when running Ambassador Edge Stack but we will focus on automatic certificate management in the Ambassador Edge Stack in this part. After deploying the Service above  and manually enabling the proxy protocol you have to need to deploy the following Ambassador Module to manage Ambassador Edge Stack to utilize the proxy protocol and then restart Ambassador Edge Stack for the configuration to take effect.
 
-[ADD A LINK TO DIGITALOCEAN DOKS PROXY PROTOCOL HOW TO]
+[For More details about how to use proxy for Ambassador](https://www.getambassador.io/docs/edge-stack/1.13/topics/running/ambassador-with-aws/). You can create a proxy in Ambassador by using below code.Ambassador Edge Stack will now expect traffic from the load balancer to be wrapped with the proxy protocol so it can read the client IP address.
 
 ```
-~ kgsvcn ambassador ambassador -o yaml | grep proxy        
-    service.beta.kubernetes.io/do-loadbalancer-enable-proxy-protocol: "true"  
-~
+ 
+apiVersion: getambassador.io/v2
+kind: Module
+metadata:
+  name: ambassador
+  namespace: ambassador
+spec:
+  config:
+    use_proxy_proto: true
 ```
 
 ### Verify the Configuration
@@ -515,7 +521,6 @@ Because of using L4 LB , we will not see the client IP at the destination. We wi
 ```
 ~ kg host -A                                                              
 NAMESPACE    NAME                                HOSTNAME                            STATE   PHASE COMPLETED   PHASE PENDING   AGE  
-ambassador   charming-galileo-913.edgestack.me   charming-galileo-913.edgestack.me   Ready                                     13h  
 default      example-host                        test.mandrakee.xyz                  Ready                                     18h  
 default      example2-host                       echo.mandrakee.xyz                  Ready                                     9m19s
 ```
