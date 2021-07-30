@@ -198,11 +198,10 @@ We will use Ambassador Edge Stack for this tutorial. You can pick ANY ingress/ap
 
   
 
-### Ambassador Edge Stack
+### Ambassador Edge Stack (AES)
 Ambassador Edge Stack is a specialized [control plane for Envoy Proxy](https://blog.getambassador.io/the-importance-of-control-planes-with-service-meshes-and-front-proxies-665f90c80b3d). In this architecture, Ambassador Edge Stack translates configuration (in the form of Kubernetes Custom Resources) to Envoy configuration. All actual traffic is directly handled by the high-performance [Envoy Proxy](https://www.envoyproxy.io/).
 
-#### Details
-
+At a high level, AES works as follows.
 1.  The service owner defines configuration in Kubernetes manifests.
 2.  When the manifest is applied to the cluster, the Kubernetes API notifies Ambassador Edge Stack of the change.
 3.  Ambassador Edge Stack parses the change and transforms the configuration into a semantic intermediate representation. Envoy configuration is generated from this IR.
@@ -211,8 +210,15 @@ Ambassador Edge Stack is a specialized [control plane for Envoy Proxy](https://b
 
 More Details and extended explanation please visit: [The Ambassador Edge Stack Architecture](https://www.getambassador.io/docs/edge-stack/2.0/topics/concepts/architecture/) 
 
+The set of configuration steps are as follows
+- Install AES.
+- Configure 2 hosts (domain1, domain2) on the cluster. For this example, we're using test.mandake.xyz, and echo.mandrake.xyz as 2 differents hosts on the same cluster.
+- Enable different paths for the domains. For test.mandrake.xyz, we create a backend service called quote. For echo.mandrake.xyz, we create a backend service called test.
+- Domains are configured with TLS, and have different URL paths.
+- Verify the installation.
 
- #### :arrow_down_small: Install Ambassador
+
+ ### Install Ambassador
  We'll start by installing Ambassador Edge Stack into your cluster. Helm helps you manage required packages.
  Installing  Ambassador using helm. - stable 1.13 version
  Instructions - https://www.getambassador.io/docs/edge-stack/1.13/tutorials/getting-started/
@@ -231,7 +237,7 @@ helm install ambassador --namespace ambassador datawire/ambassador &&  \
 kubectl -n ambassador wait --for condition=available --timeout=90s deploy -lproduct=aes
 
 ```
-#### :memo: Create Issuer
+### Define the Hosts (domains)
    Enabling 2 domains (eg. echo & test ) to be hosted on the cluster, using ACME provider letsencrypt. Issuer.yml will help us. When you look at belowsample,  you will see that only one host, please create example2-host for echo service helps to host multiple TLS-enabled hosts on the same cluster.
 
 By using issuer.yml:
@@ -290,11 +296,58 @@ spec:
   tlsSecret:
     name: tls-cert
 ```
-It takes ~30 seconds to get the signed certificate for the hosts.
- #### :memo: Create Deployment and Service Yaml
+
+```
+apiVersion: getambassador.io/v2
+kind: Host
+metadata:
+  name: example2-host
+spec:
+  hostname: echo.kubenuggets.dev
+  acmeProvider:
+    email: bikram.gupta@gmail.com
+  tlsSecret:
+    name: tls2-cert
+  requestPolicy:
+    insecure:
+       action: Redirect
+       additionalPort: 8080
+```
+
+
+It takes ~30 seconds to get the signed certificate for the hosts. At this point, we have Ambassador installed, and hosts configured. BUT, we still do not have the networking (eg. DNS and Load balancer) configured to route the traffic to the cluster. 
+
+
+### Configure your domain mapping to point the domains to the cluster LB
+
+Here  hosting 2 hosts (echo.kubenuggets.dev, test.kubenuggets.dev) on the same cluster.
+
+```
+~ doctl compute domain records list kubenuggets.dev  
+ID           Type    Name    Data                    Priority    Port    TTL     Weight  
+158200732    SOA     @       1800                    0           0       1800    0  
+158200733    NS      @       ns1.digitalocean.com    0           0       1800    0  
+158200734    NS      @       ns2.digitalocean.com    0           0       1800    0  
+158200735    NS      @       ns3.digitalocean.com    0           0       1800    0  
+158200782    A       echo    143.244.208.164         0           0       180     0  
+158201299    A       test    143.244.208.164         0           0       180     0  
+~   
+~ kgsvcn ambassador   
+NAME               TYPE           CLUSTER-IP       EXTERNAL-IP       PORT(S)                      AGE  
+ambassador         LoadBalancer   10.245.215.249   143.244.208.164   80:32723/TCP,443:31416/TCP   23h  
+ambassador-admin   ClusterIP      10.245.147.231   <none>            8877/TCP,8005/TCP            23h  
+ambassador-redis   ClusterIP      10.245.12.247    <none>            6379/TCP                     23h  
+quote              ClusterIP      10.245.172.174   <none>            80/TCP                       19h  
+~
+```
+
+At this point, the network traffic for the hosts will reach the cluster (AES ingress). Now we need to configure the paths (backend services) for each of the hosts.
+
+ ### Create Backend Services
 
 we have multiple TLS-enabled hosts on the same cluster. It means that we have multiple deployments and services. 
 deployment and service are separated from each other in this setup. Echo and quote service will be deployed by using the below code.It means:
+
 >Deployment.yml has 2 deployments: quote for test and echo for echo hosts.
 
 >quote-backend  have container named backend with :whale2: docker.io/datawire/quote:0.4.1 as image.
@@ -397,7 +450,10 @@ spec:
   selector:
     app: echo
 ```
-#### :earth_americas: Mapping
+
+As the last configuration step, create the mapping for Ambassador.
+
+#### Configure Mapping for each Hosts
 
 Ambassador Edge Stack is designed around a [declarative, self-service management model](https://www.getambassador.io/docs/edge-stack/latest/topics/concepts/gitops-continuous-delivery) It means that you can manage the edge with Ambassador Edge Stack is the `Mapping` resource.
 > More info : :pushpin:
@@ -437,31 +493,10 @@ spec:
   service: echo
   ```
 
-###  :rocket: Doctl Compute!
+### Enabling Proxy Protocol
+Because of using L4 LB , we will not see the client IP at the destination. We will see the LB IP. So we need to enable proxy protocol through an annotation on the LB. After running this command, the load balancers that expose your LB with the PROXY protocol feature enabled. [FIX IT]
 
-Here  hosting 2 hosts (echo.kubenuggets.dev, test.kubenuggets.dev) on the same cluster.
-
-```
-~ doctl compute domain records list kubenuggets.dev  
-ID           Type    Name    Data                    Priority    Port    TTL     Weight  
-158200732    SOA     @       1800                    0           0       1800    0  
-158200733    NS      @       ns1.digitalocean.com    0           0       1800    0  
-158200734    NS      @       ns2.digitalocean.com    0           0       1800    0  
-158200735    NS      @       ns3.digitalocean.com    0           0       1800    0  
-158200782    A       echo    143.244.208.164         0           0       180     0  
-158201299    A       test    143.244.208.164         0           0       180     0  
-~   
-~ kgsvcn ambassador   
-NAME               TYPE           CLUSTER-IP       EXTERNAL-IP       PORT(S)                      AGE  
-ambassador         LoadBalancer   10.245.215.249   143.244.208.164   80:32723/TCP,443:31416/TCP   23h  
-ambassador-admin   ClusterIP      10.245.147.231   <none>            8877/TCP,8005/TCP            23h  
-ambassador-redis   ClusterIP      10.245.12.247    <none>            6379/TCP                     23h  
-quote              ClusterIP      10.245.172.174   <none>            80/TCP                       19h  
-~
-```
-
-### :performing_arts: Creating A Proxy
-Because of using L4 LB , we have to enable proxy protocol through an annotation.After running this command, the public and private load balancers that expose your LB with the PROXY protocol feature enabled.
+[ADD A LINK TO DIGITALOCEAN DOKS PROXY PROTOCOL HOW TO]
 
 ```
 ~ kgsvcn ambassador ambassador -o yaml | grep proxy        
@@ -469,7 +504,7 @@ Because of using L4 LB , we have to enable proxy protocol through an annotation.
 ~
 ```
 
-###  :book: Summary
+### Verify the Configuration
 
 >Checking configurations 2 hosts with TLS termination and ACME protocol in this setup. test.kubenuggets.dev and echo.kubenuggets.dev are binding directly ambassador gateway. Because of that, having been a map between hosts and ambassador gateways helps clients for using ambassador tls and gateway technologies. When you ping test.kubenuggets.dev, or echo.kubenuggets.dev on the terminal, you can see that it is routing ambassador endpoints. After that, the ambassador is using the mapping feature for mapping target endpoints. 
 
@@ -507,7 +542,7 @@ spec:
 ~
  ```
 
-###  :speech_balloon: Let's Curl
+Now let us test the connectivity.
 
 Checking test service with echo endpoint. Being sure it returns 200 OK.
 ```
