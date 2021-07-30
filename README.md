@@ -175,7 +175,7 @@ Now connect loki data source to grafana. Go the grafana web console, and add set
 
 Now you can access logs from explore tab of grafana. Make sure to select loki as the data source. Use help button for log search cheat sheet.
 
-## Ingress using Ambassador
+## Ingress using Ambassador <a name="AMBA"></a>
 
 ### Options for LB and Ingress
 
@@ -303,9 +303,9 @@ kind: Host
 metadata:
   name: example2-host
 spec:
-  hostname: echo.kubenuggets.dev
+  hostname: echo.mandrakee.xyz
   acmeProvider:
-    email: bikram.gupta@gmail.com
+    email: test@gmail.com
   tlsSecret:
     name: tls2-cert
   requestPolicy:
@@ -320,10 +320,10 @@ It takes ~30 seconds to get the signed certificate for the hosts. At this point,
 
 ### Configure your domain mapping to point the domains to the cluster LB
 
-Here  hosting 2 hosts (echo.kubenuggets.dev, test.kubenuggets.dev) on the same cluster.
+Here  hosting 2 hosts (echo.mandrakee.xyz, test.mandrakee.xyz) on the same cluster.
 
 ```
-~ doctl compute domain records list kubenuggets.dev  
+~ doctl compute domain records list mandrakee.xyz  
 ID           Type    Name    Data                    Priority    Port    TTL     Weight  
 158200732    SOA     @       1800                    0           0       1800    0  
 158200733    NS      @       ns1.digitalocean.com    0           0       1800    0  
@@ -467,7 +467,11 @@ This Mapping is managing Edge Stack to route all traffic inbound to the /backend
 * service: It's the name of the service handling the resource; must include the namespace (e.g. myservice.othernamespace) if the service is in a different namespace than Ambassador Edge Stack.
 
 **Mapping.yml**:
-Creating 2 independent mappings - echo services accessible to test.kubenuggets.dev host, and quote service accessible to echo.kubenuggets.dev host.
+Creating 2 independent mappings 
+
+- echo services accessible to test.mandrakee.xyz AND and quote service accessible to echo.mandrakee.xyz
+  
+
 ```
 ~kapp mapping.yml
 ---
@@ -506,14 +510,14 @@ Because of using L4 LB , we will not see the client IP at the destination. We wi
 
 ### Verify the Configuration
 
->Checking configurations 2 hosts with TLS termination and ACME protocol in this setup. test.kubenuggets.dev and echo.kubenuggets.dev are binding directly ambassador gateway. Because of that, having been a map between hosts and ambassador gateways helps clients for using ambassador tls and gateway technologies. When you ping test.kubenuggets.dev, or echo.kubenuggets.dev on the terminal, you can see that it is routing ambassador endpoints. After that, the ambassador is using the mapping feature for mapping target endpoints. 
+>Checking configurations 2 hosts with TLS termination and ACME protocol in this setup. test.mandrakee.xyz and echo.mandrakee.xyz are binding directly ambassador gateway. Because of that, having been a map between hosts and ambassador gateways helps clients for using ambassador tls and gateway technologies. When you ping test.mandrakee.xyz, or echo.mandrakee.xyz on the terminal, you can see that it is routing ambassador endpoints. After that, the ambassador is using the mapping feature for mapping target endpoints. 
 
 ```
 ~ kg host -A                                                              
 NAMESPACE    NAME                                HOSTNAME                            STATE   PHASE COMPLETED   PHASE PENDING   AGE  
 ambassador   charming-galileo-913.edgestack.me   charming-galileo-913.edgestack.me   Ready                                     13h  
-default      example-host                        test.kubenuggets.dev                Ready                                     18h  
-default      example2-host                       echo.kubenuggets.dev                Ready                                     9m19s
+default      example-host                        test.mandrakee.xyz                  Ready                                     18h  
+default      example2-host                       echo.mandrakee.xyz                  Ready                                     9m19s
 ```
 > Checking  2 independent mappings. Please be sure mapping is correct such as source host etc.
 
@@ -524,19 +528,20 @@ ambassador   ambassador-devportal                                 /documentation
 ambassador   ambassador-devportal-api                             /openapi/                                   127.0.0.1:8500             
 ambassador   ambassador-devportal-assets                          /documentation/(assets|styles)/(.*)(.css)   127.0.0.1:8500             
 ambassador   ambassador-devportal-demo                            /docs/                                      127.0.0.1:8500             
-ambassador   quote-backend                 echo.kubenuggets.dev   /backend/                                   quote                      
-default      echo-backend                  test.kubenuggets.dev   /echo/                                      echo-service               
+ambassador   quote-backend                 echo.mandrakee.xyz     /backend/                                   quote                      
+default      echo-backend                  test.mandrakee.xyz     /echo/                                      echo-service      
+
 ~ kg mapping -n ambassador echo-backend -o yaml  
 ...  
 spec:  
-  host: test.kubenuggets.dev  
+  host: test.mandrakee.xyz  
   prefix: /echo/  
   service: echo-service  
 ~   
 ~ kg mapping -n ambassador quote-backend -o yaml  
 ...  
 spec:  
-  host: echo.kubenuggets.dev  
+  host: echo.mandrakee.xyz  
   prefix: /backend/  
   service: quote  
 ~
@@ -546,9 +551,9 @@ Now let us test the connectivity.
 
 Checking test service with echo endpoint. Being sure it returns 200 OK.
 ```
-~ curl -Li [http://test.kubenuggets.dev/echo/](http://test.kubenuggets.dev/echo/)     
+~ curl -Li [http://test.mandrakee.xyz/echo/](http://test.mandrakee.xyz/echo/)     
 HTTP/1.1 301 Moved Permanently  
-location: [https://test.kubenuggets.dev/echo/](https://test.kubenuggets.dev/echo/)  
+location: [https://test.mandrakee.xyz/echo/](https://test.mandrakee.xyz/echo/)  
 date: Sun, 25 Jul 2021 22:12:54 GMT  
 server: envoy  
 content-length: 0HTTP/1.1 200 OK  
@@ -561,9 +566,9 @@ server: envoy
 Checking echo service with backend endpoint. Being sure it returns 200 OK.
 
 ```
-~ curl -Li [http://echo.kubenuggets.dev/backend/](http://echo.kubenuggets.dev/backend/)  
+~ curl -Li [http://echo.mandrakee.xyz/backend/](http://echo.mandrakee.xyz/backend/)  
 HTTP/1.1 301 Moved Permanently  
-location: [https://echo.kubenuggets.dev/backend/](https://echo.kubenuggets.dev/backend/)  
+location: [https://echo.mandrakee.xyz/backend/](https://echo.mandrakee.xyz/backend/)  
 date: Sun, 25 Jul 2021 22:12:25 GMT  
 server: envoy  
 content-length: 0HTTP/1.1 200 OK  
