@@ -538,18 +538,60 @@ default      echo-backend                  test.mandrakee.xyz     /echo/        
 
 ~ kg mapping -n ambassador echo-backend -o yaml  
 ...  
-spec:  
-  host: test.mandrakee.xyz  
-  prefix: /echo/  
-  service: echo-service  
-~   
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"getambassador.io/v2","kind":"Mapping","metadata":{"annotations":{},"name":"echo-backend","namespace":"ambassador"},"spec":{"host":"echo.mandrakee.xyz","prefix":"/echo/","service":"echo"}}
+  creationTimestamp: "2021-07-30T16:11:57Z"
+  generation: 1
+  name: echo-backend
+  namespace: ambassador
+  resourceVersion: "1239310"
+  uid: 3fc67511-6e04-4d56-bde2-5de07fcc9748
+spec:
+  host: echo.mandrakee.xyz
+  prefix: /echo/
+  service: echo
+ 
+
 ~ kg mapping -n ambassador quote-backend -o yaml  
 ...  
-spec:  
-  host: echo.mandrakee.xyz  
-  prefix: /backend/  
-  service: quote  
-~
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"getambassador.io/v2","kind":"Mapping","metadata":{"annotations":{},"name":"echo-backend","namespace":"ambassador"},"spec":{"host":"echo.mandrakee.xyz","prefix":"/echo/","service":"echo"}}
+  creationTimestamp: "2021-07-30T16:11:57Z"
+  generation: 1
+  name: echo-backend
+  namespace: ambassador
+  resourceVersion: "1239310"
+  uid: 3fc67511-6e04-4d56-bde2-5de07fcc9748
+spec:
+  host: echo.mandrakee.xyz
+  prefix: /echo/
+  service: echo
+root@ubuntu-s-1vcpu-2gb-fra1-01:~/setup/AES# kg mapping -n ambassador quote-backend -o yaml
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"getambassador.io/v2","kind":"Mapping","metadata":{"annotations":{},"name":"quote-backend","namespace":"ambassador"},"spec":{"host":"test.mandrakee.xyz","prefix":"/backend/","service":"quote"}}
+  creationTimestamp: "2021-07-30T16:11:56Z"
+  generation: 1
+  name: quote-backend
+  namespace: ambassador
+  resourceVersion: "1239306"
+  uid: 6f7e1766-5554-435a-8335-bc7371b89ada
+spec:
+  host: test.mandrakee.xyz
+  prefix: /backend/
+  service: quote
+ 
  ```
 
 Now let us test the connectivity.
