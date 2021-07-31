@@ -598,36 +598,70 @@ Now let us test the connectivity.
 
 Checking test service with echo endpoint. Being sure it returns 200 OK.
 ```
-~ curl -Li [http://test.mandrakee.xyz/echo/](http://test.mandrakee.xyz/echo/)     
-HTTP/1.1 301 Moved Permanently  
-location: [https://test.mandrakee.xyz/echo/](https://test.mandrakee.xyz/echo/)  
-date: Sun, 25 Jul 2021 22:12:54 GMT  
-server: envoy  
-content-length: 0HTTP/1.1 200 OK  
-content-type: text/plain  
-date: Sun, 25 Jul 2021 22:12:55 GMT  
-content-length: 366  
-x-envoy-upstream-service-time: 1  
+
+~ curl -Li http://echo.mandrakee.xyz/echo/
+HTTP/1.1 404 Not Found
+date: Sun, 25 Jul 2021 22:13:04 GMT
 server: envoy
+content-length: 0
+~ 
+
+
+~ curl -Li http://test.mandrakee.xyz/echo/   
+HTTP/1.1 301 Moved Permanently
+location: https://test.mandrakee.xyz/echo/
+date: Sun, 25 Jul 2021 22:12:54 GMT
+server: envoy
+content-length: 0
+HTTP/1.1 200 OK
+content-type: text/plain
+date: Sun, 25 Jul 2021 22:12:55 GMT
+content-length: 366
+x-envoy-upstream-service-time: 1
+server: envoy
+Request served by echo-deployment-869b7bf9c7-m2qgs
+HTTP/1.1 GET /
+Host: test.mandrakee.xyz
+User-Agent: curl/7.64.1
+Accept: */*
+X-Forwarded-For: xxx
+X-Forwarded-Proto: https
+X-Request-Id: 32343d7b-1737-4506-b29c-0622d9554cb4
+X-Envoy-Original-Path: /echo/
+X-Envoy-External-Address: xxx
+X-Envoy-Expected-Rq-Timeout-Ms: 3000
+Content-Length: 0
+
+
+
 ```
 Checking echo service with backend endpoint. Being sure it returns 200 OK.
 
 ```
-~ curl -Li [http://echo.mandrakee.xyz/backend/](http://echo.mandrakee.xyz/backend/)  
-HTTP/1.1 301 Moved Permanently  
-location: [https://echo.mandrakee.xyz/backend/](https://echo.mandrakee.xyz/backend/)  
-date: Sun, 25 Jul 2021 22:12:25 GMT  
-server: envoy  
-content-length: 0HTTP/1.1 200 OK  
-content-type: application/json  
-date: Sun, 25 Jul 2021 22:12:25 GMT  
-content-length: 156  
-x-envoy-upstream-service-time: 0  
-server: envoy{  
-    "server": "gargantuan-kiwi-irbqzsp6",  
-    "quote": "A principal idea is omnipresent, much like candy.",  
-    "time": "2021-07-25T22:12:25.764754935Z"  
-}%
+~ curl -Li http://test.mandrakee.xyz/backend/ 
+HTTP/1.1 404 Not Found
+date: Sun, 25 Jul 2021 22:12:13 GMT
+server: envoy
+content-length: 0
+
+
+~ curl -Li http://echo.mandrakee.xyz/backend/
+HTTP/1.1 301 Moved Permanently
+location: https://echo.mandrakee.xyz/backend/
+date: Sun, 25 Jul 2021 22:12:25 GMT
+server: envoy
+content-length: 0
+HTTP/1.1 200 OK
+content-type: application/json
+date: Sun, 25 Jul 2021 22:12:25 GMT
+content-length: 156
+x-envoy-upstream-service-time: 0
+server: envoy
+{
+    "server": "gargantuan-kiwi-irbqzsp6",
+    "quote": "A principal idea is omnipresent, much like candy.",
+    "time": "2021-07-25T22:12:25.764754935Z"
+}
 ```
 
 ## Service mesh using Linkerd <a name="LINK"></a>
