@@ -213,7 +213,7 @@ More Details and extended explanation please visit: [The Ambassador Edge Stack A
 The set of configuration steps are as follows
 - Install AES.
 - Configure 2 hosts (domain1, domain2) on the cluster. For this example, we're using quote.mandake.xyz, and echo.mandrake.xyz as 2 differents hosts on the same cluster.
-- Enable different paths for the domains. For quote.mandrake.xyz, we create a backend service called quote. For echo.mandrake.xyz, we create a backend service called quote.
+- Enable different paths for the domains. For quote.mandrake.xyz, we create a backend service called quote. For echo.mandrake.xyz, we create a echo service called echo.
 - Domains are configured with TLS, and have different URL paths.
 - Verify the installation.
 
@@ -325,9 +325,7 @@ By using Deployment.Yml:
   deployment.apps/quote configured
   deployment.apps/echo configured
 
-```
-
-```
+#Deployment.yml for quote and echo images
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -352,7 +350,7 @@ spec:
         ports:
         - name: http
           containerPort: 8080
-          
+
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -386,6 +384,8 @@ After Deployment, we can use below yml configuration for services up!
 ```
 
 ```
+#service.yml for quote and echo deployment.
+
 apiVersion: v1
 kind: Service
 metadata:
@@ -465,7 +465,6 @@ There are lot of configuration options available to you when running Ambassador 
 [For More details about how to use proxy for Ambassador](https://www.getambassador.io/docs/edge-stack/1.13/topics/running/ambassador-with-aws/). You can create a proxy in Ambassador by using below code.Ambassador Edge Stack will now expect traffic from the load balancer to be wrapped with the proxy protocol so it can read the client IP address.
 
 ```
- 
 apiVersion: getambassador.io/v2
 kind: Module
 metadata:
@@ -482,9 +481,9 @@ spec:
 
 ```
 ~ kg host -A                                                              
-NAMESPACE    NAME                                HOSTNAME                            STATE   PHASE COMPLETED   PHASE PENDING   AGE  
-default      quote-host                        quote.mandrakee.xyz                  Ready                                     18h  
-default      echo-host                       echo.mandrakee.xyz                  Ready                                     9m19s
+NAMESPACE    NAME                              HOSTNAME                           STATE   PHASE COMPLETED   PHASE PENDING   AGE  
+default      quote-host                        quote.mandrakee.xyz                Ready                                     18h  
+default      echo-host                         echo.mandrakee.xyz                 Ready                                     9m19s
 ```
 > Checking  2 independent mappings. Please be sure mapping is correct such as source host etc.
 
@@ -495,8 +494,8 @@ ambassador   ambassador-devportal                                 /documentation
 ambassador   ambassador-devportal-api                             /openapi/                                   127.0.0.1:8500             
 ambassador   ambassador-devportal-assets                          /documentation/(assets|styles)/(.*)(.css)   127.0.0.1:8500             
 ambassador   ambassador-devportal-demo                            /docs/                                      127.0.0.1:8500             
-ambassador   quote-backend                 echo.mandrakee.xyz     /backend/                                   quote                      
-default      echo-backend                  quote.mandrakee.xyz     /echo/                                      echo-service      
+ambassador   quote-backend                 quote.mandrakee.xyz    /quote/                                     quote-service                      
+default      echo-backend                  echo.mandrakee.xyz     /echo/                                      echo-service      
 
 ~ kg mapping -n ambassador echo-backend -o yaml  
 ...  
@@ -505,7 +504,7 @@ kind: Mapping
 metadata:
   annotations:
     kubectl.kubernetes.io/last-applied-configuration: |
-      {"apiVersion":"getambassador.io/v2","kind":"Mapping","metadata":{"annotations":{},"name":"echo-backend","namespace":"ambassador"},"spec":{"host":"echo.mandrakee.xyz","prefix":"/echo/","service":"echo"}}
+      {"apiVersion":"getambassador.io/v2","kind":"Mapping","metadata":{"annotations":{},"name":"echo-backend","namespace":"ambassador"},"spec":{"host":"echo.mandrakee.xyz","prefix":"/echo/","service":"echo-service"}}
   creationTimestamp: "2021-07-30T16:11:57Z"
   generation: 1
   name: echo-backend
@@ -525,34 +524,19 @@ kind: Mapping
 metadata:
   annotations:
     kubectl.kubernetes.io/last-applied-configuration: |
-      {"apiVersion":"getambassador.io/v2","kind":"Mapping","metadata":{"annotations":{},"name":"echo-backend","namespace":"ambassador"},"spec":{"host":"echo.mandrakee.xyz","prefix":"/echo/","service":"echo"}}
+      {"apiVersion":"getambassador.io/v2","kind":"Mapping","metadata":{"annotations":{},"name":"quote-backend","namespace":"ambassador"},"spec":{"host":"quote.mandrakee.xyz","prefix":"/quote/","service":"quote-service"}}
   creationTimestamp: "2021-07-30T16:11:57Z"
   generation: 1
-  name: echo-backend
+  name: quote-backend
   namespace: ambassador
   resourceVersion: "1239310"
   uid: 3fc67511-6e04-4d56-bde2-5de07fcc9748
 spec:
-  host: echo.mandrakee.xyz
-  prefix: /echo/
-  service: echo
-root@ubuntu-s-1vcpu-2gb-fra1-01:~/setup/AES# kg mapping -n ambassador quote-backend -o yaml
-apiVersion: getambassador.io/v2
-kind: Mapping
-metadata:
-  annotations:
-    kubectl.kubernetes.io/last-applied-configuration: |
-      {"apiVersion":"getambassador.io/v2","kind":"Mapping","metadata":{"annotations":{},"name":"quote-backend","namespace":"ambassador"},"spec":{"host":"quote.mandrakee.xyz","prefix":"/backend/","service":"quote"}}
-  creationTimestamp: "2021-07-30T16:11:56Z"
-  generation: 1
-  name: quote-backend
-  namespace: ambassador
-  resourceVersion: "1239306"
-  uid: 6f7e1766-5554-435a-8335-bc7371b89ada
-spec:
   host: quote.mandrakee.xyz
-  prefix: /backend/
+  prefix: /quote/
   service: quote
+
+
  
  ```
 
