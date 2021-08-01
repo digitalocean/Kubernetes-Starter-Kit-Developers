@@ -171,7 +171,7 @@ curl https://raw.githubusercontent.com/grafana/helm-charts/main/charts/loki-stac
 helm upgrade --install loki --namespace=monitoring grafana/loki-stack -f loki-values.yaml --create-namespace --wait
 ```
 
-Now connect loki data source to grafana. Go the grafana web console, and add settings - data sources - add - loki. Add loki url "http://loki:3100". Save and test.
+Now connect loki data source to grafana. Go the grafana web console, and add settings - data sources - add - loki. Add loki url "http://loki:3100". Save and quote.
 
 Now you can access logs from explore tab of grafana. Make sure to select loki as the data source. Use help button for log search cheat sheet.
 
@@ -212,8 +212,8 @@ More Details and extended explanation please visit: [The Ambassador Edge Stack A
 
 The set of configuration steps are as follows
 - Install AES.
-- Configure 2 hosts (domain1, domain2) on the cluster. For this example, we're using test.mandake.xyz, and echo.mandrake.xyz as 2 differents hosts on the same cluster.
-- Enable different paths for the domains. For test.mandrake.xyz, we create a backend service called quote. For echo.mandrake.xyz, we create a backend service called test.
+- Configure 2 hosts (domain1, domain2) on the cluster. For this example, we're using quote.mandake.xyz, and echo.mandrake.xyz as 2 differents hosts on the same cluster.
+- Enable different paths for the domains. For quote.mandrake.xyz, we create a backend service called quote. For echo.mandrake.xyz, we create a backend service called quote.
 - Domains are configured with TLS, and have different URL paths.
 - Verify the installation.
 
@@ -238,89 +238,58 @@ kubectl -n ambassador wait --for condition=available --timeout=90s deploy -lprod
 
 ```
 ### Define the Hosts (domains)
-   Enabling 2 domains (eg. echo & test ) to be hosted on the cluster, using ACME provider letsencrypt. Issuer.yml will help us. When you look at belowsample,  you will see that only one host, please create example2-host for echo service helps to host multiple TLS-enabled hosts on the same cluster.
 
-By using issuer.yml:
+
+Creating echo-host for echo service helps to host multiple TLS-enabled hosts on the same cluster Because of that, This Host tells Ambassador Edge Stack to expect to be reached at echo.mandrakee.xyz, and to manage TLS certificates using Let’s Encrypt, registering as echo@gmail.com. Since it doesn’t specify otherwise, requests using cleartext will be automatically redirected to use HTTPS, and Ambassador Edge Stack will not search for any specific further configuration resources related to this Host.[For More Details ,Please visit Ambassador : The Host CRD, ACME support, and external load balancer configuration](https://www.getambassador.io/docs/edge-stack/1.13/topics/running/host-crd/)
+
+Notes on ACME Support:
+
+* If the authority is not supplied, the Let’s Encrypt production environment is assumed.
+
+* In general, email-of-registrant is mandatory when using ACME: it should be a valid email address that will reach someone responsible for certificate management.
+
+* ACME stores certificates in Kubernetes secrets. The name of the secret can be set using the tlsSecret element:
 ```
-~kapp issuer.yml
 
-
-host.getambassador.io/example-host configured
-host.getambassador.io/example2-host configured
-
-
-```
-```
 apiVersion: getambassador.io/v2
 kind: Host
 metadata:
-  name: example-host
-  namespace: default
+  name: quote-host
 spec:
+  hostname: quote.mandrakee.xyz
   acmeProvider:
-    authority: 'https://acme-v02.api.letsencrypt.org/directory'
-    email: test@gmail.com
-  ambassadorId:
-    - default
-  hostname: test.mandrakee.xyz
-  requestPolicy:
-    insecure:
-      action: Redirect
-      additionalPort: 8080
-  selector:
-    matchLabels:
-      hostname: test.mandrakee.xyz
+    email: quote@gmail.com
   tlsSecret:
     name: tls-cert
+  requestPolicy:
+    insecure:
+       action: Redirect
+       additionalPort: 8080
 
 ---
 apiVersion: getambassador.io/v2
 kind: Host
 metadata:
-  name: example2-host
-  namespace: default
-spec:
-  acmeProvider:
-    authority: 'https://acme-v02.api.letsencrypt.org/directory'
-    email: test@gmail.com
-  ambassadorId:
-    - default
-  hostname: echo.mandrakee.xyz
-  requestPolicy:
-    insecure:
-      action: Redirect
-      additionalPort: 8080
-  selector:
-    matchLabels:
-      hostname: echo.mandrakee.xyz
-  tlsSecret:
-    name: tls-cert
-```
-
-```
-apiVersion: getambassador.io/v2
-kind: Host
-metadata:
-  name: example2-host
+  name: echo-host
 spec:
   hostname: echo.mandrakee.xyz
   acmeProvider:
-    email: test@gmail.com
+    email: echo@gmail.com
   tlsSecret:
     name: tls2-cert
   requestPolicy:
     insecure:
        action: Redirect
        additionalPort: 8080
-```
 
+```
 
 It takes ~30 seconds to get the signed certificate for the hosts. At this point, we have Ambassador installed, and hosts configured. BUT, we still do not have the networking (eg. DNS and Load balancer) configured to route the traffic to the cluster. 
 
 
 ### Configure your domain mapping to point the domains to the cluster LB
 
-Here  hosting 2 hosts (echo.mandrakee.xyz, test.mandrakee.xyz) on the same cluster.
+Here  hosting 2 hosts (echo.mandrakee.xyz, quote.mandrakee.xyz) on the same cluster.
 
 ```
 ~ doctl compute domain records list mandrakee.xyz  
@@ -330,7 +299,7 @@ ID           Type    Name    Data                    Priority    Port    TTL    
 158200734    NS      @       ns2.digitalocean.com    0           0       1800    0  
 158200735    NS      @       ns3.digitalocean.com    0           0       1800    0  
 158200782    A       echo    143.244.208.164         0           0       180     0  
-158201299    A       test    143.244.208.164         0           0       180     0  
+158201299    A       quote   143.244.208.164         0           0       180     0  
 ~   
 ~ kgsvcn ambassador   
 NAME               TYPE           CLUSTER-IP       EXTERNAL-IP       PORT(S)                      AGE  
@@ -346,14 +315,7 @@ At this point, the network traffic for the hosts will reach the cluster (AES ing
  ### Create Backend Services
 
 we have multiple TLS-enabled hosts on the same cluster. It means that we have multiple deployments and services. 
-deployment and service are separated from each other in this setup. Echo and quote service will be deployed by using the below code.It means:
-
->Deployment.yml has 2 deployments: quote for test and echo for echo hosts.
-
->quote-backend  have container named backend with :whale2: docker.io/datawire/quote:0.4.1 as image.
-
->echo-backend  have container named echo with :whale2: jmalloc/echo-server as image.
-
+deployment and service are separated from each other in this setup. Echo and quote service will be deployed by using the below code. It means:
 
 By using Deployment.Yml:
 
@@ -469,7 +431,7 @@ This Mapping is managing Edge Stack to route all traffic inbound to the /backend
 **Mapping.yml**:
 Creating 2 independent mappings 
 
-- echo services accessible to test.mandrakee.xyz AND and quote service accessible to echo.mandrakee.xyz
+- echo services accessible to quote.mandrakee.xyz AND and quote service accessible to echo.mandrakee.xyz
   
 
 ```
@@ -482,7 +444,7 @@ metadata:
   namespace: ambassador
 spec:
   prefix: /backend/
-  host: test.mandrakee.xyz
+  host: quote.mandrakee.xyz
   service: quote
  
 ---
@@ -516,13 +478,13 @@ spec:
 
 ### Verify the Configuration
 
->Checking configurations 2 hosts with TLS termination and ACME protocol in this setup. test.mandrakee.xyz and echo.mandrakee.xyz are binding directly ambassador gateway. Because of that, having been a map between hosts and ambassador gateways helps clients for using ambassador tls and gateway technologies. When you ping test.mandrakee.xyz, or echo.mandrakee.xyz on the terminal, you can see that it is routing ambassador endpoints. After that, the ambassador is using the mapping feature for mapping target endpoints. 
+>Checking configurations 2 hosts with TLS termination and ACME protocol in this setup. quote.mandrakee.xyz and echo.mandrakee.xyz are binding directly ambassador gateway. Because of that, having been a map between hosts and ambassador gateways helps clients for using ambassador tls and gateway technologies. When you ping quote.mandrakee.xyz, or echo.mandrakee.xyz on the terminal, you can see that it is routing ambassador endpoints. After that, the ambassador is using the mapping feature for mapping target endpoints. 
 
 ```
 ~ kg host -A                                                              
 NAMESPACE    NAME                                HOSTNAME                            STATE   PHASE COMPLETED   PHASE PENDING   AGE  
-default      example-host                        test.mandrakee.xyz                  Ready                                     18h  
-default      example2-host                       echo.mandrakee.xyz                  Ready                                     9m19s
+default      quote-host                        quote.mandrakee.xyz                  Ready                                     18h  
+default      echo-host                       echo.mandrakee.xyz                  Ready                                     9m19s
 ```
 > Checking  2 independent mappings. Please be sure mapping is correct such as source host etc.
 
@@ -534,7 +496,7 @@ ambassador   ambassador-devportal-api                             /openapi/     
 ambassador   ambassador-devportal-assets                          /documentation/(assets|styles)/(.*)(.css)   127.0.0.1:8500             
 ambassador   ambassador-devportal-demo                            /docs/                                      127.0.0.1:8500             
 ambassador   quote-backend                 echo.mandrakee.xyz     /backend/                                   quote                      
-default      echo-backend                  test.mandrakee.xyz     /echo/                                      echo-service      
+default      echo-backend                  quote.mandrakee.xyz     /echo/                                      echo-service      
 
 ~ kg mapping -n ambassador echo-backend -o yaml  
 ...  
@@ -580,7 +542,7 @@ kind: Mapping
 metadata:
   annotations:
     kubectl.kubernetes.io/last-applied-configuration: |
-      {"apiVersion":"getambassador.io/v2","kind":"Mapping","metadata":{"annotations":{},"name":"quote-backend","namespace":"ambassador"},"spec":{"host":"test.mandrakee.xyz","prefix":"/backend/","service":"quote"}}
+      {"apiVersion":"getambassador.io/v2","kind":"Mapping","metadata":{"annotations":{},"name":"quote-backend","namespace":"ambassador"},"spec":{"host":"quote.mandrakee.xyz","prefix":"/backend/","service":"quote"}}
   creationTimestamp: "2021-07-30T16:11:56Z"
   generation: 1
   name: quote-backend
@@ -588,18 +550,18 @@ metadata:
   resourceVersion: "1239306"
   uid: 6f7e1766-5554-435a-8335-bc7371b89ada
 spec:
-  host: test.mandrakee.xyz
+  host: quote.mandrakee.xyz
   prefix: /backend/
   service: quote
  
  ```
 
-Now let us test the connectivity.
+Now let us quote the connectivity.
 
-Checking test service with echo endpoint. Being sure it returns 200 OK.
+Checking quote service with quote endpoint. Being sure it returns 200 OK.
 ```
 
-~ curl -Li http://echo.mandrakee.xyz/echo/
+~ curl -Li http://quote.mandrakee.xyz/echo/
 HTTP/1.1 404 Not Found
 date: Sun, 25 Jul 2021 22:13:04 GMT
 server: envoy
@@ -607,9 +569,9 @@ content-length: 0
 ~ 
 
 
-~ curl -Li http://test.mandrakee.xyz/echo/   
+~ curl -Li http://quote.mandrakee.xyz/quote/  
 HTTP/1.1 301 Moved Permanently
-location: https://test.mandrakee.xyz/echo/
+location: https://quote.mandrakee.xyz/quote/
 date: Sun, 25 Jul 2021 22:12:54 GMT
 server: envoy
 content-length: 0
@@ -619,15 +581,15 @@ date: Sun, 25 Jul 2021 22:12:55 GMT
 content-length: 366
 x-envoy-upstream-service-time: 1
 server: envoy
-Request served by echo-deployment-869b7bf9c7-m2qgs
+Request served by quote-deployment-869b7bf9c7-m2qgs
 HTTP/1.1 GET /
-Host: test.mandrakee.xyz
+Host: quote.mandrakee.xyz
 User-Agent: curl/7.64.1
 Accept: */*
 X-Forwarded-For: xxx
 X-Forwarded-Proto: https
 X-Request-Id: 32343d7b-1737-4506-b29c-0622d9554cb4
-X-Envoy-Original-Path: /echo/
+X-Envoy-Original-Path: /quote/
 X-Envoy-External-Address: xxx
 X-Envoy-Expected-Rq-Timeout-Ms: 3000
 Content-Length: 0
@@ -638,16 +600,16 @@ Content-Length: 0
 Checking echo service with backend endpoint. Being sure it returns 200 OK.
 
 ```
-~ curl -Li http://test.mandrakee.xyz/backend/ 
+~ curl -Li http://echo.mandrakee.xyz/quote/ 
 HTTP/1.1 404 Not Found
 date: Sun, 25 Jul 2021 22:12:13 GMT
 server: envoy
 content-length: 0
 
 
-~ curl -Li http://echo.mandrakee.xyz/backend/
+~ curl -Li http://echo.mandrakee.xyz/echo/
 HTTP/1.1 301 Moved Permanently
-location: https://echo.mandrakee.xyz/backend/
+location: https://echo.mandrakee.xyz/echo/
 date: Sun, 25 Jul 2021 22:12:25 GMT
 server: envoy
 content-length: 0
