@@ -499,13 +499,15 @@ default      echo-host                         echo.mandrakee.xyz               
 
  ```
  ~ kg mapping -A  
-NAMESPACE    NAME                          SOURCE HOST            SOURCE PREFIX                               DEST SERVICE     STATE   REASON  
-ambassador   ambassador-devportal                                 /documentation/                             127.0.0.1:8500             
-ambassador   ambassador-devportal-api                             /openapi/                                   127.0.0.1:8500             
-ambassador   ambassador-devportal-assets                          /documentation/(assets|styles)/(.*)(.css)   127.0.0.1:8500             
-ambassador   ambassador-devportal-demo                            /docs/                                      127.0.0.1:8500             
-ambassador   quote-backend                 quote.mandrakee.xyz    /quote/                                     quote-service                      
-default      echo-backend                  echo.mandrakee.xyz     /echo/                                      echo-service      
+ 
+NAMESPACE    NAME                          SOURCE HOST           SOURCE PREFIX                               DEST SERVICE     STATE   REASON
+ambassador   ambassador-devportal                                /documentation/                             127.0.0.1:8500
+ambassador   ambassador-devportal-api                            /openapi/                                   127.0.0.1:8500
+ambassador   ambassador-devportal-assets                         /documentation/(assets|styles)/(.*)(.css)   127.0.0.1:8500
+ambassador   ambassador-devportal-demo                           /docs/                                      127.0.0.1:8500
+ambassador   echo-backend                  echo.mandrakee.xyz    /echo/                                      echo
+ambassador   quote-backend                 quote.mandrakee.xyz   /quote/                                     quote
+     
 
 ~ kg mapping -n ambassador echo-backend -o yaml  
 ...  
@@ -547,8 +549,32 @@ spec:
   service: quote
 
 
+
+~doctl compute domain records list mandrakee.xyz 
+
+ID           Type    Name     Data                    Priority    Port    TTL     Weight
+162442979    SOA     @        1800                    0           0       1800    0
+162442981    NS      @        ns1.digitalocean.com    0           0       1800    0
+162442983    NS      @        ns2.digitalocean.com    0           0       1800    0
+162442986    NS      @        ns3.digitalocean.com    0           0       1800    0
+162892121    A       echo     143.244.208.191         0           0       3600    0
+164017635    A       quote    143.244.208.191         0           0       3600    0
+
+~kgsvcn ambassador
+
+NAME               TYPE           CLUSTER-IP       EXTERNAL-IP       PORT(S)                      AGE
+ambassador         LoadBalancer   10.245.92.121    143.244.208.191   80:31153/TCP,443:30706/TCP   6d6h
+ambassador-admin   ClusterIP      10.245.23.172    <none>            8877/TCP,8005/TCP            6d6h
+ambassador-redis   ClusterIP      10.245.133.196   <none>            6379/TCP                     6d6h
+echo               ClusterIP      10.245.27.179    <none>            80/TCP                       13s
+quote              ClusterIP      10.245.229.63    <none>            80/TCP                       13s
+
  
  ```
+
+
+
+
 
 Now let us quote the connectivity.
 
