@@ -216,6 +216,8 @@ The set of configuration steps are as follows
 - Enable different paths for the domains. For quote.mandrake.xyz, we create a backend service called quote. For echo.mandrake.xyz, we create a echo service called echo.
 - Domains are configured with TLS, and have different URL paths.
 - Verify the installation.
+  
+![AES image](images/AESNetwork.jpg)
 
 
  ### Install Ambassador
@@ -303,7 +305,7 @@ ID           Type    Name    Data                    Priority    Port    TTL    
 ~   
 ~ kgsvcn ambassador   
 NAME               TYPE           CLUSTER-IP       EXTERNAL-IP       PORT(S)                      AGE  
-ambassador         LoadBalancer   10.245.215.249   143.244.208.164   80:32723/TCP,443:31416/TCP   23h  
+ambassador         LoadBalancer   10.245.215.249   xxx.xxx.xxx.xxx   80:32723/TCP,443:31416/TCP   23h  
 ambassador-admin   ClusterIP      10.245.147.231   <none>            8877/TCP,8005/TCP            23h  
 ambassador-redis   ClusterIP      10.245.12.247    <none>            6379/TCP                     23h  
 quote              ClusterIP      10.245.172.174   <none>            80/TCP                       19h  
@@ -459,7 +461,8 @@ spec:
   ```
 
 ### Enabling Proxy Protocol
-There are lot of configuration options available to you when running Ambassador Edge Stack but we will focus on automatic certificate management in the Ambassador Edge Stack in this part. After deploying the Service above  and manually enabling the proxy protocol you have to need to deploy the following Ambassador Module to manage Ambassador Edge Stack to utilize the proxy protocol and then restart Ambassador Edge Stack for the configuration to take effect.
+
+Proxy protocol enables a L4 Load balancer to communicate the original client IP. For this work, we need to configure both ends (DO LB and AES).After deploying the Service above  and manually enabling the proxy protocol you have to need to deploy the following Ambassador Module to manage Ambassador Edge Stack to utilize the proxy protocol and then restart Ambassador Edge Stack for the configuration to take effect.
 
 Also you can create load balancer by using configuration like below
 [For more Details](https://github.com/digitalocean/digitalocean-cloud-controller-manager/tree/master/docs/controllers/services/examples)
