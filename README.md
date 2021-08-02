@@ -418,8 +418,7 @@ As the last configuration step, create the mapping for Ambassador.
 #### Configure Mapping for each Hosts
 
 Ambassador Edge Stack is designed around a [declarative, self-service management model](https://www.getambassador.io/docs/edge-stack/latest/topics/concepts/gitops-continuous-delivery) It means that you can manage the edge with Ambassador Edge Stack is the `Mapping` resource.
-> More info : :pushpin:
-https://www.getambassador.io/docs/edge-stack/1.13/topics/using/intro-mappings/
+> More info : https://www.getambassador.io/docs/edge-stack/1.13/topics/using/intro-mappings/
 
 This Mapping is managing Edge Stack to route all traffic inbound to the /backend/ path to the quote & also /echo/ to the echo service.
 **Details**
@@ -469,10 +468,11 @@ Also you can create load balancer by using configuration like below
 ~ doctl compute load-balancer list
 
 ```
-By using above command you can see that all loadbalancer list for your cluster. Also you can create your own load balancer with proxy by using DO web dashboard. 
+By using the above command you can see that all loadbalancer lists for your cluster. Also, you can create your load balancer with proxy by using DO web dashboard automatically. When you check advanced settings of kub cluster, The most commonly used settings are selected by default, you can change them at any time by clicking "Edit Advanced Settings". When you decide to add Proxy for your cluster, you can proxy protocol setting.
+
 [For more information](https://www.digitalocean.com/community/questions/how-to-set-up-nginx-ingress-for-load-balancers-with-proxy-protocol-support)
 
-[For More details about how to use proxy for Ambassador](https://www.getambassador.io/docs/edge-stack/1.13/topics/running/ambassador-with-aws/). You can create a proxy in Ambassador by using below code.Ambassador Edge Stack will now expect traffic from the load balancer to be wrapped with the proxy protocol so it can read the client IP address.
+[For More details about how to use proxy for Ambassador](https://www.getambassador.io/docs/edge-stack/1.13/topics/running/ambassador-with-aws/). You can create a proxy in Ambassador by using below code. Ambassador Edge Stack will now expect traffic from the load balancer to be wrapped with the proxy protocol so it can read the client IP address.
 
 ```
 apiVersion: getambassador.io/v2
@@ -572,15 +572,12 @@ quote              ClusterIP      10.245.229.63    <none>            80/TCP     
  
  ```
 
+Now let us quote the connectivity. In the simple sample below, when invoked without any option, curl displays the specified resource to the standard output of hosted services. You can see that quote.mandrakee.xyz doesn't have any echo
+end point. Because of that, the result is empty. The same situation happens for echo.mandrakee.xyz when calling quote end point. 
 
+*Checking quote service with quote endpoint. Being sure it returns 200 OK.*
 
-
-
-Now let us quote the connectivity.
-
-Checking quote service with quote endpoint. Being sure it returns 200 OK.
 ```
-
 ~ curl -Li http://quote.mandrakee.xyz/echo/
 HTTP/1.1 404 Not Found
 date: Sun, 25 Jul 2021 22:13:04 GMT
@@ -617,8 +614,7 @@ Content-Length: 0
 
 
 ```
-Checking echo service with backend endpoint. Being sure it returns 200 OK.
-
+*Checking echo service with backend endpoint. Being sure it returns 200 OK.*
 ```
 ~ curl -Li http://echo.mandrakee.xyz/quote/ 
 HTTP/1.1 404 Not Found
