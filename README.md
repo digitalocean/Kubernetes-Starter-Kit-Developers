@@ -462,22 +462,25 @@ spec:
 
 ### Enabling Proxy Protocol
 
-Proxy protocol enables a L4 Load balancer to communicate the original client IP. For this work, we need to configure both ends (DO LB and AES).After deploying the Service above  and manually enabling the proxy protocol you have to need to deploy the following Ambassador Module to manage Ambassador Edge Stack to utilize the proxy protocol and then restart Ambassador Edge Stack for the configuration to take effect.
+When adding an LB in the beginning and installing AES, a DO LB is automatically created.Proxy protocol enables a L4 Load balancer to communicate the original client IP. For this work, we need to configure both ends (DO LB and AES).After deploying the Service above  and manually enabling the proxy protocol you have to need to deploy the following Ambassador Module to manage Ambassador Edge Stack to utilize the proxy protocol and then restart Ambassador Edge Stack for the configuration to take effect.
 
 
 [For more Details Please visit digital ocean cloud controller manager documents](https://github.com/digitalocean/digitalocean-cloud-controller-manager/tree/master/docs/controllers/services/examples)
+
+
+By using the belove command you can see that all loadbalancer lists for your cluster. Also, you can create your load balancer with proxy by using DO web dashboard automatically. When you check advanced settings of kub cluster, The most commonly used settings are selected by default, you can change them at any time by clicking "Edit Advanced Settings". When you decide to add Proxy for your cluster, you can proxy protocol setting.
 
 ```
 ~ doctl compute load-balancer list
 
 ```
-By using the above command you can see that all loadbalancer lists for your cluster. Also, you can create your load balancer with proxy by using DO web dashboard automatically. When you check advanced settings of kub cluster, The most commonly used settings are selected by default, you can change them at any time by clicking "Edit Advanced Settings". When you decide to add Proxy for your cluster, you can proxy protocol setting.
-
 [For more information](https://www.digitalocean.com/community/questions/how-to-set-up-nginx-ingress-for-load-balancers-with-proxy-protocol-support)
 
 [For More details about how to use proxy for Ambassador](https://www.getambassador.io/docs/edge-stack/1.13/topics/running/ambassador-with-aws/). You can create a proxy in Ambassador by using below code. Ambassador Edge Stack will now expect traffic from the load balancer to be wrapped with the proxy protocol so it can read the client IP address.
 
 ```
+# Manually enabling proxy protocol...
+
 apiVersion: getambassador.io/v2
 kind: Module
 metadata:
