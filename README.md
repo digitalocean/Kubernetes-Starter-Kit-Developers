@@ -291,17 +291,18 @@ It takes ~30 seconds to get the signed certificate for the hosts. At this point,
 
 ### Configure your domain mapping to point the domains to the cluster LB
 
-Here  hosting 2 hosts (echo.mandrakee.xyz, quote.mandrakee.xyz) on the same cluster.
+Adding a domain you own to your DigitalOcean account lets you manage the domain’s DNS records with the control panel and API. Domains you manage on DigitalOcean also integrate with DigitalOcean Load Balancers and Spaces to streamline automatic SSL certificate management.In this case, we created 2 hosts first one is echo and second domain is quote.
 
 ```
 ~ doctl compute domain records list mandrakee.xyz  
-ID           Type    Name    Data                    Priority    Port    TTL     Weight  
-158200732    SOA     @       1800                    0           0       1800    0  
-158200733    NS      @       ns1.digitalocean.com    0           0       1800    0  
-158200734    NS      @       ns2.digitalocean.com    0           0       1800    0  
-158200735    NS      @       ns3.digitalocean.com    0           0       1800    0  
-158200782    A       echo    143.244.208.164         0           0       180     0  
-158201299    A       quote   143.244.208.164         0           0       180     0  
+ID           Type    Name     Data                    Priority    Port    TTL     Weight
+164171755    SOA     @        1800                    0           0       1800    0
+164171756    NS      @        ns1.digitalocean.com    0           0       1800    0
+164171757    NS      @        ns2.digitalocean.com    0           0       1800    0
+164171758    NS      @        ns3.digitalocean.com    0           0       1800    0
+164171801    A       echo     143.244.208.191         0           0       3600    0
+164171809    A       quote    143.244.208.191         0           0       3600    0
+ 
 ~   
 ~ kgsvcn ambassador   
 NAME               TYPE           CLUSTER-IP       EXTERNAL-IP       PORT(S)                      AGE  
@@ -312,8 +313,7 @@ quote              ClusterIP      10.245.172.174   <none>            80/TCP     
 ~
 ```
 
-At this point, the network traffic for the hosts will reach the cluster (AES ingress). Now we need to configure the paths (backend services) for each of the hosts.
-
+At this point, the network traffic for the hosts will reach the cluster (AES). Now we need to configure the paths (backend services) for each of the hosts.All DNS records have one value in common: TTL, or time to live, which determines how long the record can remain cached before it expires. Loading data from a local cache is fast, but visitors won’t see DNS changes until their local cache expires and updates with a new DNS lookup. As a result, higher TTL values give visitors faster performance and lower TTL values ensure that DNS changes are picked up quickly. All DNS records require a minimum TTL value of 30 seconds.[Please visit How to Create, Edit, and Delete DNS Records page for more information](https://docs.digitalocean.com/products/networking/dns/how-to/manage-records/)
  ### Create Backend Services
 
 we have multiple TLS-enabled hosts on the same cluster. It means that we have multiple deployments and services. 
@@ -464,8 +464,8 @@ spec:
 
 Proxy protocol enables a L4 Load balancer to communicate the original client IP. For this work, we need to configure both ends (DO LB and AES).After deploying the Service above  and manually enabling the proxy protocol you have to need to deploy the following Ambassador Module to manage Ambassador Edge Stack to utilize the proxy protocol and then restart Ambassador Edge Stack for the configuration to take effect.
 
-Also you can create load balancer by using configuration like below
-[For more Details](https://github.com/digitalocean/digitalocean-cloud-controller-manager/tree/master/docs/controllers/services/examples)
+
+[For more Details Please visit digital ocean cloud controller manager documents](https://github.com/digitalocean/digitalocean-cloud-controller-manager/tree/master/docs/controllers/services/examples)
 
 ```
 ~ doctl compute load-balancer list
