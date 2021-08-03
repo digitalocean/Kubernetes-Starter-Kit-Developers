@@ -1,8 +1,7 @@
 # Day-2 Operations-ready DOKS (DigitalOcean Kubernetes) for Developers
 
-**WORK-IN-PROGRESS, initial stage**
+**WORK-IN-PROGRESS**
 
-**TBD- Complete the sections** </br>
 **TBD- Opinionated configuration** </br>
 **TBD- Automation to set up the stack** </br>
 
@@ -18,26 +17,20 @@ Installing kubernetes is only getting started. Making it operationally ready req
 4. [Prometheus monitoring stack](#PROM)
 5. [Configure logging using Loki](#LOKI)
 6. [Ingress using Ambassador](#AMBA)
-7. [Service mesh using Linkerd](#LINK)
-8. [Backup using Velero](#VELE)
-9. [GitOps using ArgoCD & Sealed Secrets](#ARGO)
-10. [Progressive releases using Argo Rollout](#ROLL)
-11. [Sample Application with Cloudflare CDN](#APPL)
-
+7. [Backup using Velero](#VELE)
+8. [Automate everything using Terraform and Flux](#AUTO)
 
 
 ## Scope <a name="SCOP"></a>
 This is meant to be a beginner tutorial to demonstrate the setups you need to be operations-ready. The list is an work-in-progress.
 
-All the steps are done manually using commandline. Additional services listed above serve as examples. You can pick any other tool that suits your requirements better.
+All the steps are done manually using commandline. If you need end-to-end automation, refer to the last section.
 
-None of the installed tools are exposed using ingress or LB. To access the console, we use kubectl port-forward.
+None of the installed tools are exposed using ingress or LB. To access the console for individual tools, we use kubectl port-forward.
 
 We will use brew (on mac) to install the commmands on our local machine. We will skip the how-to-install and command on your local laptop, and focus on using the command to work on DOKS cluster. 
 
-For every tool, we will make sure to enable metrics and logs. At the end, we will review the overhead from all these additional tools. That gives an idea of what it takes to be operations-ready after your first cluster install. 
-
-In future, we may plan to automate this by using terraform to create DO Kubernetes, Registry and Argo CD, and then install rest of the tools using GitOps.<br/><br/>
+For every tool, we will make sure to enable metrics and logs. At the end, we will review the overhead from all these additional tools. That gives an idea of what it takes to be operations-ready after your first cluster install. <br/><br/>
 
 
 ## Set up DO Kubernetes <a name="DOKS"></a>
@@ -212,6 +205,7 @@ More Details and extended explanation please visit: [The Ambassador Edge Stack A
 
 The set of configuration steps are as follows
 - Install AES.
+- Enable prometheus for metrics, and loki for logs.
 - Configure 2 hosts (domain1, domain2) on the cluster. For this example, we're using quote.mandake.xyz, and echo.mandrake.xyz as 2 differents hosts on the same cluster.
 - Enable different paths for the domains. For quote.mandrake.xyz, we create a backend service called quote. For echo.mandrake.xyz, we create a echo service called echo.
 - Domains are configured with TLS, and have different URL paths.
@@ -239,8 +233,24 @@ helm install ambassador --namespace ambassador datawire/ambassador &&  \
 kubectl -n ambassador wait --for condition=available --timeout=90s deploy -lproduct=aes
 
 ```
-### Define the Hosts (domains)
 
+### Configure Prometheus & Grafana
+
+We already install prometheus, and grafana into our cluster by following prior sections. 
+https://www.getambassador.io/docs/edge-stack/latest/howtos/prometheus/#monitoring-with-prometheus-and-grafana
+
+Create a servicemonitor to let prometheus know how to scrap the metrics. Now you should be able to access the metrics in Grafana. Add the following dashboard in grafana: https://grafana.com/grafana/dashboards/4698
+
+<TBD>
+
+
+### Configure Loki and Grafana
+
+We already install loki, and grafana into our cluster by following prior sections. 
+
+<TBD>
+
+### Define the Hosts (domains)
 
 Creating echo-host for echo service helps to host multiple TLS-enabled hosts on the same cluster Because of that, This Host tells Ambassador Edge Stack to expect to be reached at echo.mandrakee.xyz, and to manage TLS certificates using Let’s Encrypt, registering as echo@gmail.com. Since it doesn’t specify otherwise, requests using cleartext will be automatically redirected to use HTTPS, and Ambassador Edge Stack will not search for any specific further configuration resources related to this Host.[For More Details ,Please visit Ambassador : The Host CRD, ACME support, and external load balancer configuration](https://www.getambassador.io/docs/edge-stack/1.13/topics/running/host-crd/)
 
@@ -648,18 +658,11 @@ server: envoy
 }
 ```
 
-## Service mesh using Linkerd <a name="LINK"></a>
-TBD
 
 ## Backup using Velero <a name="VELE"></a>
 TBD
 
 
-## GitOps using ArgoCD & Sealed Secrets <a name="ARGO"></a>
+## Automate everything using Terraform and Flux <a name="AUTO"></a>
 TBD
 
-## Progressive releases using Argo Rollout <a name="ROLL"></a>
-TBD
-
-## Sample Application with Cloudflare CDN <a name="APPL"></a>
-TBD
