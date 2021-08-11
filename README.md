@@ -233,23 +233,6 @@ helm install ambassador --namespace ambassador datawire/ambassador &&  \
 kubectl -n ambassador wait --for condition=available --timeout=90s deploy -lproduct=aes
 
 ```
-
-### Configure Prometheus & Grafana
-
-We already install prometheus, and grafana into our cluster by following prior sections. 
-https://www.getambassador.io/docs/edge-stack/latest/howtos/prometheus/#monitoring-with-prometheus-and-grafana
-
-Create a servicemonitor to let prometheus know how to scrap the metrics. Now you should be able to access the metrics in Grafana. Add the following dashboard in grafana: https://grafana.com/grafana/dashboards/4698
-
-<TBD>
-
-
-### Configure Loki and Grafana
-
-We already install loki, and grafana into our cluster by following prior sections. 
-
-<TBD>
-
 ### Define the Hosts (domains)
 
 Creating echo-host for echo service helps to host multiple TLS-enabled hosts on the same cluster Because of that, This Host tells Ambassador Edge Stack to expect to be reached at echo.mandrakee.xyz, and to manage TLS certificates using Let’s Encrypt, registering as echo@gmail.com. Since it doesn’t specify otherwise, requests using cleartext will be automatically redirected to use HTTPS, and Ambassador Edge Stack will not search for any specific further configuration resources related to this Host.[For More Details ,Please visit Ambassador : The Host CRD, ACME support, and external load balancer configuration](https://www.getambassador.io/docs/edge-stack/1.13/topics/running/host-crd/)
@@ -658,6 +641,68 @@ server: envoy
 }
 ```
 
+### Configure Prometheus & Grafana
+We already install prometheus, and grafana into our cluster by using above prior sections called [Prometheus monitoring stack](#PROM). Also you can make your own environment again from scratch by using fallowing link. 
+(Monitoring with Prometheus and Grafana for Ambassador)[https://www.getambassador.io/docs/edge-stack/latest/howtos/prometheus/#monitoring-with-prometheus-and-grafana]
+
+But we are considering you have a prometheus environment and you want to bind new ambassador gateway cluster with existed prometheus enviroment.Before creating a servicemonitor to let prometheus know how to scrap the metrics, you should know that ambassador is broadcasting own metrics by using metrics end point.The /metrics endpoint can be accessed internally via the Ambassador Edge Stack admin port (default 8877).Please test it by calling below link on your web browser yourself.
+
+```
+http(s)://ambassador:8877/metrics
+```
+we have existed monitoring configuration yaml file called *prom-stack-values.yaml*. it has really important section and we have to change with service monitor configuration and then run helm upgrade to modify existed chart.There are 2 steps for that.
+
+(1) Please find *additionalServiceMonitors* section and modify tihs part like below in *prom-stack-values.yaml*
+```
+  additionalServiceMonitors:
+      - name: "ambassador-monitor"
+        selector:
+          matchLabels:
+            service: "ambassador-admin"
+        namespaceSelector:
+          matchNames:
+            - ambassador
+        endpoints:
+        - port: "ambassador-admin"
+          path: /metrics
+          scheme: http
+```
+(2) Last step is *helm upgrade* to modify existed prometheus chart for seeing changes.
+```
+helm upgrade kube-prom-stack prometheus-community/kube-prometheus-stack -n monitoring -f prom-stack-values.yaml
+```
+That's it! Final touch for seeing metrics values on prometheus dashboard.For that, you have to forward your 9090 port to another available port.
+```
+ kubectl --namespace monitoring port-forward svc/kube-prom-stack-kube-prome-prometheus 9090:9090
+```
+
+#### DashBoard
+
+After port forwarding like below, you can access the metrics in Grafana. 
+```
+kubectl --namespace monitoring port-forward svc/kube-prom-stack-grafana 3000:80
+```
+if you want to see all ambassador metrics in well designed dashboard Add the following dashboard in grafana: https://grafana.com/grafana/dashboards/4698
+
+When you decide to test your first Grafana DashBoard, please call below ambassador test service. if you call below service 2 times, you will see that 4 responses. Because it is a gateway, your request pass a gateway and arrive real service. Because of that, your response also will have same steps. 
+
+```
+~# curl -Lk https://104.248.102.80/backend/
+{
+    "server": "buoyant-pear-girnlk37",
+    "quote": "A small mercy is nothing at all?",
+    "time": "2021-08-11T18:18:56.654108372Z"
+}
+```
+
+<TBD>
+
+
+### Configure Loki and Grafana
+
+We already install loki, and grafana into our cluster by following prior sections. 
+
+<TBD>
 
 ## Backup using Velero <a name="VELE"></a>
 TBD
