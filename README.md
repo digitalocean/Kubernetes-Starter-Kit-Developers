@@ -667,6 +667,13 @@ we have existed monitoring configuration yaml file called *prom-stack-values.yam
           path: /metrics
           scheme: http
 ```
+Let's explain keywords:
+
+* matchLabel: tells what pods the deployment will apply to.
+* selector: matchLabels tells the resource, whatever it may be, service, deployment, etc, to match the pod, according to that label.
+* port:The port may be a literal port number as defined in the ambassador-metrics service, or may reference the port in the same service by name. 
+* matchNames: Here we want to match the namespace of the Ambassador Metrics Service we have just created.
+
 (2) Last step is *helm upgrade* to modify existed prometheus chart for seeing changes.
 ```
 helm upgrade kube-prom-stack prometheus-community/kube-prometheus-stack -n monitoring -f prom-stack-values.yaml
