@@ -684,6 +684,8 @@ kubectl --namespace monitoring port-forward svc/kube-prom-stack-grafana 3000:80
 ```
 if you want to see all ambassador metrics in well designed dashboard Add the following dashboard in grafana: https://grafana.com/grafana/dashboards/4698
 
+![Dashboard Grafana image](images/GrafanaDashboard.jpg)
+
 When you decide to test your first Grafana DashBoard, please call below ambassador test service. if you call below service 2 times, you will see that 4 responses. Because it is a gateway, your request pass a gateway and arrive real service. Because of that, your response also will have same steps. 
 
 ```
