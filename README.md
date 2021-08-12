@@ -642,15 +642,15 @@ server: envoy
 ```
 
 ### Configure Prometheus & Grafana
-We already install prometheus, and grafana into our cluster by using above prior sections called [Prometheus monitoring stack](#PROM). Also you can make your own environment again from scratch by using fallowing link. 
+We already install Prometheus, and grafana into our cluster by using the above prior sections called [Prometheus monitoring stack](#PROM). Also, you can make your own environment again from scratch by using the following link. 
 (Monitoring with Prometheus and Grafana for Ambassador)[https://www.getambassador.io/docs/edge-stack/latest/howtos/prometheus/#monitoring-with-prometheus-and-grafana]
 
-But we are considering you have a prometheus environment and you want to bind new ambassador gateway cluster with existed prometheus enviroment.Before creating a servicemonitor to let prometheus know how to scrap the metrics, you should know that ambassador is broadcasting own metrics by using metrics end point.The /metrics endpoint can be accessed internally via the Ambassador Edge Stack admin port (default 8877).Please test it by calling below link on your web browser yourself.
+But we are considering you have a Prometheus environment and you want to bind a new ambassador gateway cluster with existed Prometheus environment. Before creating a service monitor to let Prometheus know how to scrap the metrics, you should know that ambassador is broadcasting its own metrics by using metrics endpoint. The /metrics endpoint can be accessed internally via the Ambassador Edge Stack admin port (default 8877). Please test it by calling the below link on your web browser yourself.
 
 ```
 http(s)://ambassador:8877/metrics
 ```
-we have existed monitoring configuration yaml file called *prom-stack-values.yaml*. it has really important section and we have to change with service monitor configuration and then run helm upgrade to modify existed chart.There are 2 steps for that.
+we have existed monitoring configuration YAML file called *prom-stack-values.YAML*. it has a really important section and we have to change with service monitor configuration and then run helm upgrade to modify the existed chart. There are 2 steps for that.
 
 (1) Please find *additionalServiceMonitors* section and modify tihs part like below in *prom-stack-values.yaml*
 ```
@@ -671,14 +671,14 @@ Let's explain keywords:
 
 * matchLabel: tells what pods the deployment will apply to.
 * selector: matchLabels tells the resource, whatever it may be, service, deployment, etc, to match the pod, according to that label.
-* port:The port may be a literal port number as defined in the ambassador-metrics service, or may reference the port in the same service by name. 
+* port: The port may be a literal port number as defined in the ambassador-metrics service, or may reference the port in the same service by name. 
 * matchNames: Here we want to match the namespace of the Ambassador Metrics Service we have just created.
 
-(2) Last step is *helm upgrade* to modify existed prometheus chart for seeing changes.
+(2) Last step is *helm upgrade* to modify existed Prometheus chart for seeing changes.
 ```
 helm upgrade kube-prom-stack prometheus-community/kube-prometheus-stack -n monitoring -f prom-stack-values.yaml
 ```
-That's it! Final touch for seeing metrics values on prometheus dashboard.For that, you have to forward your 9090 port to another available port.
+That's it! The final touch for seeing metrics values on Prometheus dashboard. For that, you have to forward your 9090 port to another available port.
 ```
  kubectl --namespace monitoring port-forward svc/kube-prom-stack-kube-prome-prometheus 9090:9090
 ```
@@ -689,11 +689,11 @@ After port forwarding like below, you can access the metrics in Grafana.
 ```
 kubectl --namespace monitoring port-forward svc/kube-prom-stack-grafana 3000:80
 ```
-if you want to see all ambassador metrics in well designed dashboard Add the following dashboard in grafana: https://grafana.com/grafana/dashboards/4698
+if you want to see all ambassador metrics in a well-designed dashboard Add the following dashboard in grafana: https://grafana.com/grafana/dashboards/4698
 
 ![Dashboard Grafana image](images/GrafanaDashboard.jpg)
 
-When you decide to test your first Grafana DashBoard, please call below ambassador test service. if you call below service 2 times, you will see that 4 responses. Because it is a gateway, your request pass a gateway and arrive real service. Because of that, your response also will have same steps. 
+When you decide to test your first Grafana DashBoard, please call below ambassador test service. if you call the below service 2 times, you will see that 4 responses. Because it is a gateway, your request passes a gateway and arrives in real service. Because of that, your response also will have the same steps. 
 
 ```
 ~# curl -Lk https://104.248.102.80/backend/
