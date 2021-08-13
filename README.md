@@ -709,7 +709,33 @@ When you decide to test your first Grafana DashBoard, please call below ambassad
 
 ### Configure Loki and Grafana
 
-We already install loki, and grafana into our cluster by following prior sections. 
+We already install loki, and grafana into our cluster by following prior sections. Please follow above section [Ingress using Ambassador](#LOKI) to remembering all steps.
+
+Grafana ships with built-in support for Loki for versions greater than 6.0. Using 6.3 or later is highly recommended to take advantage of new LogQL functionality.
+
+Log into your Grafana instance. If this is your first time running Grafana, the username and password are both defaulted to admin.
+In Grafana, go to Configuration > Data Sources via the cog icon on the left sidebar.
+Click the big + Add data source button.
+Choose Loki from the list.
+The http URL field should be the address of your Loki server. For example, when running locally or with Docker using port mapping, the address is likely http://localhost:3100. When running with docker-compose or Kubernetes, the address is likely http://loki:3100.
+To see the logs, click Explore on the sidebar, select the Loki datasource in the top-left dropdown, and then choose a log stream using the Log labels button.
+Learn more about querying by reading about Loki’s query language LogQL.[For more details please visit grafana-loki official documents](https://grafana.com/docs/loki/latest/getting-started/grafana/)
+
+Some knowledge about LQL to be sure ambassador metrics existed inside of the loki query result on dashboard:
+
+```
+{container="ambassador",namespace="monitoring"} |= "metrics.go" | logfmt | duration > 10s and throughput_mb < 500
+```
+
+The query is composed of:
+
+* a log stream selector {container="ambassador",namespace="monitoring"} which targets the ambassador container in the monitoring namespace.
+* a log pipeline |= "metrics.go" | logfmt | duration > 10s and throughput_mb < 500 which will filter out log that contains the word metrics.go, then parses each log line to extract more labels and filter with them.
+
+Also you can Check ambassador logs  while using ambassador namespace in query like below. Also you can add another params in your queries.But here it's a gentle introduction of how to seeing ambassador with Loki queries.
+![Dashboard Loki query image](images/LQL.png)
+
+
 
 <TBD>
 
