@@ -733,8 +733,9 @@ The query is composed of:
 
 * A log stream selector {container="ambassador",namespace="monitoring"} which targets the ambassador container in the monitoring namespace.
 * A log pipeline |= "metrics.go" | logfmt | duration > 10s and throughput_mb < 500 which will filter out log that contains the word metrics.go, then parses each log line to extract more labels and filter with them.
-> for more details of grafana Loki query language please look over samples of LQL in official Loki githup repository.[Grafana-Loki github](https://github.com/grafana/loki)
+> For more details of grafana Loki query language please look over samples of LQL in official Loki githup repository.[Grafana-Loki github](https://github.com/grafana/loki)
 Also, you can Check ambassador logs while using ambassador namespace in queries like below. Also, you can add other params in your queries. But here it's a gentle introduction of how to seeing ambassador with Loki queries.
+
 ![Dashboard Loki query image](images/LQL.png)
 
 
