@@ -172,7 +172,7 @@ Now you can access logs from explore tab of grafana. Make sure to select loki as
 
 ### Options for Load Balancer and Ingress
 
-In most of the cases you will use the `Load Balancer` that is made available by the `Cloud` provider of your choice. In case of `DigitalOcean` when you configure a service as a `Load Balancer`, DOKS automatically provisions one in your account (unless you configure to use an existing one). Now the service is exposed to the outside world and can be accessed via the `Load Balancer` endpoint. In a real world scenario you do not want to use one `Load Balancer` per service so you need a proxy inside the cluster. That is `Ingress`.
+In most of the cases you will use the `Load Balancer` that is made available by the `Cloud` provider of your choice. In case of `DigitalOcean` when you configure a service as a `Load Balancer`, `DOKS` automatically provisions one in your account (unless you configure to use an existing one). Now the `service` is exposed to the outside world and can be accessed via the `Load Balancer` endpoint. In a real world scenario you do not want to use one `Load Balancer` per service so you need a `proxy` inside the cluster. That is `Ingress`.
 
 When an `Ingress Proxy` is installed it creates a service and exposes it as a `Load Balancer`. Now you can have as many services behind the ingress and all accessible through a single endpoint. Ingress operates at the `HTTP` layer.
 
@@ -187,7 +187,7 @@ We will use the `Ambassador Edge Stack` in this tutorial. You can pick any `Ingr
 The `Ambassador Edge Stack` or `AES` for short is a specialized [Control Plane](https://blog.getambassador.io/the-importance-of-control-planes-with-service-meshes-and-front-proxies-665f90c80b3d) for the `Envoy Proxy`. In this architecture, `Ambassador Edge Stack` translates configuration (in the form of `Kubernetes Custom Resources`) to `Envoy` configuration. All the actual traffic is directly handled by the high-performance [Envoy Proxy](https://www.envoyproxy.io).
 
 At a very high level `AES` works as follows:
-1.  The service owner defines configuration in `Kubernetes` manifests.
+1.  The service owner defines configuration via `Kubernetes` manifests.
 2.  When the manifest is applied to the cluster, the `Kubernetes API` notifies `Ambassador Edge Stack` of the change.
 3.  `Ambassador Edge Stack` parses the change and transforms the configuration into a semantic intermediate representation. `Envoy` configuration is generated from this `IR`.
 4.  The new configuration is passed to `Envoy` via the `gRPC-based Aggregated Discovery Service (ADS) API`.
@@ -198,10 +198,9 @@ For more details and in depth explanation please visit: [The Ambassador Edge Sta
 The set of configuration steps are as follows:
 1. Install `AES`.
 2. Enable `Prometheus` for metrics and `Loki` for logs.
-3. Configure two hosts (`domain1`, `domain2`) on the cluster. For this example we're going to use `quote.mandake.xyz` and `echo.mandrake.xyz` as two different hosts on the same cluster.
-4. Enable different paths for the domains. For `quote.mandrake.xyz` we create a backend service called `quote`. For `echo.mandrake.xyz` we create a echo service called `echo`.
-5. Domains are configured with `TLS` and have different `URL` paths.
-6. Verify the installation.
+3. Configure two hosts (`quote`, `echo`) on the cluster. For this example we're going to use `quote.mandake.xyz` and `echo.mandrake.xyz` as two different hosts on the same cluster.
+4. Hosts will have `TLS` termination enabled.
+5. Verify the installation.
 
 Below is a diagram giving a high level overview of the setup presented in this tutorial:
 
@@ -236,13 +235,13 @@ Deploying the `Ambassador Edge Stack` into the `DOKS` cluster via [Helm](https:/
     kubectl -n ambassador wait --for condition=available --timeout=90s deploy -lproduct=aes
     ```
 
-### Defining the Hosts (Domains)
+### Defining the Domain and Hosts
 
-In a real world scenario each host maps to a service so we need a way to tell AES about our intentions - meet the [Host](https://www.getambassador.io/docs/edge-stack/1.13/topics/running/host-crd/) CRD.
+In a real world scenario each `host` maps to a `service` so we need a way to tell `AES` about our intentions - meet the [Host](https://www.getambassador.io/docs/edge-stack/1.13/topics/running/host-crd/) CRD.
 
 The custom `Host` resource defines how `Ambassador Edge Stack` will be visible to the outside world. It collects all the following information in a single configuration resource. The most relevant parts are:
 
-* The hostname by which `Ambassador Edge Stack` will be reachable
+* The `hostname` by which `Ambassador Edge Stack` will be reachable
 * How `Ambassador Edge Stack` should handle `TLS` certificates
 * How `Ambassador Edge Stack` should handle secure and insecure requests
 
@@ -251,10 +250,10 @@ For more details please visit the [AES Host CRD](https://www.getambassador.io/do
 Notes on `ACME` support:
 
 * If the `Authority` is not supplied then a `Let’s Encrypt` **production environment** is assumed.
-* In general the registrant email address is mandatory when using `ACME` and it should be a valid one in order to receive notifications when the certificates are going to expire.
-* `ACME` stores certificates using `Kubernetes` secrets. The name of the secret can be set using the `tlsSecret` element:
+* In general the `registrant email address` is mandatory when using `ACME` and it should be a valid one in order to receive notifications when the certificates are going to expire.
+* `ACME` stores certificates using `Kubernetes Secrets`. The name of the secret can be set using the `tlsSecret` element.
 
-The following example will configure the required `TLS` enabled hosts for this tutorial:
+The following example will configure the `TLS` enabled hosts for this tutorial:
 
 ```bash
 cat << EOF | kubectl apply -f -
@@ -291,6 +290,7 @@ spec:
        additionalPort: 8080
 EOF
 ```
+
 Let's review the hosts that were created:
 
 ```bash
@@ -305,7 +305,7 @@ echo-host    echo.mandrakee.xyz    Pending   ACMEUserRegistered   ACMECertificat
 quote-host   quote.mandrakee.xyz   Pending   ACMEUserRegistered   ACMECertificateChallenge   3s
 ```
 
-It takes ~30 seconds to get the signed certificate for the hosts. At this point we have the `Ambassador Edge Stack` installed and the hosts configured. But we still don't have the networking (eg. DNS and Load balancer) configured to route the traffic to the cluster. The missing parts can be noticed in the `Kubernetes` events of the hosts that were configured earlier.
+It takes ~30 seconds to get the signed certificate for the hosts. At this point we have the `Ambassador Edge Stack` installed and the hosts configured. But we still don't have the networking (eg. `DNS` and `Load Balancer`) configured to route traffic to the cluster. The missing parts can be noticed in the `Kubernetes` events of the hosts that were configured earlier.
 
 Let's take a look and see what happens for the `echo-host`:
 
@@ -332,15 +332,15 @@ Events:
 [echo.mandrakee.xyz] acme: error: 400 :: urn:ietf:params:acme:error:dns :: DNS problem: SERVFAIL looking up A for echo.mandrakee.xyz - the domain's nameservers may be malfunctioning
 ...
 ```
-As seen above, the last event tells us that there's no A record to point to the `echo` host for the `mandrakee.xyz` domain which results in a lookup failure. Let's fix this in the next section of the tutorial.
+As seen above, the last event tells us that there's no `A` record to point to the `echo` host for the `mandrakee.xyz` domain which results in a lookup failure. Let's fix this in the next section of the tutorial.
 
 ### Configuring domain mappings
 
-Adding a domain you own to your `DigitalOcean` account lets you manage the domain’s `DNS` records with the control panel and `API`. Domains you manage on `DigitalOcean` also integrate with `DigitalOcean Load Balancers` and `Spaces` to streamline automatic `SSL` certificate management.
+Adding a domain you own to your `DigitalOcean` account lets you manage the domain’s `DNS` records via the `Control Panel` and `API`. Domains you manage on `DigitalOcean` also integrate with `DigitalOcean Load Balancers` and `Spaces` to streamline automatic `SSL` certificate management.
 
 What we need to do next is to create a `domain` and add the required `A` records for the new hosts: `echo` and `quote`. Let's do that via the [doctl](https://docs.digitalocean.com/reference/doctl/how-to/install) utility.
 
-First we spin up a new domain:
+First we create a new `domain` (`mandrakee.xyz` in this example):
 
 ```bash
 doctl compute domain create mandrakee.xyz
@@ -353,7 +353,7 @@ Domain           TTL
 mandrakee.xyz    0
 ```
 
-Let's add some `A` records now for the hosts created earlier. First we need to identify the Load Balancer IP that points to your `Kubernetes` cluster (one should be already created when the cluster was created). Pick the one that matches your configuration from the list:
+Let's add some `A` records now for the hosts created earlier. First we need to identify the `Load Balancer` IP that points to your `Kubernetes` cluster (one should be already available when the cluster was created). Pick the one that matches your configuration from the list:
 
 ```bash
 doctl compute load-balancer list
@@ -368,7 +368,7 @@ doctl compute domain records create mandrakee.xyz --record-type "A" --record-nam
 
 **Note:**
 
-If you have only one LB in your account then this snippet should help:
+If you have only one `LB` in your account then this snippet should help:
 
 ```bash
 LOAD_BALANCER_IP=$(doctl compute load-balancer list --format IP --no-header)
@@ -418,7 +418,7 @@ Please visit the [How to Create, Edit and Delete DNS Records](https://docs.digit
 
 We can have multiple `TLS enabled` hosts on the same cluster. On the other hand we can have multiple deployments and services as well. So for each `Backend Service` a corresponding `Kubernetes Deployment` and `Service` has to be created.
 
-Let's create a dedicated namespace for our `quote` and `echo` backend applications. This is a good practice because we don't want to pollute the `AES` space (or any other) with our application specific stuff.
+Let's create a dedicated `namespace` for our `quote` and `echo` backend applications. This is a good practice because we don't want to pollute the `AES` space (or any other) with our application specific stuff.
 
 ```bash
 kubectl create ns backend
@@ -542,15 +542,15 @@ As the last configuration step, create the `mappings` for Ambassador.
 
 #### Configuring the AES Mapping for each Host
 
-`Ambassador Edge Stack` is designed around a [declarative, self-service management model](https://www.getambassador.io/docs/edge-stack/latest/topics/concepts/gitops-continuous-delivery). It means that you can manage the `Edge` via a dedicated Kubernetes `CRD`, namely the `Mapping` resource. More info about [Mappings](https://www.getambassador.io/docs/edge-stack/1.13/topics/using/intro-mappings) can be found on the official page.
+`Ambassador Edge Stack` is designed around a [declarative, self-service management model](https://www.getambassador.io/docs/edge-stack/latest/topics/concepts/gitops-continuous-delivery). It means that you can manage the `Edge` via a dedicated `Kubernetes CRD`, namely the `Mapping` resource. More info about [Mappings](https://www.getambassador.io/docs/edge-stack/1.13/topics/using/intro-mappings) can be found on the official page.
 
-What a `Mapping` does is to manage routing for all inbound traffic to the `/backend/` path of the `quote` service and `/echo/` for the `echo` service.
+What a `Mapping` does is to manage routing for all inbound traffic to the `/quote/` path for the `quote` service and `/echo/` for the `echo` service.
 
 **Mapping fields description**
 
 * `name` - a string identifying the `Mapping` (e.g. in diagnostics).
 * `prefix` - the `URL` prefix identifying your resource.
-* `service` - the name of the service handling the resource; must include the namespace (e.g. myservice.othernamespace) if the service is in a different namespace than `Ambassador Edge Stack`.
+* `service` - the name of the service handling the resource; must include the `namespace` (e.g. myservice.othernamespace) if the service is in a different namespace than `Ambassador Edge Stack`.
 
 Creating the mappings for each of our applications:
 
@@ -600,16 +600,15 @@ quote-backend                 quote.mandrakee.xyz   /quote/                     
 
 ### Enabling Proxy Protocol
 
-Proxy protocol enables a `L4 Load Balancer` to communicate with the original `client IP`. For this to work we need to configure both `DigitalOcean Load Balancer` and `AES`. After deploying the `Services` as seen earlier in the tutorial and manually enabling the `proxy protocol` you need to deploy a specific `Ambassador Module` to enable `AES` to use the proxy protocol. An `AES` restart is needed for the configuration to take effect.
+Proxy protocol enables a `L4 Load Balancer` to communicate with the original `client IP`. For this to work we need to configure both `DigitalOcean Load Balancer` and `AES`. After deploying the `Services` as seen earlier in the tutorial and manually enabling the `proxy protocol`, you need to deploy a specific `Ambassador Module` to enable `AES` to use the proxy protocol. An `AES` restart is needed for the configuration to take effect.
 
 For more details please follow the examples from the official [DigitalOcean Cloud Controller Manager](https://github.com/digitalocean/digitalocean-cloud-controller-manager/tree/master/docs/controllers/services/examples) documentation.
 
-
-You can create a load balancer with `Proxy` support by using the `DO` web console. If you navigate to the advanced settings page of the `Load Balancer` associated with your `Kubernetes` cluster there's a dedicated section for it.
+You can create a load balancer with `Proxy` support by using the `DO` web console. If you navigate to the `Advanced Settings` page of the `Load Balancer` associated with your `Kubernetes` cluster there's a dedicated section for it.
 
 Please visit the [LB with Proxy Protocol enabled](https://www.digitalocean.com/community/questions/how-to-set-up-nginx-ingress-for-load-balancers-with-proxy-protocol-support) page for more information about this option.
 
-You can enable proxy support in the Ambassador stack by using the below configuration:
+You can enable proxy support in the `Ambassador` stack by using the below configuration:
 
 ```bash
 cat << EOF | kubectl apply -f -
@@ -664,7 +663,7 @@ We're going to test the backend services now via `curl` and use the `quote` serv
 curl -Li http://quote.mandrakee.xyz/quote/
 ```
 
-The output looks similar to the following (notice how it automatically redirects and use `https` instead):
+The output looks similar to the following (notice how it automatically redirects and uses `https` instead):
 
 ```
 HTTP/1.1 301 Moved Permanently
@@ -693,7 +692,7 @@ Let's do the same for the `echo` service:
 curl -Li http://echo.mandrakee.xyz/echo/
 ```
 
-The output looks similar to the following (notice how it automatically redirects and use `https` instead):
+The output looks similar to the following (notice how it automatically redirects and uses `https` instead):
 ```
 HTTP/1.1 301 Moved Permanently
 location: https://echo.mandrakee.xyz/echo/
