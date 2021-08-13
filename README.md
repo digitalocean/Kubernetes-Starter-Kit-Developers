@@ -802,8 +802,8 @@ Grafana Loki is a horizontally scalable, highly-available, multi-tenant log aggr
 
 * Firstly you will need DataSource of Loki. Because of that, Log into your Grafana instance. If this is your first time running Grafana, the username and password are both defaulted to admin.
 * In Grafana, go to Configuration > Data Sources via the cog icon on the left sidebar.
-* Click the big + Add data source button.
-* Choose Loki from the list.
+* Click the big + Add data source button rightside of the page.
+* Choose Loki option from the list.
 * The http URL field should be the address of your Loki server. For example, when running locally or with Docker using port mapping, the address is likely http://localhost:3100. When running with docker-compose or Kubernetes, the address is likely http://loki:3100.
 * if you want to see the logs, click Explore on the sidebar, select the Loki data source in the top-left dropdown, and then select a log stream using the Log labels button.
 
@@ -818,7 +818,7 @@ Some knowledge about LQL to be sure ambassador metrics existed inside of the Lok
 The query is composed of:
 
 * A log stream selector {container="ambassador",namespace="monitoring"} which targets the ambassador container in the monitoring namespace.
-* A log pipeline |= "metrics.go" | logfmt | duration > 10s and throughput_mb < 500 which will filter out log that contains the word metrics.go, then parses each log line to extract more labels and filter with them.
+* A log pipeline |= "metrics.go" | logfmt | duration > 10s and throughput_mb < 500 which will filter out log that contains the word or word clauses via  metrics.go, then parses each log line to extract more labels and making a filtered structure with them.
 > For more details of grafana Loki query language please look over samples of LQL in official Loki githup repository.[Grafana-Loki github](https://github.com/grafana/loki)
 Also, you can Check ambassador logs while using ambassador namespace in queries like below. Also, you can add other params in your queries. But here it's a gentle introduction of how to seeing ambassador with Loki queries.
 
