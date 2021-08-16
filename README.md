@@ -14,11 +14,11 @@ Installing kubernetes is only getting started. Making it operationally ready req
 1. [Scope](#SCOP)
 2. [Set up DO Kubernetes](#DOKS)
 3. [Set up DO Container Registry](#DOCR)
-4. [Prometheus monitoring stack](#PROM)
-5. [Configure logging using Loki](#LOKI)
-6. [Ingress using Ambassador](#AMBA)
-7. [Backup using Velero](#VELE)
-8. [Automate everything using Terraform and Flux](#AUTO)
+4. [Prometheus Monitoring Stack](#PROM)
+5. [Configure Logging Using Loki](#LOKI)
+6. [Ingress Using Ambassador](#AMBA)
+7. [Backup Using Velero](#VELE)
+8. [Automate Everything Using Terraform and Flux](#AUTO)
 
 
 ## Scope <a name="SCOP"></a>
@@ -118,55 +118,58 @@ registry-bg-reg-1   kubernetes.io/dockerconfigjson   1      13s
 
 This create the above secret in default namespace. 
 
-## Prometheus monitoring stack <a name="PROM"></a>
-We will install kube-prometheus stack using helm, which is an opinionated full monitoring stack for kubernetes. It includes prometheus operator, kube-state-metrics, pre-built manifests, node exporters, metrics api, and alerts manager. 
+## Prometheus Monitoring Stack <a name="PROM"></a>
 
-Helm chart: https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack
+We will install the `kube-prometheus` stack using `Helm`, which is an opinionated full monitoring stack for `Kubernetes`. It includes the `Prometheus Operator`, `kube-state-metrics`, pre-built manifests, `Node Exporters`, `Metrics API`, and the `Alerts Manager`. 
 
-Update helm repo
+`Helm` chart: https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack
+
+Update the `Helm` repo:
+
 ```
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 helm repo update
 ```
 
-Download values.yaml
+Download the `values.yaml` file:
+
 ```
 curl https://raw.githubusercontent.com/prometheus-community/helm-charts/main/charts/kube-prometheus-stack/values.yaml -o prom-stack-values.yaml
 ```
 
-Modify values.yaml file to disable (false) metrics for etcd and kubeScheduler. Those components are managed by DOKS, and are not accessible to prometheus. Note that we're keeping the storage to be emptyDir. It means the storage will be gone if prometheus pods restart.
+Modify `values.yaml` file to disable (false) metrics for `etcd` and `kubeScheduler`. Those components are managed by `DOKS`, and are not accessible to `Prometheus`. Note that we're keeping the `storage` to be `emptyDir`. It means the **storage will be gone** if `Prometheus` pods restart.
 
-Install kube-prometheus-stack. 
+Install `kube-prometheus-stack`:
 
 ```
 helm install kube-prom-stack prometheus-community/kube-prometheus-stack -n monitoring -f prom-stack-values.yaml --create-namespace --wait
 ```
 
-Now you can connect to grafana (admin/prom-monitor, see values.yaml) by port forwarding to local machine. Once in, you can go to dashboards - manage, and choose different dashboards. 
+Now you can connect to `Grafana` (`admin/prom-monitor`, see `values.yaml`) by port forwarding to local machine. Once in, you can go to dashboards - manage, and choose different dashboards. 
 
 ```
 kubectl --namespace monitoring port-forward svc/kube-prom-stack-grafana 3000:80
 ```
 
+## Configure Logging Using Loki <a name="LOKI"></a>
 
-## Configure logging using Loki <a name="LOKI"></a>
-We need loki for logs. Loki runs on the cluster itself as a statefulset. Logs are aggregated and compressed by loki, then sent to the configured storage. Then we can connect loki data source to grafana, and view the logs.
+We need `Loki` for logs. `Loki` runs on the cluster itself as a `statefulset`. Logs are aggregated and compressed by `Loki`, then sent to the configured storage. Then we can connect `Loki` data source to `Grafana`, and view the logs.
 
 ```
 helm repo add grafana https://grafana.github.io/helm-charts
 helm search repo grafana
 ```
 
-We are interested in loki-stack (https://github.com/grafana/helm-charts/tree/main/charts/loki-stack), which will install standalone loki on the cluster.
+We are interested in the `loki-stack` (https://github.com/grafana/helm-charts/tree/main/charts/loki-stack), which will install standalone `Loki` on the cluster.
 
 ```
 curl https://raw.githubusercontent.com/grafana/helm-charts/main/charts/loki-stack/values.yaml -o loki-values.yaml
 helm upgrade --install loki --namespace=monitoring grafana/loki-stack -f loki-values.yaml --create-namespace --wait
 ```
 
-Now connect loki data source to grafana. Go the grafana web console, and add settings - data sources - add - loki. Add loki url "http://loki:3100". Save and quote.
+Now connect `Loki` data source to `Grafana`. Go to the `Grafana` web console, and add `settings` - `data sources` - add - `loki`. Add `Loki` url "http://loki:3100". Save and quote.
 
-Now you can access logs from explore tab of grafana. Make sure to select loki as the data source. Use help button for log search cheat sheet.
+Now you can access logs from the `explore` tab of `Grafana`. Make sure to select `loki` as the data source. Use `help` button for log search cheat sheet.
 
 ## Ingress using Ambassador <a name="AMBA"></a>
 
@@ -182,9 +185,13 @@ As there are many vendors, `Kubernetes API` has an `Ingress` spec. The idea is t
 
 We will use the `Ambassador Edge Stack` in this tutorial. You can pick any `Ingress/API Gateway` solution as long as it has good support from the community because we may want more options to be available in the near future as well.
 
+Why use the `Ambassador Edge Stack`?
+
+`Ambassador Edge Stack` gives platform engineers a comprehensive, self-service edge stack for managing the boundary between `end-users` and `Kubernetes`. Built on the `Envoy Proxy` and fully `Kubernetes-native`, `Ambassador Edge Stack` is made to support multiple, independent teams that need to rapidly publish, monitor, and update services for end-users. A true edge stack, `Ambassador Edge Stack` can also be used to handle the functions of an `API Gateway`, a `Kubernetes ingress controller` and a `layer 7 load balancer`.
+
 ### Ambassador Edge Stack (AES)
 
-The `Ambassador Edge Stack` or `AES` for short is a specialized [Control Plane](https://blog.getambassador.io/the-importance-of-control-planes-with-service-meshes-and-front-proxies-665f90c80b3d) for the `Envoy Proxy`. In this architecture, `Ambassador Edge Stack` translates configuration (in the form of `Kubernetes Custom Resources`) to `Envoy` configuration. All the actual traffic is directly handled by the high-performance [Envoy Proxy](https://www.envoyproxy.io).
+The `Ambassador Edge Stack` or `AES` for short, is a specialized [Control Plane](https://blog.getambassador.io/the-importance-of-control-planes-with-service-meshes-and-front-proxies-665f90c80b3d) for the `Envoy Proxy`. In this architecture, `Ambassador Edge Stack` translates configuration (in the form of `Kubernetes Custom Resources`) to `Envoy` configuration. All the actual traffic is directly handled by the high-performance [Envoy Proxy](https://www.envoyproxy.io).
 
 At a very high level `AES` works as follows:
 1.  The service owner defines configuration via `Kubernetes` manifests.
@@ -334,7 +341,7 @@ Events:
 ```
 As seen above, the last event tells us that there's no `A` record to point to the `echo` host for the `mandrakee.xyz` domain which results in a lookup failure. Let's fix this in the next section of the tutorial.
 
-### Configuring domain mappings
+### Configuring Domain Mappings
 
 Adding a domain you own to your `DigitalOcean` account lets you manage the domain’s `DNS` records via the `Control Panel` and `API`. Domains you manage on `DigitalOcean` also integrate with `DigitalOcean Load Balancers` and `Spaces` to streamline automatic `SSL` certificate management.
 
@@ -728,19 +735,69 @@ If everything looks like above we're all set and configured the `Ambassador Edge
 Because `Monitoring` and `Logging` is a very important aspect of every production ready system in the next section we're going to focus on how to enable it via `Prometheus` and `Loki` for the `AES` stack as well as other backend services.
 
 ### Configure Prometheus & Grafana
-We already install Prometheus, and grafana into our cluster by using the above prior sections called [Prometheus monitoring stack](#PROM). Also, you can make your own environment again from scratch by using the following link. 
-(Monitoring with Prometheus and Grafana for Ambassador)[https://www.getambassador.io/docs/edge-stack/latest/howtos/prometheus/#monitoring-with-prometheus-and-grafana]
 
-But we are considering you have a Prometheus environment and you want to bind a new ambassador gateway cluster with existed Prometheus environment. Before creating a service monitor to let Prometheus know how to scrap the metrics, you should know that ambassador is broadcasting its own metrics by using metrics endpoint. The /metrics endpoint can be accessed internally via the Ambassador Edge Stack admin port (default 8877). Please test it by calling the below link on your web browser yourself.
+We already deployed `Prometheus` and `Grafana` into the cluster as explained in the [Prometheus Monitoring Stack](#PROM) chapter.
+
+So, why `Prometheus` in the first place? Because it supports `multidimensional data collection` and `data queuing`, it's reliable and allows customers to quickly diagnose problems. Since each server is independent, it can be leaned on when other infrastructure is damaged, without requiring additional infrastructure. It also integrates very well with the `Kubernetes` model and way of working and that's a big plus as well.
+
+`Prometheus` follows a `pull` model when it comes to metrics gathering meaning that it expects a `/metrics` endpoint to be exposed by the service in question for scraping. Luckily for us the `Ambassador Edge Stack` setup created earlier in the tutorial provides the `/metrics` endpoint by default on port `8877`.
+
+The service in question is called `ambassador-admin` from the `ambassador` namespace as seen below:
+
+```bash
+kubectl get svc -n ambassador
+```
+
+The output looks similar to the following:
 
 ```
-http(s)://ambassador:8877/metrics
+NAME               TYPE           CLUSTER-IP     EXTERNAL-IP      PORT(S)                      AGE
+ambassador         LoadBalancer   10.245.39.13   68.183.252.190   80:31499/TCP,443:30759/TCP   3d3h
+ambassador-admin   ClusterIP      10.245.68.14   <none>           8877/TCP,8005/TCP            3d3h
+ambassador-redis   ClusterIP      10.245.9.81    <none>           6379/TCP                     3d3h
 ```
-we have existed monitoring configuration YAML file called *prom-stack-values.YAML*. it has a really important section and we have to change with service monitor configuration and then run helm upgrade to modify the existed chart. There are 2 steps for that.
 
-(1) Please find *additionalServiceMonitors* section and modify tihs part like below in *prom-stack-values.yaml*
+Then it's just a matter of invoking the `port-forward` subcommand of `kubectl` for the corresponding `Kubernetes Service`:
+
+```bash
+kubectl port-forward svc/ambassador-admin 8877:8877 -n ambassador
 ```
-  additionalServiceMonitors:
+
+The exposed metrics can be fetched using the web browser on [localhost](http://localhost:8877/metrics) or via a simple `curl` command like this:
+
+```
+curl -s http://localhost:8877/metrics
+```
+
+The output looks similar to the following:
+
+```
+# TYPE envoy_cluster_assignment_stale counter
+envoy_cluster_assignment_stale{envoy_cluster_name="cluster_127_0_0_1_8500_ambassador"} 0
+envoy_cluster_assignment_stale{envoy_cluster_name="cluster_127_0_0_1_8877_ambassador"} 0
+envoy_cluster_assignment_stale{envoy_cluster_name="cluster_echo_backend_ambassador"} 0
+envoy_cluster_assignment_stale{envoy_cluster_name="cluster_extauth_127_0_0_1_8500_ambassador"} 0
+envoy_cluster_assignment_stale{envoy_cluster_name="cluster_quote_backend_ambassador"} 0
+envoy_cluster_assignment_stale{envoy_cluster_name="cluster_quote_default_default"} 0
+envoy_cluster_assignment_stale{envoy_cluster_name="xds_cluster"} 0
+```
+
+Great! But how do we tell `Prometheus` about this new target? There are several ways of achieving this:
+* [<static_config>](https://prometheus.io/docs/prometheus/latest/configuration/configuration/#static_config) - allows specifying a list of targets and a common label set for them.
+* [<kubernetes_sd_config>](https://prometheus.io/docs/prometheus/latest/configuration/configuration/#kubernetes_sd_config) - allows retrieving scrape targets from `Kubernetes' REST API` and always staying synchronized with the cluster state.
+* [Prometheus Operator](https://github.com/prometheus-operator/prometheus-operator) - simplifies `Prometheus` monitoring inside a `Kubernetes` cluster via `CRDs`.
+
+As we can see there are many ways to tell `Prometheus` to scrape an endpoint, so which one should you pick? Because we're on the Kubernetes side, the best way is to **"speak its language"**, right? This means that we should always pick an option that fits best with the toolset. So which one is a perfect match if not a `Kubernetes Operator` ?
+Good news is that we already have access to the `Prometheus Operator` because it comes bundled into the [Prometheus Monitoring Stack](#PROM) configured earlier. So we're going to focus on it in the next steps and see how easy it is to add a new scraping endpoint for `Prometheus` to use. On top of that, managing the [kube-prometheus-stack](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack) via `Helm` simplifies things even more.
+A really cool feature of `Prometheus Operator` is the `ServiceMonitor` CRD which lets us define a new target for monitoring.
+
+Let's configure it right now and see how it works. We're going to use the *prom-stack-values.yaml* file downloaded in the [Prometheus Monitoring Stack](#PROM) section. Open it using a text editor of your choice (it's recommended to have one that has `YAML` linting support).
+
+There are only two steps needed in order to add a new service for monitoring:
+
+1. Add a new `ServiceMonitor` in the `additionalServiceMonitors` section:
+    ```
+    additionalServiceMonitors:
       - name: "ambassador-monitor"
         selector:
           matchLabels:
@@ -752,45 +809,96 @@ we have existed monitoring configuration YAML file called *prom-stack-values.YAM
         - port: "ambassador-admin"
           path: /metrics
           scheme: http
-```
-Let's explain keywords:
+    ```
 
-* matchLabel: tells what pods the deployment will apply to.
-* selector: matchLabels tells the resource, whatever it may be, service, deployment, etc, to match the pod, according to that label.
-* port: The port may be a literal port number as defined in the ambassador-metrics service, or may reference the port in the same service by name. 
-* matchNames: Here we want to match the namespace of the Ambassador Metrics Service we have just created.
+    Important configuration elements to be highlighted here:
 
-(2) Last step is *helm upgrade* to modify existed Prometheus chart for seeing changes.
-```
-helm upgrade kube-prom-stack prometheus-community/kube-prometheus-stack -n monitoring -f prom-stack-values.yaml
-```
-That's it! The final touch for seeing metrics values on Prometheus dashboard. For that, you have to forward your 9090 port to another available port.
-```
- kubectl --namespace monitoring port-forward svc/kube-prom-stack-kube-prome-prometheus 9090:9090
+    * `matchLabel` - tells what pods the deployment will apply to.
+    * `selector` - specifies the resource to match (service, deployment, etc), according to the label key-pair from the `matchLabels` key.
+    * `port` - can be a literal port `number` as defined in the `ambassador-metrics` service or a reference to the port `name`. 
+    * `namespaceSelector` - here we want to match the namespace of the `Ambassador Metrics Service` we have just created via the `matchNames` key.
+2. Apply the changes via `Helm`:
+   
+    ```bash
+    helm upgrade kube-prom-stack prometheus-community/kube-prometheus-stack -n monitoring -f prom-stack-values.yaml
+    ```
+      **Important note:**
+
+      If the `Helm` upgrade process fails, then there's either a mistake in the `prom-stack-values.yaml` file or the `kube-prometheus-stack` chart was updated. This happens when using `helm repo update`. `Helm` will always use the latest chart available if no version is specified. Things may break because some `Helm` chart versions are **not backwards compatible**.
+
+      In order to fix this we have to find what version was deployed via:
+
+      ```bash
+      helm ls -n monitoring
+      ```
+
+      The output looks similar to the following:
+
+      ```
+      NAME            NAMESPACE       REVISION        UPDATED                                 STATUS          CHART                           APP VERSION
+      kube-prom-stack monitoring      2               2021-08-14 00:08:16.520902 +0300 EEST   deployed        kube-prometheus-stack-17.1.3    0.49.0 
+      ```
+
+      Looking at the `CHART` column we can see that the deployed version is `17.1.3` in this case, so we add the `--version` flag to the `upgrade` command:
+
+      ```bash
+      helm upgrade kube-prom-stack prometheus-community/kube-prometheus-stack -n monitoring --version 17.1.3 -f prom-stack-values.yaml
+      ```
+
+### Seeing the Results
+
+That's it! We can inspect now the `Ambassador` target that was added to `Prometheus` for scraping. But first, let's do a `port-forward` so that we can see it the `dashboard`:
+
+```bash
+kubectl port-forward svc/kube-prom-stack-kube-prome-prometheus 9090:9090 -n monitoring
 ```
 
-#### DashBoard
+Navigating to the `Status -> Targets` page should give the following result (notice the `serviceMonitor/monitoring/ambassador-monitor/0` path):
 
-After port forwarding like below, you can access the metrics in Grafana. 
+![Ambassador Prometheus Target](images/prom_amb_target.png)
+
+### Grafana
+
+Although `Prometheus` has some support for visualising data built in, a better way of doing it is via `Grafana` which is an open-source platform for monitoring and observability that lets you visualize and explore the state of your systems.
+
+On the official page is described as being able to:
+
+> Query, visualize, alert on, and understand your data no matter where it’s stored.
+
+Why use `Grafana`? Because it's the leading open source monitoring and analytics platform available nowadays for visualising data coming from a vast number of data sources, including `Prometheus` as well. It offers some advanced features for organising the graphs and it supports real time testing for queries. Not to mention that you can customize the views and make some beautiful panels which can be rendered on big screens so you never miss a single data point.
+
+No extra steps are needed for installation because the [Prometheus Monitoring Stack](#PROM) deployed earlier did it already for us. All we have to do is a port forwarding like below and get immediate access to the dashboards (default credentials: `admin/prom-monitor`):
+
 ```
 kubectl --namespace monitoring port-forward svc/kube-prom-stack-grafana 3000:80
 ```
-if you want to see all ambassador metrics in a well-designed dashboard Add the following dashboard in grafana: https://grafana.com/grafana/dashboards/4698
+
+In order to see all the `Ambassador Edge Stack` metrics in a well-designed dashboard, add the following dashboard in `Grafana`: https://grafana.com/grafana/dashboards/4698.
+
+The required steps are easy:
+1. Navigate to the [dashboard import](http://localhost:3000/dashboard/import) section (or hover the mouse on the `+` sign from the left pane, then click `Import`)
+2. In the `Import via grafana.com` section just paste this id: `4698`, then click `Load`
+3. The final step would be to select a data source - `Prometheus` in this case, then hit the `Import` button. Before importing you can also tweak the folder for example where the dashboard will be stored to keep things organized.
+
+The final result should look like in the picture below:
 
 ![Dashboard Grafana image](images/GrafanaDashboard.jpg)
 
-When you decide to test your first Grafana DashBoard, please call below ambassador test service. if you call the below service 2 times, you will see that 4 responses. Because it is a gateway, your request passes a gateway and arrives in real service. Because of that, your response also will have the same steps. 
+In order to see some data, or in other words to populate the graphs, we can perform some calls to the backend service(s) deployed earlier. If you call the below service 2 times, you will see 4 responses being plotted. This is normal behavior because the `API Gateway` (from the `Ambassador Edge Stack`) is hit first and the the real service. Same thing happens when a reply is being sent back so we have a total of: `2 + 2 = 4` responses being plotted in the `API Response Codes` graph as seen in the above picture as well.
 
+```bash
+curl -Lk https://quote.mandrakee.xyz/quote/
 ```
-~# curl -Lk https://104.248.102.80/backend/
+
+The output looks similar to the following:
+```
 {
     "server": "buoyant-pear-girnlk37",
     "quote": "A small mercy is nothing at all?",
     "time": "2021-08-11T18:18:56.654108372Z"
 }
 ```
-
-<TBD>
+This concludes the `Grafana` setup. You can play around and add more panels for visualising other data sources, as well as group them together based on scope.
 
 
 ### Configure Loki and Grafana
