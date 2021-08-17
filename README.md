@@ -421,7 +421,7 @@ At this point the network traffic will reach the `AES enabled` cluster but we ne
 
 Please visit the [How to Create, Edit and Delete DNS Records](https://docs.digitalocean.com/products/networking/dns/how-to/manage-records) page for more information.
 
-### Creating the Backend Services
+### Creating the Backend Services <a name="AMBA_BK_SVC"></a>
 
 We can have multiple `TLS enabled` hosts on the same cluster. On the other hand we can have multiple deployments and services as well. So for each `Backend Service` a corresponding `Kubernetes Deployment` and `Service` has to be created.
 
@@ -873,18 +873,32 @@ No extra steps are needed for installation because the [Prometheus Monitoring St
 kubectl --namespace monitoring port-forward svc/kube-prom-stack-grafana 3000:80
 ```
 
-In order to see all the `Ambassador Edge Stack` metrics in a well-designed dashboard, add the following dashboard in `Grafana`: https://grafana.com/grafana/dashboards/4698.
+In order to see all the `Ambassador Edge Stack` metrics, we're going to add this well-designed [dashboard](https://grafana.com/grafana/dashboards/4698) from the `Grafana` community.
 
-The required steps are easy:
-1. Navigate to the [dashboard import](http://localhost:3000/dashboard/import) section (or hover the mouse on the `+` sign from the left pane, then click `Import`)
-2. In the `Import via grafana.com` section just paste this id: `4698`, then click `Load`
-3. The final step would be to select a data source - `Prometheus` in this case, then hit the `Import` button. Before importing you can also tweak the folder for example where the dashboard will be stored to keep things organized.
+Creating the above dashboard is easy:
+1. Navigate to the [dashboard import](http://localhost:3000/dashboard/import) section (or hover the mouse on the `+` sign from the left pane, then click `Import`).
+2. In the `Import via grafana.com` section just paste the ID: `4698`, then click `Load`.
+3. The final step would be to select a data source - `Prometheus` in this case, then hit the `Import` button.
 
-The final result should look like in the picture below:
+The picture down below shows the available options:
 
-![Dashboard Grafana image](images/GrafanaDashboard.jpg)
+![Grafana Ambassador Setup](images/grafana_amb_setup.png)
 
-In order to see some data, or in other words to populate the graphs, we can perform some calls to the backend service(s) deployed earlier. If you call the below service 2 times, you will see 4 responses being plotted. This is normal behavior because the `API Gateway` (from the `Ambassador Edge Stack`) is hit first and the the real service. Same thing happens when a reply is being sent back so we have a total of: `2 + 2 = 4` responses being plotted in the `API Response Codes` graph as seen in the above picture as well.
+Fields description:
+* `Name` - the dashboard name (defaults to `Ambassador`).
+* `Folder` - the folder name where to store this dashboard (defaults to `General`).
+* `Prometheus` - the `Prometheus` instance to use (we have only one in this example).
+* `Listener port` - the `Envoy listener port` (defaults to `8080`).
+
+After clicking `Import` it will create the following dashboard as seen below:
+
+![Grafana Ambassador Dashboard](images/GrafanaDashboard.jpg)
+
+In the next part we want to monitor the number of `API` calls for our `quote` backend service created earlier in the [Ambassador Edge Stack - Backend Services](#AMBA_BK_SVC) section. The graph of interest is: `API Response Codes`.
+
+If you call the service 2 times, you will see 4 responses being plotted. This is normal behavior because the `API Gateway` (from the `Ambassador Edge Stack`) is hit first and then the real service. Same thing happens when a reply is being sent back so we have a total of: `2 + 2 = 4` responses being plotted in the `API Response Codes` graph as seen in the above picture.
+
+`CLI` command used for testing the above scenario:
 
 ```bash
 curl -Lk https://quote.mandrakee.xyz/quote/
