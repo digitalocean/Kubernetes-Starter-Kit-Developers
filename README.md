@@ -1051,7 +1051,7 @@ Let's move to a practical example now and query `Ambassador` logs from the `AES`
     The output looks similar to the following:
 
     ![LogQL Query Example](images/lql_first_example.png)
-3. Let's query again but this time filter the results to include only `warning` messages:
+3. Let's query again, but this time filter the results to include only `warning` messages:
 
     ```
     {container="ambassador",namespace="ambassador"} |= "warning"
@@ -1063,10 +1063,85 @@ Let's move to a practical example now and query `Ambassador` logs from the `AES`
 
 As seen in the above examples, each query is composed of:
 
-* A log stream selector `{container="ambassador",namespace="ambassador"}` which targets the `ambassador container` from the `ambassador namespace`.
+* A `log stream` selector `{container="ambassador",namespace="ambassador"}` which targets the `ambassador container` from the `ambassador namespace`.
 * A `filter` like `|= "warning"`, which will filter out lines that contain only the `warning` word
 
 More complex queries can be created using `aggregation` operators. For more details on that and other advanced topics, please visit the official [LogQL](https://grafana.com/docs/loki/latest/logql) page.
+
+Another feature of `Loki` that is worth mentioning is [Labels](https://grafana.com/docs/loki/latest/getting-started/labels). `Labels` allows us to organize streams. In other words, `labels` add `metadata` to a log stream in order to distinguish it later. Essentially, they are `key-value` pairs that can be anything we want as long as they have a meaning for the data that is being tagged. 
+
+The picture down below will highlight this feature in the `Log labels` sub-window from the query page (namely the: `filename`, `pod` and `product`):
+
+![LogQL Labels Example](images/LQL.png)
+
+Let's simplify it a little bit by taking the example from the above picture:
+
+```
+{namespace="ambassador"}
+```
+
+The label in question is called `namespace` - remember that labels are `key-value` pairs ? We can see it right there inside the curly braces. This tells `LogQL` that we want to fetch all the log streams that are tagged with the label called `namespace` and has the value equal to `ambassador`. But who is responsible with doing the actual labeling ? Not `Loki`, that's for sure. It only aggregates and indexes the data (labels are used for that purpose as well). Meet [Promtail](https://grafana.com/docs/loki/latest/clients/promtail) in the next section.
+
+### Promtail
+
+`Promtail` is an `agent` which ships the contents of local logs to a private `Loki` instance. It is usually deployed to every machine that has applications needed to be monitored. It comes bundled with the [Loki](#LOKI) stack we deployed earlier and it's enabled by default as seen in the `loki-values.yaml` file.
+
+What `Promtail` does is:
+
+* `Discovers` targets
+* `Attaches labels` to `log streams`
+* `Pushes` them to the `Loki` instance.
+
+**Log file discovery:**
+
+Before `Promtail` can ship any data from log files to `Loki`, it needs to find out information about its environment. Specifically, this means discovering applications emitting log lines to files that need to be monitored.
+
+`Promtail` borrows the same service discovery mechanism from `Prometheus`, although it currently only supports `Static` and `Kubernetes` service discovery. This limitation is due to the fact that `Promtail` is deployed as a daemon to every local machine and, as such, does not discover label from other machines. `Kubernetes` service discovery fetches required labels from the `Kubernetes API` server while `Static` usually covers all other use cases.
+
+As with every `monitoring agent` we need to have a way for it to be up all the time. The `Loki` stack `Helm` deployment already makes this possible via a `DaemonSet`, as seen below:
+
+```bash
+kubectl get ds -n monitoring
+```
+
+The output looks similar to the following (notice the `loki-promtail` line):
+
+```
+NAME                                       DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR   AGE
+kube-prom-stack-prometheus-node-exporter   2         2         2       2            2           <none>          7d4h
+loki-promtail                              2         2         2       2            2           <none>          5h6m
+```
+
+This is great! But how does it discover `Kubernetes` pods and assigns labels? Let's have a look at the associated `ConfigMap`:
+
+```bash
+kubectl get cm loki-promtail -n monitoring -o yaml
+```
+
+The output looks similar to the following:
+
+```
+scrape_configs:
+  - job_name: kubernetes-pods-name
+    pipeline_stages:
+      - docker: {}
+    kubernetes_sd_configs:
+    - role: pod
+    relabel_configs:
+    - action: replace
+      source_labels:
+      - __meta_kubernetes_namespace
+      target_label: namespace
+```
+
+As seen above, in the `scrape_configs` section we have the `kubernetes-pods-name` job which:
+
+* Helps with `service discovery` on the `Kubernetes` side via `kubernetes_sd_configs` (works by using the `Kubernetes API` from the node that the `loki-prommtail DaemonSet` runs on).
+* Re-labels `__meta_kubernetes_namespace` to `namespace` in the `relabel_configs` section.
+
+Simple as that!
+
+This concludes our `Loki` and `Promtail` setup in order to keep things simple. For more details and in depth explanations please visit the [Loki](https://grafana.com/docs/loki/latest) and [Promtail](https://grafana.com/docs/loki/latest/clients/promtail) official documentation pages.
 
 ## Backup using Velero <a name="VELE"></a>
 
