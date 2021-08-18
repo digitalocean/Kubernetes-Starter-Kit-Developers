@@ -15,7 +15,7 @@ Installing kubernetes is only getting started. Making it operationally ready req
 2. [Set up DO Kubernetes](#DOKS)
 3. [Set up DO Container Registry](#DOCR)
 4. [Prometheus Monitoring Stack](#PROM)
-5. [Configure Logging Using Loki](#LOKI)
+5. [Logging via Loki Stack](#LOKI)
 6. [Ingress Using Ambassador](#AMBA)
 7. [Backup Using Velero](#VELE)
 8. [Automate Everything Using Terraform and Flux](#AUTO)
@@ -120,7 +120,7 @@ This create the above secret in default namespace.
 
 ## Prometheus Monitoring Stack <a name="PROM"></a>
 
-We will install the `kube-prometheus` stack using `Helm`, which is an opinionated full monitoring stack for `Kubernetes`. It includes the `Prometheus Operator`, `kube-state-metrics`, pre-built manifests, `Node Exporters`, `Metrics API`, and the `Alerts Manager`. 
+We will install the `kube-prometheus` stack using `Helm`, which is an opinionated full monitoring stack for `Kubernetes`. It includes the `Prometheus Operator`, `kube-state-metrics`, pre-built manifests, `Node Exporters`, `Metrics API`, the `Alerts Manager` and `Grafana`. 
 
 `Helm` chart: https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack
 
@@ -133,11 +133,11 @@ helm repo update
 
 Download the `values.yaml` file:
 
-```
+```bash
 curl https://raw.githubusercontent.com/prometheus-community/helm-charts/main/charts/kube-prometheus-stack/values.yaml -o prom-stack-values.yaml
 ```
 
-Modify `values.yaml` file to disable (false) metrics for `etcd` and `kubeScheduler`. Those components are managed by `DOKS`, and are not accessible to `Prometheus`. Note that we're keeping the `storage` to be `emptyDir`. It means the **storage will be gone** if `Prometheus` pods restart.
+Modify the `prom-stack-values.yaml` file to disable metrics for `etcd` and `kubeScheduler` (set their corresponding values to `false`). Those components are managed by `DOKS` and are not accessible to `Prometheus`. Note that we're keeping the `storage` to be `emptyDir`. It means the **storage will be gone** if `Prometheus` pods restart.
 
 Install `kube-prometheus-stack`:
 
@@ -145,31 +145,58 @@ Install `kube-prometheus-stack`:
 helm install kube-prom-stack prometheus-community/kube-prometheus-stack -n monitoring -f prom-stack-values.yaml --create-namespace --wait
 ```
 
-Now you can connect to `Grafana` (`admin/prom-monitor`, see `values.yaml`) by port forwarding to local machine. Once in, you can go to dashboards - manage, and choose different dashboards. 
+Now you can connect to `Grafana` (`admin/prom-monitor`, see `prom-stack-values.yaml`) by port forwarding to local machine. Once in, you can go to dashboards - manage, and choose different dashboards. 
 
 ```
 kubectl --namespace monitoring port-forward svc/kube-prom-stack-grafana 3000:80
 ```
 
-## Configure Logging Using Loki <a name="LOKI"></a>
+**Important Note:**
 
-We need `Loki` for logs. `Loki` runs on the cluster itself as a `statefulset`. Logs are aggregated and compressed by `Loki`, then sent to the configured storage. Then we can connect `Loki` data source to `Grafana`, and view the logs.
+Please save and keep somewhere safe the `prom-stack-values.yaml` file because it reflects the current state of the deployment (we need it later on as well).
 
-```
+## Logging via Loki Stack <a name="LOKI"></a>
+
+We need [Loki](https://github.com/grafana/helm-charts/tree/main/charts/loki-stack) for logs. `Loki` runs on the cluster itself as a `statefulset`. Logs are aggregated and compressed by `Loki`, then sent to the configured storage. Then we can connect `Loki` data source to `Grafana`, and view the logs.
+
+Add the required `Helm` repository first:
+
+```bash
 helm repo add grafana https://grafana.github.io/helm-charts
 helm search repo grafana
 ```
 
-We are interested in the `loki-stack` (https://github.com/grafana/helm-charts/tree/main/charts/loki-stack), which will install standalone `Loki` on the cluster.
+We are interested in the `grafana/loki-stack`, which will install standalone `Loki` on the cluster.
+
+Fetch the values file:
 
 ```
 curl https://raw.githubusercontent.com/grafana/helm-charts/main/charts/loki-stack/values.yaml -o loki-values.yaml
-helm upgrade --install loki --namespace=monitoring grafana/loki-stack -f loki-values.yaml --create-namespace --wait
 ```
 
-Now connect `Loki` data source to `Grafana`. Go to the `Grafana` web console, and add `settings` - `data sources` - add - `loki`. Add `Loki` url "http://loki:3100". Save and quote.
+Before deploying the stack via `Helm`, edit the  `loki-values.yaml` file and make sure that the `prometheus` and `grafana` options are disabled (set their corresponding `enabled` fields to `false`). The `Prometheus` stack deployed in the previous chapter took care of it already. 
 
-Now you can access logs from the `explore` tab of `Grafana`. Make sure to select `loki` as the data source. Use `help` button for log search cheat sheet.
+Install the stack:
+
+```bash
+helm upgrade --install loki --namespace=monitoring grafana/loki-stack -f loki-values.yaml --create-namespace --wait
+``` 
+
+Let's add the `Loki` data source to `Grafana`. Go to the `Grafana` web console and follow these steps: 
+
+1. Click the `Settings` gear from the left panel.
+2. Select `Data sources`.
+3. Click the `Add data source` blue button.
+4. Select `Loki` from the list and add `Loki` url `http://loki:3100`. 
+5. Save and test.
+
+If everything went well a green label message will appear saying `Data source connected and labels found.`
+
+Now you can access logs from the `Explore` tab of `Grafana`. Make sure to select `Loki` as the data source. Use `Help` button for log search cheat sheet.
+
+**Important Note:**
+
+Please save and keep somewhere safe the `prom-stack-values.yaml` file because it reflects the current state of the deployment (we might need it later as well).
 
 ## Ingress using Ambassador <a name="AMBA"></a>
 
@@ -876,11 +903,11 @@ ambassador-redis   1/1     1            1           3d3h
 
 ### PromQL (Prometheus Query Language)
 
-Another powerful feature of `Prometheus` that is worth mentioning is `PromQL` or the `Prometheus Query Language`. In this section we'll cover just some basics and a few practical examples. For more in depth explanations and features, please visit the official [PromQL](https://prometheus.io/docs/prometheus/latest/querying/basics/) page.
+Another powerful feature of `Prometheus` that is worth mentioning is `PromQL` or the `Prometheus Query Language`. In this section we'll cover just some basics and a practical example later on. For more in depth explanations and features, please visit the official [PromQL](https://prometheus.io/docs/prometheus/latest/querying/basics/) page.
 
 What is `PromQL` in the first place? It's a `DSL` or `Domain Specific Language` that is specifically built for `Prometheus` and allows us to query for metrics. Because it’s a `DSL` built upon `Go`, you’ll find that `PromQL` has a lot in common with the language. But it’s also a `NFL` or `Nested Functional Language`, where data appears as nested expressions within larger expressions. The outermost, or overall, expression defines the final value, while nested expressions represent values for arguments and operands.
 
-Let's move to some practicals example now. We're going to inspect one of the `Ambassador Edge Static` exposed metrics, namely the `ambassador_edge_stack_promhttp_metric_handler_requests_total`, which represents the total of `HTTP` requests `Prometheus` performed for the `AES` metrics endpoint.
+Let's move to a practical example now. We're going to inspect one of the `Ambassador Edge Static` exposed metrics, namely the `ambassador_edge_stack_promhttp_metric_handler_requests_total`, which represents the total of `HTTP` requests `Prometheus` performed for the `AES` metrics endpoint.
 
 Steps:
 
@@ -982,38 +1009,139 @@ This concludes the `Grafana` setup. You can play around and add more panels for 
 
 ### Configure Loki and Grafana
 
-We already install Loki, and grafana into our cluster by following prior sections. Please follow the above section [Ingress using Ambassador](#LOKI) to remembering all steps.
+We already have `Loki` and `Grafana` installed from the previous chapters of this tutorial (`Grafana` comes bundled with the `Prometheus` stack deployed earlier).
 
-Grafana Loki is a horizontally scalable, highly-available, multi-tenant log aggregation system inspired by Prometheus. It is designed to be very cost-effective and easy to operate. Please follow easy below steps to take advantage of the new LogQL functionality.
+What is `Loki` anyway?
 
+> Loki is a `horizontally-scalable`, `highly-available`, `multi-tenant` log aggregation system inspired by `Prometheus`.
 
-* Firstly you will need DataSource of Loki. Because of that, Log into your Grafana instance. If this is your first time running Grafana, the username and password are both defaulted to admin.
-* In Grafana, go to Configuration > Data Sources via the cog icon on the left sidebar.
-* Click the big + Add data source button rightside of the page.
-* Choose Loki option from the list.
-* The http URL field should be the address of your Loki server. For example, when running locally or with Docker using port mapping, the address is likely http://localhost:3100. When running with docker-compose or Kubernetes, the address is likely http://loki:3100.
-* if you want to see the logs, click Explore on the sidebar, select the Loki data source in the top-left dropdown, and then select a log stream using the Log labels button.
+Why use `Loki` in the first place? The main reasons are (some were already highlighted above):
 
->Learn more about querying by reading about Loki’s query language LogQL.[For more details please visit grafana-loki official documents](https://grafana.com/docs/loki/latest/getting-started/grafana/)
+* `Horizontally scalable`
+* `High availabilty`
+* `Multi-tenant` mode available
+* `Stores` and `indexes` data in a very `efficient` way
+* `Cost` effective
+* `Easy` to operate
+* `LogQL` DSL (offers the same functionality as `PromQL` from `Prometheus`, which is a plus if you're already familiar with it)
 
-Some knowledge about LQL to be sure ambassador metrics existed inside of the Loki query result on the dashboard:
+The `Loki` data source for `Grafana` was already configured in the ... so all we have to do now is to test some basic `LogQL` features.
+
+### LogQL
+
+`Loki` comes with its very own language for querying the logs called `LogQL`. `LogQL` can be considered a `distributed grep` with `labels` for filtering.
+
+A basic `LogQL` query consists of two parts: the `log stream selector` and a `filter` expression. Due to Loki’s design, all `LogQL` queries are required to contain a `log stream selector`.
+
+The `log stream selector` will reduce the number of log streams to a manageable volume. Depending on how many labels you use to filter down the log streams it will affect the relative performance of the query’s execution. The filter expression is then used to do a distributed grep over the retrieved log streams.
+
+Let's move to a practical example now and query `Ambassador` logs from the `AES` deployment. Please follow the steps below:
+
+1. Get access to `Grafana` web interface:
+
+    ```bash
+    kubectl port-forward svc/kube-prom-stack-grafana 3000:80 -n monitoring
+    ```
+2. Open the [web console](http://localhost:3000) and navigate to the `Explore` tab from the left panel. Select `Loki` from the data source menu and run this query:
+    
+    ```
+    {container="ambassador",namespace="ambassador"}
+    ```
+
+    The output looks similar to the following:
+
+    ![LogQL Query Example](images/lql_first_example.png)
+3. Let's query again, but this time filter the results to include only `warning` messages:
+
+    ```
+    {container="ambassador",namespace="ambassador"} |= "warning"
+    ```
+
+    The output looks similar to the following (notice the `warning` word being highlighted in the results window):
+
+    ![LogQL Query Example](images/lql_second_example.png)
+
+As seen in the above examples, each query is composed of:
+
+* A `log stream` selector `{container="ambassador",namespace="ambassador"}` which targets the `ambassador container` from the `ambassador namespace`.
+* A `filter` like `|= "warning"`, which will filter out lines that contain only the `warning` word
+
+More complex queries can be created using `aggregation` operators. For more details on that and other advanced topics, please visit the official [LogQL](https://grafana.com/docs/loki/latest/logql) page.
+
+Another feature of `Loki` that is worth mentioning is [Labels](https://grafana.com/docs/loki/latest/getting-started/labels). `Labels` allows us to organize streams. In other words, `labels` add `metadata` to a log stream in order to distinguish it later. Essentially, they are `key-value` pairs that can be anything we want as long as they have a meaning for the data that is being tagged. 
+
+The picture down below will highlight this feature in the `Log labels` sub-window from the query page (namely the: `filename`, `pod` and `product`):
+
+![LogQL Labels Example](images/LQL.png)
+
+Let's simplify it a little bit by taking the example from the above picture:
 
 ```
-{container="ambassador",namespace="monitoring"} |= "metrics.go" | logfmt | duration > 10s and throughput_mb < 500
+{namespace="ambassador"}
 ```
 
-The query is composed of:
+The label in question is called `namespace` - remember that labels are `key-value` pairs ? We can see it right there inside the curly braces. This tells `LogQL` that we want to fetch all the log streams that are tagged with the label called `namespace` and has the value equal to `ambassador`. But who is responsible with doing the actual labeling ? Not `Loki`, that's for sure. It only aggregates and indexes the data (labels are used for that purpose as well). Meet [Promtail](https://grafana.com/docs/loki/latest/clients/promtail) in the next section.
 
-* A log stream selector {container="ambassador",namespace="monitoring"} which targets the ambassador container in the monitoring namespace.
-* A log pipeline |= "metrics.go" | logfmt | duration > 10s and throughput_mb < 500 which will filter out log that contains the word or word clauses via  metrics.go, then parses each log line to extract more labels and making a filtered structure with them.
-> For more details of grafana Loki query language please look over samples of LQL in official Loki githup repository.[Grafana-Loki github](https://github.com/grafana/loki)
-Also, you can Check ambassador logs while using ambassador namespace in queries like below. Also, you can add other params in your queries. But here it's a gentle introduction of how to seeing ambassador with Loki queries.
+### Promtail
 
-![Dashboard Loki query image](images/LQL.png)
+`Promtail` is an `agent` which ships the contents of local logs to a private `Loki` instance. It is usually deployed to every machine that has applications needed to be monitored. It comes bundled with the [Loki](#LOKI) stack we deployed earlier and it's enabled by default as seen in the `loki-values.yaml` file.
 
+What `Promtail` does is:
 
+* `Discovers` targets
+* `Attaches labels` to `log streams`
+* `Pushes` them to the `Loki` instance.
 
-<TBD>
+**Log file discovery:**
+
+Before `Promtail` can ship any data from log files to `Loki`, it needs to find out information about its environment. Specifically, this means discovering applications emitting log lines to files that need to be monitored.
+
+`Promtail` borrows the same service discovery mechanism from `Prometheus`, although it currently only supports `Static` and `Kubernetes` service discovery. This limitation is due to the fact that `Promtail` is deployed as a daemon to every local machine and, as such, does not discover label from other machines. `Kubernetes` service discovery fetches required labels from the `Kubernetes API` server while `Static` usually covers all other use cases.
+
+As with every `monitoring agent` we need to have a way for it to be up all the time. The `Loki` stack `Helm` deployment already makes this possible via a `DaemonSet`, as seen below:
+
+```bash
+kubectl get ds -n monitoring
+```
+
+The output looks similar to the following (notice the `loki-promtail` line):
+
+```
+NAME                                       DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR   AGE
+kube-prom-stack-prometheus-node-exporter   2         2         2       2            2           <none>          7d4h
+loki-promtail                              2         2         2       2            2           <none>          5h6m
+```
+
+This is great! But how does it discover `Kubernetes` pods and assigns labels? Let's have a look at the associated `ConfigMap`:
+
+```bash
+kubectl get cm loki-promtail -n monitoring -o yaml
+```
+
+The output looks similar to the following:
+
+```
+scrape_configs:
+  - job_name: kubernetes-pods-name
+    pipeline_stages:
+      - docker: {}
+    kubernetes_sd_configs:
+    - role: pod
+    relabel_configs:
+    - action: replace
+      source_labels:
+      - __meta_kubernetes_namespace
+      target_label: namespace
+```
+
+As seen above, in the `scrape_configs` section we have the `kubernetes-pods-name` job which:
+
+* Helps with `service discovery` on the `Kubernetes` side via `kubernetes_sd_configs` (works by using the `Kubernetes API` from the node that the `loki-prommtail DaemonSet` runs on).
+* Re-labels `__meta_kubernetes_namespace` to `namespace` in the `relabel_configs` section.
+
+Simple as that!
+
+This concludes our `Loki` and `Promtail` setup in order to keep things simple. For more details and in depth explanations please visit the [Loki](https://grafana.com/docs/loki/latest) and [Promtail](https://grafana.com/docs/loki/latest/clients/promtail) official documentation pages.
 
 ## Backup using Velero <a name="VELE"></a>
 
