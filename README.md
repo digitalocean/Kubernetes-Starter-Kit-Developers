@@ -1168,7 +1168,7 @@ Explanation above configuration:
       startTimestamp: "2021-08-18T17:11:14Z"
       version: 1
     ```
-    When you look at the result,please check includedNamespaces is ambassador and also you can confuse when you see .*velero.io/storage-location: default* . Default means `starterkit-velero-backups` .
+    When you look at the result,please check `includedNamespaces` is ambassador and also you can confuse when you see .*velero.io/storage-location: default* . Default means that `starterkit-velero-backups` .
     ```
     ~# velero backup-location get
     
