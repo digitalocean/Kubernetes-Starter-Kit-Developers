@@ -740,9 +740,9 @@ We already deployed `Prometheus` and `Grafana` into the cluster as explained in 
 
 So, why `Prometheus` in the first place? Because it supports `multidimensional data collection` and `data queuing`, it's reliable and allows customers to quickly diagnose problems. Since each server is independent, it can be leaned on when other infrastructure is damaged, without requiring additional infrastructure. It also integrates very well with the `Kubernetes` model and way of working and that's a big plus as well.
 
-`Prometheus` follows a `pull` model when it comes to metrics gathering meaning that it expects a `/metrics` endpoint to be exposed by the service in question for scraping. Luckily for us the `Ambassador Edge Stack` setup created earlier in the tutorial provides the `/metrics` endpoint by default on port `8877`.
+`Prometheus` follows a `pull` model when it comes to metrics gathering meaning that it expects a `/metrics` endpoint to be exposed by the service in question for scraping. Luckily for us the `Ambassador Edge Stack` setup created earlier in the tutorial provides the `/metrics` endpoint by default on port `8877` via a `Kubernetes` service.
 
-The service in question is called `ambassador-admin` from the `ambassador` namespace as seen below:
+The service in question is called `ambassador-admin` and it's in the `ambassador` namespace as seen below:
 
 ```bash
 kubectl get svc -n ambassador
@@ -847,7 +847,7 @@ There are only two steps needed in order to add a new service for monitoring:
 
 ### Seeing the Results
 
-That's it! We can inspect now the `Ambassador` target that was added to `Prometheus` for scraping. But first, let's do a `port-forward` so that we can see it the `dashboard`:
+That's it! We can inspect now the `Ambassador` target that was added to `Prometheus` for scraping. But first, let's do a `port-forward` so that we can see it the web interface:
 
 ```bash
 kubectl port-forward svc/kube-prom-stack-kube-prome-prometheus 9090:9090 -n monitoring
@@ -856,6 +856,71 @@ kubectl port-forward svc/kube-prom-stack-kube-prome-prometheus 9090:9090 -n moni
 Navigating to the `Status -> Targets` page should give the following result (notice the `serviceMonitor/monitoring/ambassador-monitor/0` path):
 
 ![Ambassador Prometheus Target](images/prom_amb_target.png)
+
+**Note:**
+
+There are **3 entries** under the discovered target because the `AES` deployment consists of 3 `Pods`. Verify it via:
+
+```bash
+kubectl get deployments -n ambassador
+```
+
+The output looks similar to the following (notice the `ambassador` line):
+
+```
+NAME               READY   UP-TO-DATE   AVAILABLE   AGE
+ambassador         3/3     3            3           3d3h
+ambassador-agent   1/1     1            1           3d3h
+ambassador-redis   1/1     1            1           3d3h
+```
+
+### PromQL (Prometheus Query Language)
+
+Another powerful feature of `Prometheus` that is worth mentioning is `PromQL` or the `Prometheus Query Language`. In this section we'll cover just some basics and a few practical examples. For more in depth explanations and features, please visit the official [PromQL](https://prometheus.io/docs/prometheus/latest/querying/basics/) page.
+
+What is `PromQL` in the first place? It's a `DSL` or `Domain Specific Language` that is specifically built for `Prometheus` and allows us to query for metrics. Because it’s a `DSL` built upon `Go`, you’ll find that `PromQL` has a lot in common with the language. But it’s also a `NFL` or `Nested Functional Language`, where data appears as nested expressions within larger expressions. The outermost, or overall, expression defines the final value, while nested expressions represent values for arguments and operands.
+
+Let's move to some practicals example now. We're going to inspect one of the `Ambassador Edge Static` exposed metrics, namely the `ambassador_edge_stack_promhttp_metric_handler_requests_total`, which represents the total of `HTTP` requests `Prometheus` performed for the `AES` metrics endpoint.
+
+Steps:
+
+1. Get access to the `Prometheus` web interface:
+
+    ```
+    kubectl port-forward svc/kube-prom-stack-kube-prome-prometheus 9090:9090 -n monitoring
+    ```
+2. Open the [expression browser](http://localhost:9090/graph).
+3. In the query input field paste `ambassador_edge_stack_promhttp_metric_handler_requests_total` and hit `Enter`. The ouput looks similar to the following:
+
+    ```
+    ambassador_edge_stack_promhttp_metric_handler_requests_total{code="200", container="ambassador", endpoint="ambassador-admin", instance="10.244.0.196:8877", job="ambassador-admin", namespace="ambassador", pod="ambassador-bcb5b8d67-k6q4v", service="ambassador-admin"} 21829
+    ambassador_edge_stack_promhttp_metric_handler_requests_total{code="200", container="ambassador", endpoint="ambassador-admin", instance="10.244.0.228:8877", job="ambassador-admin", namespace="ambassador", pod="ambassador-bcb5b8d67-8v9nn", service="ambassador-admin"} 21829
+    ambassador_edge_stack_promhttp_metric_handler_requests_total{code="200", container="ambassador", endpoint="ambassador-admin", instance="10.244.0.32:8877", job="ambassador-admin", namespace="ambassador", pod="ambassador-bcb5b8d67-rlqwm", service="ambassador-admin"}  21832
+    ambassador_edge_stack_promhttp_metric_handler_requests_total{code="500", container="ambassador", endpoint="ambassador-admin", instance="10.244.0.196:8877", job="ambassador-admin", namespace="ambassador", pod="ambassador-bcb5b8d67-k6q4v", service="ambassador-admin"} 0
+    ambassador_edge_stack_promhttp_metric_handler_requests_total{code="500", container="ambassador", endpoint="ambassador-admin", instance="10.244.0.228:8877", job="ambassador-admin", namespace="ambassador", pod="ambassador-bcb5b8d67-8v9nn", service="ambassador-admin"} 0
+    ambassador_edge_stack_promhttp_metric_handler_requests_total{code="500", container="ambassador", endpoint="ambassador-admin", instance="10.244.0.32:8877", job="ambassador-admin", namespace="ambassador", pod="ambassador-bcb5b8d67-rlqwm", service="ambassador-admin"}  0
+    ambassador_edge_stack_promhttp_metric_handler_requests_total{code="503", container="ambassador", endpoint="ambassador-admin", instance="10.244.0.196:8877", job="ambassador-admin", namespace="ambassador", pod="ambassador-bcb5b8d67-k6q4v", service="ambassador-admin"} 0
+    ambassador_edge_stack_promhttp_metric_handler_requests_total{code="503", container="ambassador", endpoint="ambassador-admin", instance="10.244.0.228:8877", job="ambassador-admin", namespace="ambassador", pod="ambassador-bcb5b8d67-8v9nn", service="ambassador-admin"} 0
+    ambassador_edge_stack_promhttp_metric_handler_requests_total{code="503", container="ambassador", endpoint="ambassador-admin", instance="10.244.0.32:8877", job="ambassador-admin", namespace="ambassador", pod="ambassador-bcb5b8d67-rlqwm", service="ambassador-admin"}  0
+    ```
+4. `PromQL` groups similar data in what's called a `vector`. As seen above, each `vector` has a set of `attributes` which differentiates it from one another. What we can do then is to group results based on an attribute of interest. For example, if we care only about `HTTP` requests that ended with a `200` response code then it's just a matter of writing this in the query field:
+
+    ```
+    ambassador_edge_stack_promhttp_metric_handler_requests_total{code="200"}
+    ```
+
+  The output looks similar to the following (note that it selects only the results that match our criteria):
+  ```
+  ambassador_edge_stack_promhttp_metric_handler_requests_total{code="200", container="ambassador", endpoint="ambassador-admin", instance="10.244.0.196:8877", job="ambassador-admin", namespace="ambassador", pod="ambassador-bcb5b8d67-k6q4v", service="ambassador-admin"} 21843
+  ambassador_edge_stack_promhttp_metric_handler_requests_total{code="200", container="ambassador", endpoint="ambassador-admin", instance="10.244.0.228:8877", job="ambassador-admin", namespace="ambassador", pod="ambassador-bcb5b8d67-8v9nn", service="ambassador-admin"} 21843
+  ambassador_edge_stack_promhttp_metric_handler_requests_total{code="200", container="ambassador", endpoint="ambassador-admin", instance="10.244.0.32:8877", job="ambassador-admin", namespace="ambassador", pod="ambassador-bcb5b8d67-rlqwm", service="ambassador-admin"}  21845
+  ```
+
+ **Note:**
+
+  The above result shows the total requests for each `Pod` from the `AES` deployment (which consists of `3` as seen in the `kubectl get deployments -n ambassador` command output). Each `Pod` exposes the same `/metrics` endpoint and the `Kubernetes` service makes sure that the requests are distributed to each `Pod`. Numbers at the end of each line represent the total `HTTP` requests, so we can see that is roughly the same: `21843`, `21843`, `21845`. This demonstrates the `Round Robin` method being used by the service.
+
+This is just a very simple introduction to what `PromQL` is and what it's capable of. But it can do much more than that, like: counting metrics, computing the rate over a predefined interval, etc. Please visit the official [PromQL](https://prometheus.io/docs/prometheus/latest/querying/basics/) page for more features of the language.
 
 ### Grafana
 
