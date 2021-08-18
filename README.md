@@ -1126,9 +1126,58 @@ Explanation above configuration:
 1. Ensure that your Ambassador Deployment is running and there is a Service with an `EXTERNAL-IP` (`kubectl get service --namespace ambassador`). Browse the IP a few times to write some log entries to the persistent volume. Then create a backup with Velero:
 
     ```
-    velero backup create ambassador-backup --selector app=ambassador --snapshot-volumes=true
+    velero backup create ambassador-backup --include-namespaces ambassador
     velero backup describe ambassador-backup --details
     ```
+    Let's look at deeply structure of backups by using below command.
+    ```
+    ~ kubectl get backup/ambassador-backup -n velero -o yaml
+
+    apiVersion: velero.io/v1
+    kind: Backup
+    metadata:
+      annotations:
+        velero.io/source-cluster-k8s-gitversion: v1.21.2
+        velero.io/source-cluster-k8s-major-version: "1"
+        velero.io/source-cluster-k8s-minor-version: "21"
+      creationTimestamp: "2021-08-18T17:11:14Z"
+      generation: 5
+      labels:
+        velero.io/storage-location: default
+      name: ambassador-backup
+      namespace: velero
+      resourceVersion: "1870184"
+      uid: 1163afa8-4521-4b6c-bc9c-2856666fd2e1
+    spec:
+      defaultVolumesToRestic: false
+      hooks: {}
+      includedNamespaces:
+      - ambassador
+      storageLocation: default
+      ttl: 720h0m0s
+      volumeSnapshotLocations:
+      - default
+    status:
+      completionTimestamp: "2021-08-18T17:11:19Z"
+      expiration: "2021-09-17T17:11:14Z"
+      formatVersion: 1.1.0
+      phase: Completed
+      progress:
+        itemsBackedUp: 86
+        totalItems: 86
+      startTimestamp: "2021-08-18T17:11:14Z"
+      version: 1
+    ```
+    When you look at the result,please check includedNamespaces is ambassador and also you can confuse when you see .*velero.io/storage-location: default* . Default means `starterkit-velero-backups` .
+    ```
+    ~# velero backup-location get
+    
+    NAME      PROVIDER        BUCKET/PREFIX               PHASE       LAST VALIDATED                  ACCESS MODE   DEFAULT
+    default   velero.io/aws   starterkit-velero-backups   Available   2021-08-18 17:22:44 +0000 UTC   ReadWrite     true
+
+    ```
+    
+
 Check below image for understanding of backup process better.
 
 ![Dashboard location for backup image](images/velero-backup-space-2.png)
@@ -1177,7 +1226,6 @@ velero restore logs <restorename>
 ```
 kubectl delete volumesnapshotlocation.velero.io -n velero starterkit-velero-backups
 ```
-
 #### About Backups
 When you decide to check under the hood, you can use the below code to understand better what is going on in your backup process.
 
