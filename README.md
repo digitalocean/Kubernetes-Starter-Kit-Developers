@@ -1329,7 +1329,24 @@ Check below image for understanding of backup process better.
     kubectl get service --namespace ambassador
     kubectl get deployment --namespace ambassador
     ```
+### Backup and Restore All Cluster
 
+1. Create a backup after ensuring all services running without adding namespace at the end of the command
+   
+   ```
+   velero backup create all-cluster
+   ```
+2. Delete everything without velero namespace(or you can seperate backup service and target services in different cluster)
+   
+   ```
+   kubectl delete ns --namespace=velero --all
+
+   ```
+3. Restore everything by using below simple command.when you call  `kubectl get all --all-namespaces` you will see only velero and default services but be sure, recovering whole system takes time (~30s)
+
+   ```
+   velero restore create --from-backup all-cluster
+   ```
 ### Build the plugin
 
 ```
