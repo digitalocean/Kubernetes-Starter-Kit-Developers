@@ -1,40 +1,36 @@
 # Day-2 Operations-ready DOKS (DigitalOcean Kubernetes) for Developers
 
-**WORK-IN-PROGRESS**
+`Kubernetes` has become really simple to understand and setup. In a way, it has democratized the cloud. With `Kubernetes`, developers can use the identical tooling and configurations across any cloud.
 
-**TBD- Opinionated configuration** </br>
-**TBD- Automation to set up the stack** </br>
-
-Kubernetes has become really simple to understand and setup. In a way, it has democratized the cloud. With kubernetes, developers can use the identical tooling and configurations across any cloud.
-
-Installing kubernetes is only getting started. Making it operationally ready requires lot more things. The objective of this tutorial is to provide developers an hands-on introduction on how to get started with an operations-ready kubernetes cluster on DO Kubernetes.
+Installing `Kubernetes` is only getting started. Making it operationally ready requires lot more things. The objective of this tutorial is to provide developers an hands-on introduction on how to get started with an operations-ready `Kubernetes` cluster on `DO Kubernetes`.
 
 
 # Table of contents
 1. [Scope](#SCOP)
 2. [Set up DO Kubernetes](#DOKS)
 3. [Set up DO Container Registry](#DOCR)
-4. [Prometheus Monitoring Stack](#PROM)
-5. [Logging via Loki Stack](#LOKI)
-6. [Ingress Using Ambassador](#AMBA)
+4. [Ingress Using Ambassador](#AMBA)
+5. [Prometheus Monitoring Stack](#PROM)
+6. [Logs Aggregation via Loki Stack](#LOKI)
 7. [Backup Using Velero](#VELE)
 8. [Automate Everything Using Terraform and Flux](#AUTO)
 
 
 ## Scope <a name="SCOP"></a>
-This is meant to be a beginner tutorial to demonstrate the setups you need to be operations-ready. The list is an work-in-progress.
+This is meant to be a `beginner tutorial` to demonstrate the setup you need to be `operations-ready`.
 
-All the steps are done manually using commandline. If you need end-to-end automation, refer to the last section.
+All the steps are done manually using the `commandline` interface (`CLI`). If you need `end-to-end automation`, refer to the last section.
 
-None of the installed tools are exposed using ingress or LB. To access the console for individual tools, we use kubectl port-forward.
+None of the installed tools are exposed using `Ingress` or `LB`. To access the console for individual tools, we use `kubectl port-forward`.
 
-We will use brew (on mac) to install the commmands on our local machine. We will skip the how-to-install and command on your local laptop, and focus on using the command to work on DOKS cluster. 
+We will use `brew` (on `MacOS`) to install the commmands on our local machine. We will skip the how-to-install and command on your local laptop, and focus on using the command to work on `DOKS` cluster. 
 
-For every tool, we will make sure to enable metrics and logs. At the end, we will review the overhead from all these additional tools. That gives an idea of what it takes to be operations-ready after your first cluster install. <br/><br/>
+For `every tool`, we will make sure to enable `metrics` and `logs`. At the end, we will review the `overhead` from all these `additional tools`. That gives an idea of what it takes to be `operations-ready` after your first cluster install. <br/><br/>
 
 
 ## Set up DO Kubernetes <a name="DOKS"></a>
 Explore doctl options.
+
 ```
 ~ doctl version
 doctl version 1.61.0-release
@@ -45,6 +41,7 @@ default
 ```
 
 Explore options for creating the cluster.
+
 ```
 ~ doctl k8s -h
 ~ doctl k8s options -h
@@ -54,7 +51,7 @@ Explore options for creating the cluster.
 ~ doctl k8s cluster create -h
 ```
 
-Let us create a DOKS cluster with 3 worker nodes. Use "--wait false", if you do not want the command to wait until cluster is ready.
+Let us create a `DOKS` cluster with `3 worker nodes`. Use `--wait false`, if you do not want the command to wait until cluster is ready.
 
 ```
 ~ doctl kubernetes cluster create bg-cluster-2 \
@@ -73,7 +70,7 @@ ID                                      Name            Region    Version       
 ~ 
 ```
 
-Now let us set up kubectl, if the context is not set.
+Now let us set up `kubectl`, if the context is not set.
 
 ```
 ~ kubectl config current-context 
@@ -96,7 +93,7 @@ basicnp-865xu   Ready    <none>   2m56s   v1.20.7
 ```
 
 ## Set up DO Container Registry <a name="DOCR"></a>
-You need a container registry (Docker Hub, DO container registry, etc.) when you need to build a container image and deploy it to the cluster. The cluster can pull images from a configured registry. Here we will set up a DO container registry (DOCR) for our cluster.
+You need a container registry (`Docker Hub`, `DO container registry`, etc.) when you need to build a container image and deploy it to the cluster. The cluster can pull images from a configured registry. Here we will set up a DO container registry (`DOCR`) for our cluster.
 
 ```
 ~ doctl registry create bg-reg-1 --subscription-tier basic
@@ -105,7 +102,7 @@ bg-reg-1    registry.digitalocean.com/bg-reg-1
 ~ 
 ```
 
-You can have only 1 registry endpoint per account in DOCR. A repository in a registry refers to the collection of a container image with different versions (tags). Given that the DOCR registry is a private endpoint, we need to configure the DOKS cluster to be able to fetch images from the DOCR registry.
+You can have only `1 registry endpoint per account` in `DOCR`. A `repository` in a `registry` refers to the collection of `container images` with different versions (`tags`). Given that the `DOCR` registry is a private endpoint, we need to configure the `DOKS` cluster to be able to fetch images from the `DOCR` registry.
 
 ```
 ~ doctl registry kubernetes-manifest | kubectl apply -f -
@@ -116,87 +113,8 @@ registry-bg-reg-1   kubernetes.io/dockerconfigjson   1      13s
 ~
 ```
 
-This create the above secret in default namespace. 
+This creates the above secret in the `default` namespace. 
 
-## Prometheus Monitoring Stack <a name="PROM"></a>
-
-We will install the `kube-prometheus` stack using `Helm`, which is an opinionated full monitoring stack for `Kubernetes`. It includes the `Prometheus Operator`, `kube-state-metrics`, pre-built manifests, `Node Exporters`, `Metrics API`, the `Alerts Manager` and `Grafana`. 
-
-`Helm` chart: https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack
-
-Update the `Helm` repo:
-
-```
-helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-helm repo update
-```
-
-Download the `values.yaml` file:
-
-```bash
-curl https://raw.githubusercontent.com/prometheus-community/helm-charts/main/charts/kube-prometheus-stack/values.yaml -o prom-stack-values.yaml
-```
-
-Modify the `prom-stack-values.yaml` file to disable metrics for `etcd` and `kubeScheduler` (set their corresponding values to `false`). Those components are managed by `DOKS` and are not accessible to `Prometheus`. Note that we're keeping the `storage` to be `emptyDir`. It means the **storage will be gone** if `Prometheus` pods restart.
-
-Install `kube-prometheus-stack`:
-
-```
-helm install kube-prom-stack prometheus-community/kube-prometheus-stack -n monitoring -f prom-stack-values.yaml --create-namespace --wait
-```
-
-Now you can connect to `Grafana` (`admin/prom-monitor`, see `prom-stack-values.yaml`) by port forwarding to local machine. Once in, you can go to dashboards - manage, and choose different dashboards. 
-
-```
-kubectl --namespace monitoring port-forward svc/kube-prom-stack-grafana 3000:80
-```
-
-**Important Note:**
-
-Please save and keep somewhere safe the `prom-stack-values.yaml` file because it reflects the current state of the deployment (we need it later on as well).
-
-## Logging via Loki Stack <a name="LOKI"></a>
-
-We need [Loki](https://github.com/grafana/helm-charts/tree/main/charts/loki-stack) for logs. `Loki` runs on the cluster itself as a `statefulset`. Logs are aggregated and compressed by `Loki`, then sent to the configured storage. Then we can connect `Loki` data source to `Grafana`, and view the logs.
-
-Add the required `Helm` repository first:
-
-```bash
-helm repo add grafana https://grafana.github.io/helm-charts
-helm search repo grafana
-```
-
-We are interested in the `grafana/loki-stack`, which will install standalone `Loki` on the cluster.
-
-Fetch the values file:
-
-```
-curl https://raw.githubusercontent.com/grafana/helm-charts/main/charts/loki-stack/values.yaml -o loki-values.yaml
-```
-
-Before deploying the stack via `Helm`, edit the  `loki-values.yaml` file and make sure that the `prometheus` and `grafana` options are disabled (set their corresponding `enabled` fields to `false`). The `Prometheus` stack deployed in the previous chapter took care of it already. 
-
-Install the stack:
-
-```bash
-helm upgrade --install loki --namespace=monitoring grafana/loki-stack -f loki-values.yaml --create-namespace --wait
-``` 
-
-Let's add the `Loki` data source to `Grafana`. Go to the `Grafana` web console and follow these steps: 
-
-1. Click the `Settings` gear from the left panel.
-2. Select `Data sources`.
-3. Click the `Add data source` blue button.
-4. Select `Loki` from the list and add `Loki` url `http://loki:3100`. 
-5. Save and test.
-
-If everything went well a green label message will appear saying `Data source connected and labels found.`
-
-Now you can access logs from the `Explore` tab of `Grafana`. Make sure to select `Loki` as the data source. Use `Help` button for log search cheat sheet.
-
-**Important Note:**
-
-Please save and keep somewhere safe the `prom-stack-values.yaml` file because it reflects the current state of the deployment (we might need it later as well).
 
 ## Ingress using Ambassador <a name="AMBA"></a>
 
@@ -339,7 +257,7 @@ echo-host    echo.mandrakee.xyz    Pending   ACMEUserRegistered   ACMECertificat
 quote-host   quote.mandrakee.xyz   Pending   ACMEUserRegistered   ACMECertificateChallenge   3s
 ```
 
-It takes ~30 seconds to get the signed certificate for the hosts. At this point we have the `Ambassador Edge Stack` installed and the hosts configured. But we still don't have the networking (eg. `DNS` and `Load Balancer`) configured to route traffic to the cluster. The missing parts can be noticed in the `Kubernetes` events of the hosts that were configured earlier.
+It takes `~30 seconds` to get the signed certificate for the hosts. At this point we have the `Ambassador Edge Stack` installed and the hosts configured. But we still don't have the networking (eg. `DNS` and `Load Balancer`) configured to route traffic to the cluster. The missing parts can be noticed in the `Kubernetes` events of the hosts that were configured earlier.
 
 Let's take a look and see what happens for the `echo-host`:
 
@@ -448,11 +366,13 @@ At this point the network traffic will reach the `AES enabled` cluster but we ne
 
 Please visit the [How to Create, Edit and Delete DNS Records](https://docs.digitalocean.com/products/networking/dns/how-to/manage-records) page for more information.
 
-### Creating the Backend Services <a name="AMBA_BK_SVC"></a>
+### Creating AES Backend Services <a name="AMBA_BK_SVC"></a>
 
-We can have multiple `TLS enabled` hosts on the same cluster. On the other hand we can have multiple deployments and services as well. So for each `Backend Service` a corresponding `Kubernetes Deployment` and `Service` has to be created.
+In this section we will deploy two example `backend applications`, named `echo` and `quote`. The main goal here is to have a basic understanding on how the `AES` stack will route requests to each application by introducing a new custom `AES` resource named `Mapping`.
 
-Let's create a dedicated `namespace` for our `quote` and `echo` backend applications. This is a good practice because we don't want to pollute the `AES` space (or any other) with our application specific stuff.
+We can have multiple `TLS enabled` hosts on the same cluster. On the other hand we can have multiple deployments and services as well. So for each `backend application` a corresponding `Kubernetes Deployment` and `Service` has to be created.
+
+Let's define a new `namespace` for our `quote` and `echo` backend applications. This is a good practice because we don't want to pollute the `AES` space (or any other) with our application specific stuff.
 
 ```bash
 kubectl create ns backend
@@ -574,19 +494,19 @@ quote   ClusterIP   10.245.158.116   <none>        80/TCP    2m33s
 
 As the last configuration step, create the `mappings` for Ambassador.
 
-#### Configuring the AES Mapping for each Host
+### Configuring the AES Mapping for each Host
 
 `Ambassador Edge Stack` is designed around a [declarative, self-service management model](https://www.getambassador.io/docs/edge-stack/latest/topics/concepts/gitops-continuous-delivery). It means that you can manage the `Edge` via a dedicated `Kubernetes CRD`, namely the `Mapping` resource. More info about [Mappings](https://www.getambassador.io/docs/edge-stack/1.13/topics/using/intro-mappings) can be found on the official page.
 
 What a `Mapping` does is to manage routing for all inbound traffic to the `/quote/` path for the `quote` service and `/echo/` for the `echo` service.
 
-**Mapping fields description**
+**Mapping fields description:**
 
 * `name` - a string identifying the `Mapping` (e.g. in diagnostics).
 * `prefix` - the `URL` prefix identifying your resource.
 * `service` - the name of the service handling the resource; must include the `namespace` (e.g. myservice.othernamespace) if the service is in a different namespace than `Ambassador Edge Stack`.
 
-Creating the mappings for each of our applications:
+Creating a `Mapping` for each of our applications:
 
 ```bash
 cat << EOF | kubectl apply -f -
@@ -631,6 +551,13 @@ ambassador-devportal-demo                           /docs/                      
 echo-backend                  echo.mandrakee.xyz    /echo/                                      echo.backend             
 quote-backend                 quote.mandrakee.xyz   /quote/                                     quote.backend 
 ```
+
+**Next Steps**
+
+Further explore some of the concepts you learned about so far:
+
+* [Mapping](https://www.getambassador.io/docs/edge-stack/1.13/topics/using/intro-mappings/) resource: `routes` traffic from the `edge` of your cluster to a `Kubernetes` service
+* [Host](https://www.getambassador.io/docs/edge-stack/1.13/topics/running/host-crd/) resource: sets the `hostname` by which `Ambassador Edge Stack` will be accessed and secured with `TLS` certificates
 
 ### Enabling Proxy Protocol
 
@@ -760,6 +687,43 @@ X-Envoy-Original-Path: /echo/
 If everything looks like above we're all set and configured the `Ambassador Edge Stack` successfully. 
 
 Because `Monitoring` and `Logging` is a very important aspect of every production ready system in the next section we're going to focus on how to enable it via `Prometheus` and `Loki` for the `AES` stack as well as other backend services.
+
+## Prometheus Monitoring Stack <a name="PROM"></a>
+
+We will install the `kube-prometheus` stack using `Helm`, which is an opinionated full monitoring stack for `Kubernetes`. It includes the `Prometheus Operator`, `kube-state-metrics`, pre-built manifests, `Node Exporters`, `Metrics API`, the `Alerts Manager` and `Grafana`. 
+
+`Helm` chart: https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack
+
+Update the `Helm` repo:
+
+```
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
+```
+
+Download the `values.yaml` file:
+
+```bash
+curl https://raw.githubusercontent.com/prometheus-community/helm-charts/main/charts/kube-prometheus-stack/values.yaml -o prom-stack-values.yaml
+```
+
+Modify the `prom-stack-values.yaml` file to disable metrics for `etcd` and `kubeScheduler` (set their corresponding values to `false`). Those components are managed by `DOKS` and are not accessible to `Prometheus`. Note that we're keeping the `storage` to be `emptyDir`. It means the **storage will be gone** if `Prometheus` pods restart.
+
+Install `kube-prometheus-stack`:
+
+```
+helm install kube-prom-stack prometheus-community/kube-prometheus-stack -n monitoring -f prom-stack-values.yaml --create-namespace --wait
+```
+
+Now you can connect to `Grafana` (`admin/prom-monitor`, see `prom-stack-values.yaml`) by port forwarding to local machine. Once in, you can go to dashboards - manage, and choose different dashboards. 
+
+```
+kubectl --namespace monitoring port-forward svc/kube-prom-stack-grafana 3000:80
+```
+
+**Important Note:**
+
+Please save and keep somewhere safe the `prom-stack-values.yaml` file because it reflects the current state of the deployment (we need it later on as well).
 
 ### Configure Prometheus & Grafana
 
@@ -1006,6 +970,48 @@ The output looks similar to the following:
 ```
 This concludes the `Grafana` setup. You can play around and add more panels for visualising other data sources, as well as group them together based on scope.
 
+## Logs Aggregation via Loki Stack <a name="LOKI"></a>
+
+We need [Loki](https://github.com/grafana/helm-charts/tree/main/charts/loki-stack) for logs. `Loki` runs on the cluster itself as a `statefulset`. Logs are aggregated and compressed by `Loki`, then sent to the configured storage. Then we can connect `Loki` data source to `Grafana`, and view the logs.
+
+Add the required `Helm` repository first:
+
+```bash
+helm repo add grafana https://grafana.github.io/helm-charts
+helm search repo grafana
+```
+
+We are interested in the `grafana/loki-stack`, which will install standalone `Loki` on the cluster.
+
+Fetch the values file:
+
+```
+curl https://raw.githubusercontent.com/grafana/helm-charts/main/charts/loki-stack/values.yaml -o loki-values.yaml
+```
+
+Before deploying the stack via `Helm`, edit the  `loki-values.yaml` file and make sure that the `prometheus` and `grafana` options are disabled (set their corresponding `enabled` fields to `false`). The `Prometheus` stack deployed in the previous chapter took care of it already. 
+
+Install the stack:
+
+```bash
+helm upgrade --install loki --namespace=monitoring grafana/loki-stack -f loki-values.yaml --create-namespace --wait
+``` 
+
+Let's add the `Loki` data source to `Grafana`. Go to the `Grafana` web console and follow these steps: 
+
+1. Click the `Settings` gear from the left panel.
+2. Select `Data sources`.
+3. Click the `Add data source` blue button.
+4. Select `Loki` from the list and add `Loki` url `http://loki:3100`. 
+5. Save and test.
+
+If everything went well a green label message will appear saying `Data source connected and labels found.`
+
+Now you can access logs from the `Explore` tab of `Grafana`. Make sure to select `Loki` as the data source. Use `Help` button for log search cheat sheet.
+
+**Important Note:**
+
+Please save and keep somewhere safe the `prom-stack-values.yaml` file because it reflects the current state of the deployment (we might need it later as well).
 
 ### Configure Loki and Grafana
 
