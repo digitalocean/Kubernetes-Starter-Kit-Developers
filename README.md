@@ -1335,7 +1335,7 @@ Check below image for understanding of backup process better.
     kubectl get service --namespace ambassador
     kubectl get deployment --namespace ambassador
     ```
-### Backup and Restore All Cluster
+### Backup and Restore Whole NameSpaces
 
 1. Create a backup after ensuring all services running without adding namespace at the end of the command.
    
@@ -1353,12 +1353,28 @@ Check below image for understanding of backup process better.
    ```
    velero restore create --from-backup all-cluster
    ```
-### Build the plugin
 
-```
-make clean
-make container IMAGE=digitalocean/velero-plugin:dev
-```
+
+
+### Backup and Restore All Cluster
+
+
+1. Create a backup after ensuring all services running without adding namespace at the end of the command.
+   
+   ```
+   velero backup create all-cluster
+   ```
+2. Delete whole cluster via below code.This command deletes the specified `Kubernetes clusters` and the `Droplets` associated with them.
+   
+   ```
+    doctl kubernetes cluster delete
+
+   ```
+3. Restore everything by using the below simple command. When you call  `kubectl get all --all-namespaces` you will see nothing. But After restoring like below.When you call the same command ,you will see all services running.
+
+   ```
+   velero restore create --from-backup all-cluster
+   ```
 
 
 
