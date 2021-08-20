@@ -1481,6 +1481,16 @@ uptime
 
 14:08:15 up 22:54,  2 users,  load average: 2.00, 1.37, 0.63
 ```
+### Visual Monitoring 
+
+When you check decide to check Cpu usage as Monitoring, Check under Kubernetes tab on left navigation bar choose `Kubernetes`, And then Check `insight` when you check `Get advanced metrics`. You will see that:
+* CPU Usage
+* Load Average
+* Memory Usage
+* Disk Usage
+* Disk I/O
+* Public bandwidth  
+![Monitoring CPU](images/Monitoring_Cpu.png)
 
 ## Automate everything using Terraform and Flux <a name="AUTO"></a>
 TBD
