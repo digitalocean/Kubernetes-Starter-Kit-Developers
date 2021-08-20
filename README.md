@@ -1503,7 +1503,7 @@ You can check *CPU* usage when you decide to change cluster sizes as ``throughpu
 ![Monitoring CPU Droplet](images/monitoring_cpu_droplet.png)
 
 ### Summary<a name="summary"></a>
-You can change `deployment.yml` by updating replica part in `yml`. Please use below configuration to observe changes.
+You can change replicas inside of the  `deployment.yml` by updating `replicas: 1` ---> `replicas: 3`. Please use below configuration to observe changes.
 ```
 kubectl describe nodes | grep 'Name:\|  cpu\|  memory'
 ```
