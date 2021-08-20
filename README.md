@@ -18,7 +18,8 @@ Installing kubernetes is only getting started. Making it operationally ready req
 5. [Logging via Loki Stack](#LOKI)
 6. [Ingress Using Ambassador](#AMBA)
 7. [Backup Using Velero](#VELE)
-8. [Automate Everything Using Terraform and Flux](#AUTO)
+8. [Cost of running starter toolkit](#COST)
+9. [Automate Everything Using Terraform and Flux](#AUTO)
 
 
 ## Scope <a name="SCOP"></a>
@@ -1396,6 +1397,60 @@ velero backup delete backupname
 velero get snapshot-location
 
 ```
+
+## Cost of running starter toolkit <a name="COST"></a>
+
+The amount of memory, the size of the cache, the speed of reading from and writing to disk, and the speed and availability of processing power are all key elements that affect the performance of your infrastructure. In this article, we’ll focus on introductory CPU monitoring concepts.
+
+
+  - [Prerequisites](#prerequisites)
+  - [Displaying CPU Information](#displaying)
+  - [uptime](#uptime)
+  
+
+### Prerequisites<a name="prerequisites"></a>
+
+Here, there are two kinds of installation.first one is Installing the Metrics Agent During Droplet Creation (please check below for velero client installation).Last installation is that `Installing the Metrics Agent Manually`.  
+
+* To install the metrics agent during Droplet creation, select the Monitoring checkbox in the additional options section of the creation page.[More Details](https://docs.digitalocean.com/products/monitoring/how-to/install-agent/)
+* Installing the Metrics Agent Manually
+  * [With an Installation Script](https://docs.digitalocean.com/products/monitoring/how-to/install-agent/#with-an-installation-script)
+  * [Configuring Repositories Manually](https://docs.digitalocean.com/products/monitoring/how-to/install-agent/#configuring-repositories-manually)
+
+>Note
+ You can achieve your installation with easy 3 steps by using below configuration.
+ ```
+curl -sSL https://repos.insights.digitalocean.com/install.sh -o /tmp/install.sh # Save the script
+less /tmp/install.sh # View the contents
+sudo bash /tmp/install.sh # Run the script manually
+ ```
+   
+
+### Displaying CPU Information<a name="displaying"></a>
+
+Using the nproc command with `--all` option to display the number of processors. [More information](https://www.digitalocean.com/community/tutorials/how-to-monitor-cpu-use-on-digitalocean-droplets) also you can use `lscpu` to see all details of cpu usages. 
+
+```
+nproc --all
+
+Output of nproc
+1
+```
+
+### Uptime
+Uptime shows us below details.[For more information please visit uptime part](https://www.digitalocean.com/community/tutorials/how-to-monitor-cpu-use-on-digitalocean-droplets)
+* the system time at the moment the command was run
+* how long the server had been running
+* how many connections users had to the machine
+* the CPU load average for the past one, five, and fifteen minutes.
+
+
+```
+uptime
+
+14:08:15 up 22:54,  2 users,  load average: 2.00, 1.37, 0.63
+```
+
 ## Automate everything using Terraform and Flux <a name="AUTO"></a>
 TBD
 
