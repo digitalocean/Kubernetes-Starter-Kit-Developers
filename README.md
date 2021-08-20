@@ -1483,7 +1483,7 @@ uptime
 ```
 ### Visual Monitoring 
 
-When you check decide to check Cpu usage as Monitoring, Check under Kubernetes tab on left navigation bar choose `Kubernetes`, And then Check `insight` when you check `Get advanced metrics`. You will see that:
+When you check decide to check Cpu usage as Monitoring, on left navigation bar choose `Kubernetes` tab, And then Check `insight` when you can check `Get advanced metrics`. You will see that:
 * CPU Usage
 * Load Average
 * Memory Usage
@@ -1491,6 +1491,15 @@ When you check decide to check Cpu usage as Monitoring, Check under Kubernetes t
 * Disk I/O
 * Public bandwidth  
 ![Monitoring CPU](images/monitoring_cpu.png)
+
+You can check Cpu usage when you decide to change cluster sizes as throughput, on left navigation bar choose `Droplets` tab, And then Check `ubuntu-s-1vcpu-2gb-fra1-01` when you can check `Period`. You will see that throughput graphs:
+* CPU (%))
+* Load 
+* Memory 
+* Disk I/O
+* Disk Usage
+* Bandwidth  
+![Monitoring CPU](images/monitoring_cpu_droplet.png)
 
 ## Automate everything using Terraform and Flux <a name="AUTO"></a>
 TBD
