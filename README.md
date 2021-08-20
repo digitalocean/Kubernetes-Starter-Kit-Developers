@@ -19,8 +19,7 @@ Below is a diagram giving a high level overview of the setup presented in this t
 5. [Prometheus Monitoring Stack](#PROM)
 6. [Logs Aggregation via Loki Stack](#LOKI)
 7. [Backup Using Velero](#VELE)
-8. [Cost of running starter toolkit](#COST)
-9. [Automate Everything Using Terraform and Flux](#AUTO)
+8. [Automate Everything Using Terraform and Flux](#AUTO)
 
 
 ## Scope <a name="SCOP"></a>
@@ -1429,38 +1428,7 @@ velero get snapshot-location
 
 ```
 
-## Cost of running starter toolkit <a name="COST"></a>
 
-The amount of memory, the size of the cache, the speed of reading from and writing to disk, and the speed and availability of processing power are all key elements that affect the performance of your infrastructure. In this article, we’ll focus on introductory CPU monitoring concepts.
-
-Here, there are two kinds of installation.first one is `Installing the Metrics Agent During Droplet Creation` (please check below for velero client installation).Last installation is that `Installing the Metrics Agent Manually`.  
-
-*  To install the metrics agent during Droplet creation, select the Monitoring checkbox in the additional options section of the creation page.[More Details](https://docs.digitalocean.com/products/monitoring/how-to/install-agent/)
-*  [Installing the Metrics Agent Manually](https://docs.digitalocean.com/products/monitoring/how-to/install-agent/#manually)
-  * [With an Installation Script](https://docs.digitalocean.com/products/monitoring/how-to/install-agent/#with-an-installation-script)
-  * [Configuring Repositories Manually](https://docs.digitalocean.com/products/monitoring/how-to/install-agent/#configuring-repositories-manually)
-
-  - [Visual Monitoring Using the Control Panel](#visual)
-  - [Summary](#summary)
-
-   ### Visual Monitoring Using the Control Panel<a name="visual"></a>
-
-You can check *CPU* usage when you decide to change cluster sizes as ``throughput`, on left navigation bar choose `Droplets` tab, And then Check `ubuntu-s-1vcpu-2gb-fra1-01` when you can check `Period`. You will see that throughput graphs:
-* CPU (%))
-* Load 
-* Memory 
-* Disk I/O
-* Disk Usage
-* Bandwidth  
-![Monitoring CPU Droplet](images/monitoring_cpu_droplet.png)
-
-### Summary<a name="summary"></a>
-You can change replicas inside of the  `deployment.yml` by updating `replicas: 1` ---> `replicas: 3`. Please use below configuration to observe changes.
-```
-kubectl describe nodes | grep 'Name:\|  cpu\|  memory'
-```
-it makes a really simple terminal dashboard.
-![Monitoring CPU Summary](images/monitoring_cpu_summary.png)
 ## Automate everything using Terraform and Flux <a name="AUTO"></a>
 TBD
 
