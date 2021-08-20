@@ -1,8 +1,14 @@
 # Day-2 Operations-ready DOKS (DigitalOcean Kubernetes) for Developers
 
-`Kubernetes` has become really simple to understand and setup. In a way, it has democratized the cloud. With `Kubernetes`, developers can use the identical tooling and configurations across any cloud.
+`Kubernetes` has become really simple to understand and setup. In a way, it has democratized the cloud. With `Kubernetes`, developers can use identical tooling and configurations across any cloud.
 
-Installing `Kubernetes` is only getting started. Making it operationally ready requires lot more things. The objective of this tutorial is to provide developers an hands-on introduction on how to get started with an operations-ready `Kubernetes` cluster on `DO Kubernetes`.
+Installing `Kubernetes` is only the beginning of the journey. Making it operationally ready requires lot more things. The objective of this tutorial is to provide developers a hands-on `introduction` on how to get started with an operations-ready `Kubernetes` cluster on `DO Kubernetes`.
+
+## Operations-ready Setup Overview
+
+Below is a diagram giving a high level overview of the setup presented in this tutorial as well as the main steps:
+
+![Setup Overview](images/starter_kit_arch_overview.jpg)
 
 
 # Table of contents
@@ -17,19 +23,20 @@ Installing `Kubernetes` is only getting started. Making it operationally ready r
 
 
 ## Scope <a name="SCOP"></a>
-This is meant to be a `beginner tutorial` to demonstrate the setup you need to be `operations-ready`.
+This is meant to be a `beginner tutorial` to demonstrate the basic setup you need to be `operations-ready`.
 
 All the steps are done manually using the `commandline` interface (`CLI`). If you need `end-to-end automation`, refer to the last section.
 
 None of the installed tools are exposed using `Ingress` or `LB`. To access the console for individual tools, we use `kubectl port-forward`.
 
-We will use `brew` (on `MacOS`) to install the commmands on our local machine. We will skip the how-to-install and command on your local laptop, and focus on using the command to work on `DOKS` cluster. 
+We will use `brew` (on `MacOS`) to install the required `commmand line utilities` on our local machine. We will skip the how-to-install and command on your local laptop, and focus on using the command to work on `DOKS` cluster. 
 
-For `every tool`, we will make sure to enable `metrics` and `logs`. At the end, we will review the `overhead` from all these `additional tools`. That gives an idea of what it takes to be `operations-ready` after your first cluster install. <br/><br/>
+For every `service` that gets deployed, we will make sure to enable `metrics` and `logs`. At the end, we will review the `overhead` from all these additional tools and services. That gives an idea of what it takes to be `operations-ready` after your first cluster install. <br/><br/>
 
 
 ## Set up DO Kubernetes <a name="DOKS"></a>
-Explore doctl options.
+
+Explore `doctl` options.
 
 ```
 ~ doctl version
@@ -102,7 +109,7 @@ bg-reg-1    registry.digitalocean.com/bg-reg-1
 ~ 
 ```
 
-You can have only `1 registry endpoint per account` in `DOCR`. A `repository` in a `registry` refers to the collection of `container images` with different versions (`tags`). Given that the `DOCR` registry is a private endpoint, we need to configure the `DOKS` cluster to be able to fetch images from the `DOCR` registry.
+You can have only `1 registry endpoint` per account in `DOCR`. A `repository` in a `registry` refers to a collection of `container images` using different versions (`tags`). Given that the `DOCR` registry is a private endpoint, we need to configure the `DOKS` cluster to be able to fetch images from the `DOCR` registry.
 
 ```
 ~ doctl registry kubernetes-manifest | kubectl apply -f -
@@ -149,14 +156,13 @@ For more details and in depth explanation please visit: [The Ambassador Edge Sta
 
 The set of configuration steps are as follows:
 1. Install `AES`.
-2. Enable `Prometheus` for metrics and `Loki` for logs.
-3. Configure two hosts (`quote`, `echo`) on the cluster. For this example we're going to use `quote.mandake.xyz` and `echo.mandrake.xyz` as two different hosts on the same cluster.
-4. Hosts will have `TLS` termination enabled.
-5. Verify the installation.
+2. Configure two hosts (`quote`, `echo`) on the cluster. For this example we're going to use `quote.mandake.xyz` and `echo.mandrake.xyz` as two different hosts on the same cluster.
+3. Hosts will have `TLS` termination enabled.
+4. Verify the installation.
 
-Below is a diagram giving a high level overview of the setup presented in this tutorial:
+This is how the `Ambassador Edge Stack` setup will look like after following the steps:
 
-![AES image](images/AESNetwork.jpg)
+![AES Setup](images/aes_setup.jpg)
 
 ### Ambassador Edge Stack Deployment
 
@@ -690,6 +696,8 @@ Because `Monitoring` and `Logging` is a very important aspect of every productio
 
 ## Prometheus Monitoring Stack <a name="PROM"></a>
 
+### Installing Prometheus Stack
+
 We will install the `kube-prometheus` stack using `Helm`, which is an opinionated full monitoring stack for `Kubernetes`. It includes the `Prometheus Operator`, `kube-state-metrics`, pre-built manifests, `Node Exporters`, `Metrics API`, the `Alerts Manager` and `Grafana`. 
 
 `Helm` chart: https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack
@@ -725,15 +733,23 @@ kubectl --namespace monitoring port-forward svc/kube-prom-stack-grafana 3000:80
 
 Please save and keep somewhere safe the `prom-stack-values.yaml` file because it reflects the current state of the deployment (we need it later on as well).
 
-### Configure Prometheus & Grafana
+### Configure Prometheus and Grafana
 
 We already deployed `Prometheus` and `Grafana` into the cluster as explained in the [Prometheus Monitoring Stack](#PROM) chapter.
 
 So, why `Prometheus` in the first place? Because it supports `multidimensional data collection` and `data queuing`, it's reliable and allows customers to quickly diagnose problems. Since each server is independent, it can be leaned on when other infrastructure is damaged, without requiring additional infrastructure. It also integrates very well with the `Kubernetes` model and way of working and that's a big plus as well.
 
-`Prometheus` follows a `pull` model when it comes to metrics gathering meaning that it expects a `/metrics` endpoint to be exposed by the service in question for scraping. Luckily for us the `Ambassador Edge Stack` setup created earlier in the tutorial provides the `/metrics` endpoint by default on port `8877` via a `Kubernetes` service.
+`Prometheus` follows a `pull` model when it comes to metrics gathering meaning that it expects a `/metrics` endpoint to be exposed by the service in question for scraping. 
 
-The service in question is called `ambassador-admin` and it's in the `ambassador` namespace as seen below:
+In the next steps you'll configure `Prometheus` to monitor the `AES` stack. You'll configure `Grafana` as well to visualise metrics.
+
+In the end, this is how the setup will look like (`AES` + `Prometheus` + `Grafana`):
+
+![AES with Prometheus & Grafana](images/arch_aes_prometheus_grafana.jpg)
+
+Luckily for us the `Ambassador Edge Stack` deployment created earlier in the tutorial provides the `/metrics` endpoint by default on port `8877` via a `Kubernetes` service.
+
+The service in question is called `ambassador-admin` from the `ambassador` namespace as seen below:
 
 ```bash
 kubectl get svc -n ambassador
@@ -946,9 +962,9 @@ Fields description:
 * `Prometheus` - the `Prometheus` instance to use (we have only one in this example).
 * `Listener port` - the `Envoy listener port` (defaults to `8080`).
 
-After clicking `Import` it will create the following dashboard as seen below:
+After clicking `Import`, it will create the following dashboard as seen below:
 
-![Grafana Ambassador Dashboard](images/GrafanaDashboard.jpg)
+![Grafana Ambassador Dashboard](images/amb_grafana_dashboard.jpg)
 
 In the next part we want to monitor the number of `API` calls for our `quote` backend service created earlier in the [Ambassador Edge Stack - Backend Services](#AMBA_BK_SVC) section. The graph of interest is: `API Response Codes`.
 
@@ -972,7 +988,13 @@ This concludes the `Grafana` setup. You can play around and add more panels for 
 
 ## Logs Aggregation via Loki Stack <a name="LOKI"></a>
 
-We need [Loki](https://github.com/grafana/helm-charts/tree/main/charts/loki-stack) for logs. `Loki` runs on the cluster itself as a `statefulset`. Logs are aggregated and compressed by `Loki`, then sent to the configured storage. Then we can connect `Loki` data source to `Grafana`, and view the logs.
+### Installing LOKI Stack
+
+We need [Loki](https://github.com/grafana/helm-charts/tree/main/charts/loki-stack) for logs. `Loki` runs on the cluster itself as a `statefulset`. Logs are aggregated and compressed by `Loki`, then sent to the configured storage. Then we can connect `Loki` data source to `Grafana` and view the logs.
+
+This is how the main setup will look like after completing this part of the tutorial:
+
+![Loki Setup](images/arch_aes_prom_loki_grafana.jpg)
 
 Add the required `Helm` repository first:
 
@@ -1031,7 +1053,68 @@ Why use `Loki` in the first place? The main reasons are (some were already highl
 * `Easy` to operate
 * `LogQL` DSL (offers the same functionality as `PromQL` from `Prometheus`, which is a plus if you're already familiar with it)
 
-The `Loki` data source for `Grafana` was already configured in the ... so all we have to do now is to test some basic `LogQL` features.
+In the next section we will introduce and discuss about `Promtail` which is the agent responsible with fetching the logs and `labeling` the data.
+
+### Promtail
+
+`Promtail` is an `agent` which ships the contents of local logs to a private `Loki` instance. It is usually deployed to every machine that has applications needed to be monitored. It comes bundled with the [Loki](#LOKI) stack we deployed earlier and it's enabled by default as seen in the `loki-values.yaml` file.
+
+What `Promtail` does is:
+
+* `Discovers` targets
+* `Attaches labels` to `log streams`
+* `Pushes` them to the `Loki` instance.
+
+**Log file discovery:**
+
+Before `Promtail` can ship any data from log files to `Loki`, it needs to find out information about its environment. Specifically, this means discovering applications emitting log lines to files that need to be monitored.
+
+`Promtail` borrows the same service discovery mechanism from `Prometheus`, although it currently only supports `Static` and `Kubernetes` service discovery. This limitation is due to the fact that `Promtail` is deployed as a daemon to every local machine and, as such, does not discover label from other machines. `Kubernetes` service discovery fetches required labels from the `Kubernetes API` server while `Static` usually covers all other use cases.
+
+As with every `monitoring agent` we need to have a way for it to be up all the time. The `Loki` stack `Helm` deployment already makes this possible via a `DaemonSet`, as seen below:
+
+```bash
+kubectl get ds -n monitoring
+```
+
+The output looks similar to the following (notice the `loki-promtail` line):
+
+```
+NAME                                       DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR   AGE
+kube-prom-stack-prometheus-node-exporter   2         2         2       2            2           <none>          7d4h
+loki-promtail                              2         2         2       2            2           <none>          5h6m
+```
+
+This is great! But how does it discover `Kubernetes` pods and assigns labels? Let's have a look at the associated `ConfigMap`:
+
+```bash
+kubectl get cm loki-promtail -n monitoring -o yaml
+```
+
+The output looks similar to the following:
+
+```
+scrape_configs:
+  - job_name: kubernetes-pods-name
+    pipeline_stages:
+      - docker: {}
+    kubernetes_sd_configs:
+    - role: pod
+    relabel_configs:
+    - action: replace
+      source_labels:
+      - __meta_kubernetes_namespace
+      target_label: namespace
+```
+
+As seen above in the `scrape_configs` section, we have the `kubernetes-pods-name` job which:
+
+* Helps with `service discovery` on the `Kubernetes` side via `kubernetes_sd_configs` (works by using the `Kubernetes API` from the node that the `loki-prommtail DaemonSet` runs on).
+* Re-labels `__meta_kubernetes_namespace` to `namespace` in the `relabel_configs` section.
+
+For more features and in depth explanations please visit the [Promtail](https://grafana.com/docs/loki/latest/clients/promtail) official page.
+
+The `Loki` data source for `Grafana` was already configured in the `LOKI` stack install section, so all you have to do now is test some basic features of `LogQL`.
 
 ### LogQL
 
@@ -1086,68 +1169,10 @@ Let's simplify it a little bit by taking the example from the above picture:
 {namespace="ambassador"}
 ```
 
-The label in question is called `namespace` - remember that labels are `key-value` pairs ? We can see it right there inside the curly braces. This tells `LogQL` that we want to fetch all the log streams that are tagged with the label called `namespace` and has the value equal to `ambassador`. But who is responsible with doing the actual labeling ? Not `Loki`, that's for sure. It only aggregates and indexes the data (labels are used for that purpose as well). Meet [Promtail](https://grafana.com/docs/loki/latest/clients/promtail) in the next section.
+The `label` in question is called `namespace` - remember that labels are `key-value` pairs ? We can see it right there inside the curly braces. This tells `LogQL` that we want to fetch all the log streams that are tagged with the label called `namespace` and has the value equal to `ambassador`.
 
-### Promtail
+This concludes our `Loki` setup. For more details and in depth explanations please visit the [Loki](https://grafana.com/docs/loki/latest) official documentation page.
 
-`Promtail` is an `agent` which ships the contents of local logs to a private `Loki` instance. It is usually deployed to every machine that has applications needed to be monitored. It comes bundled with the [Loki](#LOKI) stack we deployed earlier and it's enabled by default as seen in the `loki-values.yaml` file.
-
-What `Promtail` does is:
-
-* `Discovers` targets
-* `Attaches labels` to `log streams`
-* `Pushes` them to the `Loki` instance.
-
-**Log file discovery:**
-
-Before `Promtail` can ship any data from log files to `Loki`, it needs to find out information about its environment. Specifically, this means discovering applications emitting log lines to files that need to be monitored.
-
-`Promtail` borrows the same service discovery mechanism from `Prometheus`, although it currently only supports `Static` and `Kubernetes` service discovery. This limitation is due to the fact that `Promtail` is deployed as a daemon to every local machine and, as such, does not discover label from other machines. `Kubernetes` service discovery fetches required labels from the `Kubernetes API` server while `Static` usually covers all other use cases.
-
-As with every `monitoring agent` we need to have a way for it to be up all the time. The `Loki` stack `Helm` deployment already makes this possible via a `DaemonSet`, as seen below:
-
-```bash
-kubectl get ds -n monitoring
-```
-
-The output looks similar to the following (notice the `loki-promtail` line):
-
-```
-NAME                                       DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR   AGE
-kube-prom-stack-prometheus-node-exporter   2         2         2       2            2           <none>          7d4h
-loki-promtail                              2         2         2       2            2           <none>          5h6m
-```
-
-This is great! But how does it discover `Kubernetes` pods and assigns labels? Let's have a look at the associated `ConfigMap`:
-
-```bash
-kubectl get cm loki-promtail -n monitoring -o yaml
-```
-
-The output looks similar to the following:
-
-```
-scrape_configs:
-  - job_name: kubernetes-pods-name
-    pipeline_stages:
-      - docker: {}
-    kubernetes_sd_configs:
-    - role: pod
-    relabel_configs:
-    - action: replace
-      source_labels:
-      - __meta_kubernetes_namespace
-      target_label: namespace
-```
-
-As seen above, in the `scrape_configs` section we have the `kubernetes-pods-name` job which:
-
-* Helps with `service discovery` on the `Kubernetes` side via `kubernetes_sd_configs` (works by using the `Kubernetes API` from the node that the `loki-prommtail DaemonSet` runs on).
-* Re-labels `__meta_kubernetes_namespace` to `namespace` in the `relabel_configs` section.
-
-Simple as that!
-
-This concludes our `Loki` and `Promtail` setup in order to keep things simple. For more details and in depth explanations please visit the [Loki](https://grafana.com/docs/loki/latest) and [Promtail](https://grafana.com/docs/loki/latest/clients/promtail) official documentation pages.
 
 ## Backup using Velero <a name="VELE"></a>
 
