@@ -1437,7 +1437,8 @@ The amount of memory, the size of the cache, the speed of reading from and writi
   - [Prerequisites](#prerequisites)
   - [Displaying CPU Information](#displaying)
   - [uptime](#uptime)
-  
+  - [Visual Monitoring Using the Control Panel](#visual)
+  - [Summary](#summary)
 
 ### Prerequisites<a name="prerequisites"></a>
 
@@ -1468,7 +1469,7 @@ Output of nproc
 1
 ```
 
-### Uptime
+### Uptime<a name="uptime"></a>
 Uptime shows us below details.[For more information please visit uptime part](https://www.digitalocean.com/community/tutorials/how-to-monitor-cpu-use-on-digitalocean-droplets)
 * the system time at the moment the command was run
 * how long the server had been running
@@ -1481,7 +1482,7 @@ uptime
 
 14:08:15 up 22:54,  2 users,  load average: 2.00, 1.37, 0.63
 ```
-### Visual Monitoring 
+### Visual Monitoring Using the Control Panel<a name="visual"></a>
 
 When you check decide to check Cpu usage as Monitoring, on left navigation bar choose `Kubernetes` tab, And then Check `insight` when you can check `Get advanced metrics`. You will see that:
 * CPU Usage
@@ -1501,6 +1502,13 @@ You can check Cpu usage when you decide to change cluster sizes as throughput, o
 * Bandwidth  
 ![Monitoring CPU](images/monitoring_cpu_droplet.png)
 
+### Summary<a name="summary"></a>
+You can change `deployment.yml` by updating replica part in `yml`. Please use below configuration to observe changes.
+```
+kubectl describe nodes | grep 'Name:\|  cpu\|  memory'
+```
+it makes a really simple terminal dashboard.
+![Monitoring CPU Summary](images/monitoring_cpu_summary.png)
 ## Automate everything using Terraform and Flux <a name="AUTO"></a>
 TBD
 
