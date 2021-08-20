@@ -1433,65 +1433,17 @@ velero get snapshot-location
 
 The amount of memory, the size of the cache, the speed of reading from and writing to disk, and the speed and availability of processing power are all key elements that affect the performance of your infrastructure. In this article, we’ll focus on introductory CPU monitoring concepts.
 
-
-  - [Prerequisites](#prerequisites)
-  - [Displaying CPU Information](#displaying)
-  - [uptime](#uptime)
-  - [Visual Monitoring Using the Control Panel](#visual)
-  - [Summary](#summary)
-
-### Prerequisites<a name="prerequisites"></a>
-
 Here, there are two kinds of installation.first one is `Installing the Metrics Agent During Droplet Creation` (please check below for velero client installation).Last installation is that `Installing the Metrics Agent Manually`.  
 
-* To install the metrics agent during Droplet creation, select the Monitoring checkbox in the additional options section of the creation page.[More Details](https://docs.digitalocean.com/products/monitoring/how-to/install-agent/)
-* Installing the Metrics Agent Manually
+*  To install the metrics agent during Droplet creation, select the Monitoring checkbox in the additional options section of the creation page.[More Details](https://docs.digitalocean.com/products/monitoring/how-to/install-agent/)
+ * Installing the Metrics Agent Manually
   * [With an Installation Script](https://docs.digitalocean.com/products/monitoring/how-to/install-agent/#with-an-installation-script)
   * [Configuring Repositories Manually](https://docs.digitalocean.com/products/monitoring/how-to/install-agent/#configuring-repositories-manually)
 
->Note
- You can achieve your installation with easy 3 steps by using below configuration.
- ```
-curl -sSL https://repos.insights.digitalocean.com/install.sh -o /tmp/install.sh # Save the script
-less /tmp/install.sh # View the contents
-sudo bash /tmp/install.sh # Run the script manually
- ```
-   
+  - [Visual Monitoring Using the Control Panel](#visual)
+  - [Summary](#summary)
 
-### Displaying CPU Information<a name="displaying"></a>
-
-Using the nproc command with `--all` option to display the number of processors. [More information](https://www.digitalocean.com/community/tutorials/how-to-monitor-cpu-use-on-digitalocean-droplets) also you can use `lscpu` to see all details of cpu usages. 
-
-```
-nproc --all
-
-Output of nproc
-1
-```
-
-### Uptime<a name="uptime"></a>
-Uptime shows us below details.[For more information please visit uptime part](https://www.digitalocean.com/community/tutorials/how-to-monitor-cpu-use-on-digitalocean-droplets)
-* the system time at the moment the command was run
-* how long the server had been running
-* how many connections users had to the machine
-* the CPU load average for the past one, five, and fifteen minutes.
-
-
-```
-uptime
-
-14:08:15 up 22:54,  2 users,  load average: 2.00, 1.37, 0.63
-```
-### Visual Monitoring Using the Control Panel<a name="visual"></a>
-
-When you check decide to check Cpu usage as Monitoring, on left navigation bar choose `Kubernetes` tab, And then Check `insight` when you can check `Get advanced metrics`. You will see that:
-* CPU Usage
-* Load Average
-* Memory Usage
-* Disk Usage
-* Disk I/O
-* Public bandwidth  
-![Monitoring CPU](images/monitoring_cpu.png)
+   ### Visual Monitoring Using the Control Panel<a name="visual"></a>
 
 You can check *CPU* usage when you decide to change cluster sizes as ``throughput`, on left navigation bar choose `Droplets` tab, And then Check `ubuntu-s-1vcpu-2gb-fra1-01` when you can check `Period`. You will see that throughput graphs:
 * CPU (%))
