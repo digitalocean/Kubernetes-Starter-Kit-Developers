@@ -1410,7 +1410,7 @@ The amount of memory, the size of the cache, the speed of reading from and writi
 
 ### Prerequisites<a name="prerequisites"></a>
 
-Here, there are two kinds of installation.first one is Installing the Metrics Agent During Droplet Creation (please check below for velero client installation).Last installation is that `Installing the Metrics Agent Manually`.  
+Here, there are two kinds of installation.first one is `Installing the Metrics Agent During Droplet Creation` (please check below for velero client installation).Last installation is that `Installing the Metrics Agent Manually`.  
 
 * To install the metrics agent during Droplet creation, select the Monitoring checkbox in the additional options section of the creation page.[More Details](https://docs.digitalocean.com/products/monitoring/how-to/install-agent/)
 * Installing the Metrics Agent Manually
