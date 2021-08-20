@@ -1490,7 +1490,7 @@ When you check decide to check Cpu usage as Monitoring, Check under Kubernetes t
 * Disk Usage
 * Disk I/O
 * Public bandwidth  
-![Monitoring CPU](images/Monitoring _Cpu.png)
+![Monitoring CPU](images/monitoring_cpu.png)
 
 ## Automate everything using Terraform and Flux <a name="AUTO"></a>
 TBD
