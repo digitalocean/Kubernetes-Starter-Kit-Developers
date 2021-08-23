@@ -1438,7 +1438,7 @@ Also, You can make some tests to understand your cluster.So that, By changing re
 ```
 kubectl describe nodes | grep 'Name:\|  cpu\|  memory'
 ```
-it makes a really simple terminal dashboard.
+
 
 
 
