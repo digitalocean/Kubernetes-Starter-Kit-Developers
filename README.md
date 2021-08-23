@@ -19,7 +19,8 @@ Below is a diagram giving a high level overview of the setup presented in this t
 5. [Prometheus Monitoring Stack](#PROM)
 6. [Logs Aggregation via Loki Stack](#LOKI)
 7. [Backup Using Velero](#VELE)
-8. [Automate Everything Using Terraform and Flux](#AUTO)
+8. [Estimate resources for startup kit](#COST)
+9. [Automate Everything Using Terraform and Flux](#AUTO)
 
 
 ## Scope <a name="SCOP"></a>
@@ -1427,7 +1428,7 @@ velero backup delete backupname
 velero get snapshot-location
 
 ```
-## Cost of running starter toolkit <a name="COST"></a>
+## Estimate resources for startup kit<a name="COST"></a>
 
 In this part, we’ll focus on introductory CPU monitoring by using simple method, Grafana has some custom dashboards for these purposes.  the size of `Overall CPU Utilisation`,`RAM Utilisation`, `Network IO`, `Disk IO`, `Pod cost` and `utilisation analysis`.These are all key elements that affect the performance of your infrastructure. In grafana, you can use  '`6876`' number of dashboard in 'http://localhost:3000/dashboard/import'. Look Below for Dashboard.
 
