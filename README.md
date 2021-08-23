@@ -1427,6 +1427,18 @@ velero backup delete backupname
 velero get snapshot-location
 
 ```
+## Cost of running starter toolkit <a name="COST"></a>
+
+In this part, we’ll focus on introductory CPU monitoring by using simple method, Grafana has some custom dashboards for these purposes.  the size of `Overall CPU Utilisation`,`RAM Utilisation`, `Network IO`, `Disk IO`, `Pod cost` and `utilisation analysis`.These are all key elements that affect the performance of your infrastructure. In grafana, you can use  '`6876`' number of dashboard in 'http://localhost:3000/dashboard/import'. Look Below for Dashboard.
+
+![Dashboard-Cost-CPU-Monitoring](images/cost-cpu-dashboad-grafana.png)
+
+Also, You can make some tests to understand your cluster.So that, By changing replica numbers inside of the  `deployment.yml` which belogs to ambassador such as `replicas: 1` ---> `replicas: 3`. and then reconfigure it by using thse command `kubectl apply -f deployment.yml` in terminal. Please use below configuration to observe changes.
+```
+kubectl describe nodes | grep 'Name:\|  cpu\|  memory'
+```
+it makes a really simple terminal dashboard.
+
 
 
 ## Automate everything using Terraform and Flux <a name="AUTO"></a>
