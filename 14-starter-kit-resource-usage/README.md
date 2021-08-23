@@ -4,10 +4,6 @@ In this part, we’ll focus on introductory CPU monitoring by using simple metho
 
 ![Dashboard-Cost-CPU-Monitoring](../images/monitoring_cpu_cost.png)
 
-Also, You can make some tests to understand your cluster.So that, By changing replica numbers inside of the  `deployment.yml` which belogs to ambassador such as `replicas: 1` ---> `replicas: 3`. and then reconfigure it by using thse command `kubectl apply -f deployment.yml` in terminal. Please use below configuration to observe changes.
-```
-kubectl describe nodes | grep 'Name:\|  cpu\|  memory'
-```
 As we already have the Grafana installed, we can review the dashboards (go to dashboards -> manage) to look at the cpu/memory utilized by each of the namespaces (velero, ambassador, prometheus/loki/grafana). 
 Refer to these dashboards.For our starter kit, we're using  `cpu`, and `memory`. 
 
