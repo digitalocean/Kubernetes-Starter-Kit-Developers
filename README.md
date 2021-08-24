@@ -30,8 +30,8 @@ Below is a diagram giving a high level overview of the setup presented in this t
 5. [Logs Aggregation via Loki Stack](5-setup-loki-stack)
 6. [Backup Using Velero](6-setup-velero)
 7. [Cost analysis for your DOKS cluster](14-starter-kit-resource-usage)
-7. [Estimate resource usage of starter kit](14-starter-kit-resource-usage)
-15. [Automate Everything Using Terraform and Flux](50-automate-with-terraform-flux)
+8. [Estimate resource usage of starter kit](14-starter-kit-resource-usage)
+9. [Automate Everything Using Terraform and Flux](50-automate-with-terraform-flux)
 
 
 ## Scope <a name="SCOP"></a>
