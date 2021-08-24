@@ -4,6 +4,15 @@
 
 Installing `Kubernetes` is only the beginning of the journey. Making it operationally ready requires lot more things. The objective of this tutorial is to provide developers a hands-on `introduction` on how to get started with an operations-ready `Kubernetes` cluster on `DO Kubernetes (DOKS)`. 
 
+**TBD 
+- Need to fix the emptydir storage for prometheus, and use block storage instead. Likewise, use Spaces for Loki. 
+- Need to move velero installation using helm. 
+- Move the manifests under separate YAML files, so one can customize after cloning. Have images & manifests for each section.
+- Adjust the replicas and requests/limits for different namespaces.
+- Re-do section 7 with focus on cost analysis. Change input parameters for DO cloud.
+- Automation using terraform/flux. 
+
+
 ## Operations-ready Setup Overview
 
 Below is a diagram giving a high level overview of the setup presented in this tutorial as well as the main steps:
