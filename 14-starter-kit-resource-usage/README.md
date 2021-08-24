@@ -2,7 +2,7 @@
 
 In this part, we’ll focus on introductory CPU monitoring by using simple method, Grafana has some custom dashboards for these purposes.  the size of `Overall CPU Utilisation`,`RAM Utilisation`, `Network IO`, `Disk IO`, `Pod cost` and `utilisation analysis`.These are all key elements that affect the performance of your infrastructure. In grafana, you can use  `6876` or `6873` or `6879` number of dashboard in 'http://localhost:3000/dashboard/import'.Refer to these dashboards.
 
-![Dashboard-Cost-CPU-Monitoring](../images/monitoring_cpu_cost.png)
+![Dashboard-Cost-CPU-Monitoring](../images/monitoring_cpu_cost2.png)
 
 As we already have the Grafana installed, we can review the dashboards (go to dashboards -> manage) to look at the cpu/memory utilized by each of the namespaces (velero, ambassador, prometheus/loki/grafana). 
 Refer to these dashboards.For our starter kit, we're using  `CPU : 1`, and `RAM : 2` as memory. 
