@@ -35,7 +35,7 @@ Edit the `<AWS_ACCESS_KEY_ID>` and `<AWS_SECRET_ACCESS_KEY>` placeholders to use
 
 ![Dashboard location for snapshot image](../images/velero-backup-space.png)
 
-3. Still in the `examples` directory, edit the `01-velero-secret.patch.yaml` file. It should look like this:
+3. In the `examples` directory, edit the `01-velero-secret.patch.yaml` file. It should look like this:
 
     ```
     ---
@@ -49,7 +49,7 @@ Edit the `<AWS_ACCESS_KEY_ID>` and `<AWS_SECRET_ACCESS_KEY>` placeholders to use
    * Change the entire `<DIGITALOCEAN_API_TOKEN>` portion to use your DigitalOcean personal API token. The line should look something like `digitalocean_token: 18a0d730c0e0....`
 
 
-4. Now you're ready to install velero, configure the snapshot storage location, and work with backups. Ensure that you edit each of the following settings to match your Spaces configuration befor running the `velero install` command:
+4. Install Velero, and configure the snapshot storage location to work with backups. Ensure that you edit each of the following settings to match your Spaces configuration before running the `velero install` command:
    
    * `--bucket velero-backups` - Ensure you change the `velero-backups` value to match the name of your Space.
    * `--backup-location-config s3Url=https://nyc3.digitaloceanspaces.com,region=nyc3` - Change the URL and region to match your Space's settings. Specifically, edit the `nyc3` portion in both to match the region where your Space is hosted. Use one of `nyc3`, `sfo2`, `sgp1`, or `fra1` depending on your region.
@@ -95,7 +95,7 @@ Explanation above configuration:
     ```
 
 
-### Backup and restore example
+### Backup and Restore Example
 
 1. Ensure that your Ambassador Deployment is running and there is a Service with an `EXTERNAL-IP` (`kubectl get service --namespace ambassador`). Browse the IP a few times to write some log entries to the persistent volume. Then create a backup with Velero:
 

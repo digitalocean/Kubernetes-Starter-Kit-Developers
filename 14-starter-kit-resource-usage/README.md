@@ -1,4 +1,4 @@
-## Estimate resources for startup kit 
+## Estimate Resources for Startup Kit 
 As we already have the Grafana installed, we can review the dashboards (go to dashboards -> manage) to look at the cpu/memory utilized by each of the namespaces (velero, ambassador, prometheus/loki/grafana). 
 
 Refer to these dashboards.
