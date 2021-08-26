@@ -1,12 +1,10 @@
 ## Cost analysis for your DOKS cluster<a name="COST"></a>
 
-In this part, we’ll focus on introductory CPU monitoring by using simple method, Grafana has some custom dashboards for these purposes.  the size of `Overall CPU Utilisation`,`RAM Utilisation`, `Network IO`, `Disk IO`, `Pod cost` and `utilisation analysis`.These are all key elements that affect the performance of your infrastructure. In grafana, you can use  `6876` or `6873` or `6879` number of dashboard in 'http://localhost:3000/dashboard/import'. Please use `Analysis by Cluster`(1) and `Analysis by Namespace`(2) Refer to these dashboards.
+In this part, we’ll focus on introductory CPU monitoring by using simple method, Grafana has some custom dashboards for these purposes. When you click `Manage`, you will see that `Kubernetes/Compute Resources/Cluster` section with `kubernetes-mixin` tag. 
+
+
+ The size of `CPU Utilisation`,`CPU Requests Commitment`, `CPU Limits Commitment`, `Memory Utilisation`, `Memory Requests Commitment` and `Memory Limits Commitment` are included in headlines. Besides that, when you scroll down your page, you can see that more tables such as `Cpu Usage`, `Memory Usage`,`Network Usage`,`Request by Namespace` and `Bandwidths`
 
 ![Dashboard-Cost-CPU-Monitoring-Cluster](../images/monitoring_cpu_ram_cluster.png)
 
-
-
-As we already have the Grafana installed, we can review the dashboards (go to dashboards -> manage) to look at the cpu/memory utilized by each of the namespaces (velero, ambassador, prometheus/loki/grafana). 
-Refer to these dashboards.For our starter kit, we're using  `CPU : 1`, and `RAM : 2` as memory. 
-
-For a ballpark sizing, say you're using a node pool for 2 nodes, 4cpu/8gb each. This is about $96/month for the cluster. You will have 6cpu/8gb RAM remaining for use after DOKS installation. If you install the starter kit, then you will have 1cpu/2gb RAM for your node pool with 2 nodes and 9cpu/14gb remaining for your applications.
+As we already have the Grafana installed, you can review the dashboards (go to dashboards -> manage) to look at `Kubernetes/Compute Resources/Cluster` the cpu/memory utilized by each of the namespaces (velero, ambassador, prometheus/loki/grafana) will be shown in this part.But if you want, you can change queries by clicking `Edit` button both charts and tables .
