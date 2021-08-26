@@ -1,4 +1,4 @@
-## Set up DO Kubernetes 
+## Set up DigitalOcean Kubernetes 
 
 Explore `doctl` options.
 
@@ -24,7 +24,7 @@ Explore options for creating the cluster.
 
 Let us create a `DOKS` cluster with `3 worker nodes`. Use `--wait false`, if you do not want the command to wait until cluster is ready.
 
-In the example below, we're creating 4cpu/8gb basic nodes ($40/month), 2 default, and auto-scale to 4. So your cluster cost would between $80-$160/month, with hourly billing. To choose a different node type, pick from the following command `doctl compute size list`.
+In the example below, we create 4cpu/8gb basic nodes ($40/month), 2 default, and auto-scale to 4. So your cluster cost would between $80-$160/month, with hourly billing. To choose a different node type, pick from the following command `doctl compute size list`.
 
 ```
 ~ doctl kubernetes cluster create bg-cluster-2 \
@@ -49,7 +49,7 @@ ID                                      Name            Region    Version       
 
 ```
 
-Now let us set up `kubectl`, if the context is not set.
+Now, let us set up `kubectl`, if the context is not set.
 
 ```
 ~ kubectl config current-context 

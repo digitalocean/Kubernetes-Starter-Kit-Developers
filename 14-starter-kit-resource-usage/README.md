@@ -1,4 +1,4 @@
-## Compute Resources for your DOKS cluster<a name="COST"></a>
+## Estimate Resources for Startup Kit<a name="COST"></a>
 
 In this part, we’ll focus on introductory CPU monitoring by using simple method, Grafana has some custom dashboards for these purposes. When you click `Manage`, you will see that `Kubernetes/Compute Resources/Cluster` section with `kubernetes-mixin` tag. 
 
@@ -8,3 +8,7 @@ In this part, we’ll focus on introductory CPU monitoring by using simple metho
 ![Dashboard-Cost-CPU-Monitoring-Cluster](../images/monitoring_cpu_ram_cluster.png)
 
 As we already have the Grafana installed, you can review the dashboards (go to dashboards -> manage) to look at `Kubernetes/Compute Resources/Cluster` the cpu/memory utilized by each of the namespaces (velero, ambassador, prometheus/loki/grafana) will be shown in this part.But if you want, you can change queries by clicking `Edit` button for both charts and tables after selecting dropdownlist at the top of the charts.
+
+Hope you enjoyed so far. This was the last section for manual setup of startup kit.
+
+To automate all the components as part of DOKS install, refer to the [next section](50-automate-with-terraform-flux).

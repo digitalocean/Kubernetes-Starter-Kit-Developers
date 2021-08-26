@@ -2,16 +2,19 @@
 
 
 ### Table of contents
-- [Overview](#overview)
-- [How Velero Works](#how-velero-works)
-- [Prerequisites](#prerequisites)
-- [Velero Installation](#velero-installation)
-- [Namespace Backup and Restore](#namespace-backup-and-restore)
-- [Backup and Restore Whole Cluster](#backup-and-restore-whole-cluster)
-- [Scheduled Backup and Restore](#scheduled-backup-and-restore)
-- [Deleting Snapshots](#deleting-snapshots)
-- [Final Notes](#final-notes)
-- [Learn More](#learn-more)
+- [Backup Using Velero <a name="VELE"></a>](#backup-using-velero-)
+  - [Table of contents](#table-of-contents)
+  - [Overview](#overview)
+  - [How Velero Works](#how-velero-works)
+  - [Prerequisites](#prerequisites)
+  - [Velero Installation](#velero-installation)
+  - [Namespace Backup and Restore](#namespace-backup-and-restore)
+  - [Backup and Restore Example](#backup-and-restore-example)
+  - [Backup and Restore Whole Cluster](#backup-and-restore-whole-cluster)
+  - [Scheduled Backup and Restore](#scheduled-backup-and-restore)
+  - [Deleting Snapshots](#deleting-snapshots)
+  - [Final Notes](#final-notes)
+  - [Learn More](#learn-more)
 
 
 ### Overview
@@ -91,8 +94,7 @@ Steps to follow:
     aws_secret_access_key=<DO_SPACES_SECRET_ACCESS_KEY>
     ```
 
-    The `<DO_SPACES_ACCESS_KEY_ID>` and `<DO_SPACES_SECRET_ACCESS_KEY>` represent your `DigitalOcean Spaces` key name and secret created in the [Prerequisites](#prerequisites) section.
-3. Start the `deployment` for `Velero` and replace the required `<>` placehholders accordingly (each is explained down below):
+3. In the `examples` directory, edit the `01-velero-secret.patch.yaml` file. It should look like this:
 
     ```
     helm install velero vmware-tanzu/velero \
@@ -127,7 +129,10 @@ Steps to follow:
     * `<DIGITALOCEAN_API_TOKEN>` - your DigitalOcean API Token. Velero needs it in order to authenticate with the DigitalOcean API when manipulating snapshots.
     * `<BUCKET_NAME>` and `<REGION>` - your DigitalOcean Spaces bucket name and region (e.g.: `nyc3`) created in the [Prerequisites](#prerequisites) section.
 
-**Verify the installation**
+4. Install Velero, and configure the snapshot storage location to work with backups. Ensure that you edit each of the following settings to match your Spaces configuration before running the `velero install` command:
+   
+   * `--bucket velero-backups` - Ensure you change the `velero-backups` value to match the name of your Space.
+   * `--backup-location-config s3Url=https://nyc3.digitaloceanspaces.com,region=nyc3` - Change the URL and region to match your Space's settings. Specifically, edit the `nyc3` portion in both to match the region where your Space is hosted. Use one of `nyc3`, `sfo2`, `sgp1`, or `fra1` depending on your region.
 
 Check the `Velero` deployment:
 
@@ -184,6 +189,7 @@ Steps to follow:
     ```bash
     velero backup get
     ```
+### Backup and Restore Example
 
     The output lools similar to:
 

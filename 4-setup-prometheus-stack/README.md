@@ -93,7 +93,7 @@ envoy_cluster_assignment_stale{envoy_cluster_name="cluster_quote_default_default
 envoy_cluster_assignment_stale{envoy_cluster_name="xds_cluster"} 0
 ```
 
-Great! But how do we tell `Prometheus` about this new target? There are several ways of achieving this:
+Next, connect Prometheus to this new target. There are several ways of achieving this:
 * [<static_config>](https://prometheus.io/docs/prometheus/latest/configuration/configuration/#static_config) - allows specifying a list of targets and a common label set for them.
 * [<kubernetes_sd_config>](https://prometheus.io/docs/prometheus/latest/configuration/configuration/#kubernetes_sd_config) - allows retrieving scrape targets from `Kubernetes' REST API` and always staying synchronized with the cluster state.
 * [Prometheus Operator](https://github.com/prometheus-operator/prometheus-operator) - simplifies `Prometheus` monitoring inside a `Kubernetes` cluster via `CRDs`.
