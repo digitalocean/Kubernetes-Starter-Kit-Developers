@@ -30,7 +30,7 @@ Below is a diagram that gives a high-level overview of the setup presented in th
 5. [Logs Aggregation via Loki Stack](5-setup-loki-stack)
 6. [Backup Using Velero](6-setup-velero)
 7. [Estimate resource usage of starter kit](14-starter-kit-resource-usage)
-15.[Automate Everything Using Terraform and Flux](50-automate-with-terraform-flux)
+15.[Automate Everything Using Terraform and Flux](15-automate-with-terraform-flux)
 
 
 ## Scope <a name="SCOP"></a>
@@ -47,7 +47,7 @@ For every service that gets deployed, we will enable metrics and logs. At the en
 Note: For this starter kit, we recommend to start with a nodepool of higher capacity nodes (say, 4cpu/8gb RAM) and have 2 nodes. Otherwise, review and allocate node capacity if you run into pods in PENDING state.
 <br/><br/>
 
-If you want to automate installation for all the components, refer to [section 50 - Automate with terraform & flux](50-automate-with-terraform-flux).
+If you want to automate installation for all the components, refer to [section 15 - Automate with terraform & flux](15-automate-with-terraform-flux).
 
 Go to [section 1 - setup DOKS](1-setup-DOKS).
 
