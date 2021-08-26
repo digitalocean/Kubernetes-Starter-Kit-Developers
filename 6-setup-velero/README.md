@@ -12,7 +12,7 @@
   - [Backup and Restore Example](#backup-and-restore-example)
   - [Backup and Restore Whole Cluster](#backup-and-restore-whole-cluster)
   - [Scheduled Backup and Restore](#scheduled-backup-and-restore)
-  - [Deleting Snapshots](#deleting-snapshots)
+  - [Deleting Backups](#deleting-snapshots)
   - [Final Notes](#final-notes)
   - [Learn More](#learn-more)
 
@@ -143,7 +143,8 @@ helm ls -n velero
 The output looks similar to the following:
 
 ```
-NAME    NAMESPACE       REVISION        UPDATED                                 STATUS          CHART           APP VERSIONvelero  backup          1               2021-08-25 13:16:24.383446 +0300 EEST   deployed        velero-2.23.6   1.6.3 
+NAME    NAMESPACE       REVISION        UPDATED                                 STATUS          CHART           APP VERSION
+velero  backup          1               2021-08-25 13:16:24.383446 +0300 EEST   deployed        velero-2.23.6   1.6.3 
 ```
 
 Check that `Velero` is up and running:
@@ -388,12 +389,22 @@ Steps to follow:
 To restore one of the `minute` backups please follow the same steps as you learned in the previous parts of this tutorial. This is a good way to exercise and test your experience accumulated so far.
 
 
-### Deleting Snapshots
+### Deleting Backups
 
-When you decide that some older snapshots are not needed anymore and want to free up some space on the `DO Spaces` bucket, then this command will help:
+When you decide that some older backups are not needed anymore and want to free up some space on the `DO Spaces` bucket as well, then this command will help:
 
+Deleting a specific backup:
+
+```bash
+velero backup delete kube-system-minute-backup-20210826094116
 ```
-kubectl delete volumesnapshotlocation.velero.io -n velero starterkit-velero-backups
+
+After a few moments, check that it's gone from the `velero backup get` command output. It should be deleted from the `DO Spaces` bucket as well.
+
+Going further, you can explore the other available options (like using a `--selector` for example):
+
+```bash
+velero backup delete -h
 ```
 
 ### Final Notes
