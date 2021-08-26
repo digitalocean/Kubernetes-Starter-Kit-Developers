@@ -2,19 +2,17 @@
 
 
 ### Table of contents
-- [Backup Using Velero <a name="VELE"></a>](#backup-using-velero-)
-  - [Table of contents](#table-of-contents)
-  - [Overview](#overview)
-  - [How Velero Works](#how-velero-works)
-  - [Prerequisites](#prerequisites)
-  - [Velero Installation](#velero-installation)
-  - [Namespace Backup and Restore](#namespace-backup-and-restore)
-  - [Backup and Restore Example](#backup-and-restore-example)
-  - [Backup and Restore Whole Cluster](#backup-and-restore-whole-cluster)
-  - [Scheduled Backup and Restore](#scheduled-backup-and-restore)
-  - [Deleting Backups](#deleting-snapshots)
-  - [Final Notes](#final-notes)
-  - [Learn More](#learn-more)
+
+- [Overview](#overview)
+- [How Velero Works](#how-velero-works)
+- [Prerequisites](#prerequisites)
+- [Velero Installation](#velero-installation)
+- [Namespace Backup and Restore](#namespace-backup-and-restore)
+- [Backup and Restore Whole Cluster](#backup-and-restore-whole-cluster)
+- [Scheduled Backup and Restore](#scheduled-backup-and-restore)
+- [Deleting Backups](#deleting-backups)
+- [Final Notes](#final-notes)
+- [Learn More](#learn-more)
 
 
 ### Overview
@@ -58,7 +56,7 @@ Below is a diagram that shows the backup workflow:
 
 Before you get started you will need to do the following:
 
-* Create a [Spaces](https://docs.digitalocean.com/products/spaces/how-to/create/) bucket and access keys. Save the `access` key and `secret` in a safe place for later usage. 
+* Create a [Spaces](https://docs.digitalocean.com/products/spaces/how-to/create/) bucket and access keys. Save the `access` key and `secret` in a safe place for later use. 
 * You should have an DigitalOcean `API token`. If not, [create one](https://docs.digitalocean.com/reference/api/create-personal-access-token/) for `Velero` from the cloud console.
 
 
@@ -72,11 +70,11 @@ There are three parts involved:
 
 **Installing the Velero CLI**
 
-Just follow the [CLI installation](https://velero.io/docs/v1.6/basic-install/#install-the-cli) steps for your OS distribution as detailed on the official page (in this tutorial `v1.6` is used).
+Just follow the [CLI installation](https://velero.io/docs/v1.6/basic-install/#install-the-cli) steps for your OS distribution, as detailed on the official page (in this tutorial `v1.6` is used).
 
 **Installing the Velero Server and Storage Provider Plugins**
 
-In the steps to follow you will deploy `Velero` and all the required components so that it will be able to perform backups for `Kubernetes` resources and `PV's`. The backup data will be stored in the DO `Spaces` bucket created earlier in the [Prerequisites](#prerequisites) section.
+In the next part, you will deploy `Velero` and all the required components so that it will be able to perform backups for `Kubernetes` resources and `PV's`. The backup data will be stored in the DO `Spaces` bucket created earlier in the [Prerequisites](#prerequisites) section.
 
 Steps to follow:
 
@@ -86,7 +84,7 @@ Steps to follow:
     helm repo add vmware-tanzu https://vmware-tanzu.github.io/helm-charts
     ```
 
-2. A cloud credentials file is needed in order for `Velero` to access `DO Spaces`. Create a `secrets.txt` file under the current working directory with the following content (make sure to replace the `<>` placeholders accordingly):
+2. A cloud credentials file is needed in order for `Velero` to access `DO Spaces`. Create a file named `secrets.txt` under the current working directory with the following content (make sure to replace the `<>` placeholders accordingly):
 
     ```
     [default]
@@ -94,14 +92,14 @@ Steps to follow:
     aws_secret_access_key=<DO_SPACES_SECRET_ACCESS_KEY>
     ```
 
-3. In the `examples` directory, edit the `01-velero-secret.patch.yaml` file. It should look like this:
+3. Deploy `Velero` using `Helm`:
 
     ```
     helm install velero vmware-tanzu/velero \
     --namespace velero \
     --create-namespace \
     --set credentials.extraEnvVars.digitalocean_token=<DIGITALOCEAN_API_TOKEN>  \
-    --set-file credentials.secretContents.cloud=./secrets.txt \
+    --set-file credentials.secretContents.cloud=secrets.txt \
     --set configuration.provider=aws \
     --set configuration.backupStorageLocation.bucket=<BUCKET_NAME> \
     --set configuration.backupStorageLocation.config.region=<REGION> \
@@ -128,37 +126,31 @@ Steps to follow:
     * `<deployRestic=false>` - whether to deploy the restic daemonset (disabled in this example because it's considered beta).
     * `<DIGITALOCEAN_API_TOKEN>` - your DigitalOcean API Token. Velero needs it in order to authenticate with the DigitalOcean API when manipulating snapshots.
     * `<BUCKET_NAME>` and `<REGION>` - your DigitalOcean Spaces bucket name and region (e.g.: `nyc3`) created in the [Prerequisites](#prerequisites) section.
+4. Check the `Velero` deployment:
 
-4. Install Velero, and configure the snapshot storage location to work with backups. Ensure that you edit each of the following settings to match your Spaces configuration before running the `velero install` command:
-   
-   * `--bucket velero-backups` - Ensure you change the `velero-backups` value to match the name of your Space.
-   * `--backup-location-config s3Url=https://nyc3.digitaloceanspaces.com,region=nyc3` - Change the URL and region to match your Space's settings. Specifically, edit the `nyc3` portion in both to match the region where your Space is hosted. Use one of `nyc3`, `sfo2`, `sgp1`, or `fra1` depending on your region.
+    ```bash
+    helm ls -n velero
+    ```
 
-Check the `Velero` deployment:
+    The output looks similar to the following:
 
-```bash
-helm ls -n velero
-```
+    ```
+    NAME    NAMESPACE       REVISION        UPDATED                                 STATUS          CHART           APP VERSION
+    velero  velero          1               2021-08-25 13:16:24.383446 +0300 EEST   deployed        velero-2.23.6   1.6.3 
+    ```
 
-The output looks similar to the following:
+5. Check that `Velero` is up and running:
 
-```
-NAME    NAMESPACE       REVISION        UPDATED                                 STATUS          CHART           APP VERSION
-velero  backup          1               2021-08-25 13:16:24.383446 +0300 EEST   deployed        velero-2.23.6   1.6.3 
-```
+    ```bash
+    kubectl get deployment velero -n velero
+    ```
 
-Check that `Velero` is up and running:
+    The output looks similar to the following:
 
-```bash
-kubectl get deployment velero -n velero
-```
-
-The output looks similar to the following:
-
-```
-NAME     READY   UP-TO-DATE   AVAILABLE   AGE
-velero   1/1     1            1           67s
-```
+    ```
+    NAME     READY   UP-TO-DATE   AVAILABLE   AGE
+    velero   1/1     1            1           67s
+    ```
 
 If you’re interested in looking further, you can view Velero’s server-side components by running (replace the `<>` placeholders accordingly):
 
@@ -190,7 +182,6 @@ Steps to follow:
     ```bash
     velero backup get
     ```
-### Backup and Restore Example
 
     The output lools similar to:
 
@@ -243,11 +234,9 @@ Steps to follow:
         velero.io/source-cluster-k8s-minor-version: "21"
       ...
       ``` 
-4. Take a look at the `DO Spaces` bucket, there's a new folder named `backups`. The folder listing looks similar to:
+4. Take a look at the `DO Spaces` bucket, there's a new folder named `backups`. The folder listing reveals the assets that were created for the `ambassador-backup`:
 
     ![Dashboard location for backup image](../images/velero-backup-space-2.png)
-
-    As seen above, the backup files will be in your `Spaces` bucket. A snapshot of the persistent volume will be listed in the `DigitalOcean` control panel under the `Images` link. 
 
 5. Simulate a disaster by deleting the  `ambassador` namespace:
 
@@ -425,16 +414,17 @@ velero <command> -h
 
 Some other useful resources:
 
-* [Backup command reference](https://velero.io/docs/v1.6/backup-reference)
-* [Restore command reference](https://velero.io/docs/v1.6/restore-reference/)
-* [Cluster migration](https://velero.io/docs/v1.6/migration-case/)
+* [Backup Command Reference](https://velero.io/docs/v1.6/backup-reference)
+* [Restore Command Reference](https://velero.io/docs/v1.6/restore-reference/)
+* [Backup Hooks](https://velero.io/docs/v1.6/backup-hooks/)
+* [Cluster Migration](https://velero.io/docs/v1.6/migration-case/)
 
 ### Learn More
 
-Hopefully you found this guide helpful. Here are some other resources to help you learn more.
+Hopefully you found this guide helpful. Here are some other resources to help you learn more:
 
-[Velero](https://velero.io/)
-[Velero Documentation](https://velero.io/docs/latest/)
-[Velero GitHub](https://github.com/vmware-tanzu/velero)
+* [Velero](https://velero.io/)
+* [Velero Documentation](https://velero.io/docs/latest/)
+* [Velero GitHub](https://github.com/vmware-tanzu/velero)
 
 Go to [Section 14 - Estimate resources for startup kit](../14-starter-kit-resource-usage)
