@@ -2,7 +2,7 @@
 
 ### Options for Load Balancer and Ingress
 
-In most of the cases you will use the `Load Balancer` that is made available by the `Cloud` provider of your choice. In case of `DigitalOcean` when you configure a service as a `Load Balancer`, `DOKS` automatically provisions one in your account (unless you configure to use an existing one). Now the `service` is exposed to the outside world and can be accessed via the `Load Balancer` endpoint. In a real world scenario you do not want to use one `Load Balancer` per service so you need a `proxy` inside the cluster. That is `Ingress`.
+In most of the cases, you will use the `Load Balancer` that is made available by the `Cloud` provider of your choice. In case of `DigitalOcean` when you configure a service as a `Load Balancer`, `DOKS` automatically provisions one in your account (unless you configure to use an existing one). Now the `service` is exposed to the outside world and can be accessed via the `Load Balancer` endpoint. In a real world scenario you do not want to use one `Load Balancer` per service so you need a `proxy` inside the cluster. That is `Ingress`.
 
 When an `Ingress Proxy` is installed it creates a service and exposes it as a `Load Balancer`. Now you can have as many services behind the ingress and all accessible through a single endpoint. Ingress operates at the `HTTP` layer.
 
@@ -570,9 +570,9 @@ X-Envoy-Expected-Rq-Timeout-Ms: 3000
 X-Envoy-Original-Path: /echo/
 ```
 
-Given that we have proxy protocol configured, you should see the original client IP in the http request header.
+Given that we have proxy protocol configured, you should see the original client IP in the https request header.
 
-If everything looks like above we're all set and configured the `Ambassador Edge Stack` successfully. 
+If everything looks like above, we configured the `Ambassador Edge Stack` successfully. 
 
 Because `Monitoring` and `Logging` is a very important aspect of every production ready system in the next section we're going to focus on how to enable it via `Prometheus` and `Loki` for the `AES` stack as well as other backend services.
 
