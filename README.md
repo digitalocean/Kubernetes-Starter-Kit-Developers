@@ -29,7 +29,7 @@ Below is a diagram giving a high level overview of the setup presented in this t
 4. [Prometheus Monitoring Stack](4-setup-prometheus-stack)
 5. [Logs Aggregation via Loki Stack](5-setup-loki-stack)
 6. [Backup Using Velero](6-setup-velero)
-7. [Cost analysis for your DOKS cluster](14-starter-kit-resource-usage)
+7. [Compute Resources for your DOKS cluster](14-starter-kit-resource-usage)
 8. [Automate Everything Using Terraform and Flux](50-automate-with-terraform-flux)
 
 
