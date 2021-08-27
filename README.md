@@ -15,23 +15,24 @@ In this tutorial, we provide developers a hands-on introduction on how to get st
 
 Below is a diagram that gives a high-level overview of the setup presented in this tutorial as well as the main steps:
 
-![Setup Overview](images/starter_kit_arch_overview.jpg)
+![Setup Overview](res/img/starter_kit_arch_overview.jpg)
 
 
 
 # Table of contents
-0. [Scope](#SCOP)
-1. [Set up DO Kubernetes](1-setup-DOKS)
-2. [Set up DO Container Registry](2-setup-DOCR)
-3. [Ingress Using Ambassador](3-setup-ingress-ambassador)
-4. [Prometheus Monitoring Stack](4-setup-prometheus-stack)
-5. [Logs Aggregation via Loki Stack](5-setup-loki-stack)
-6. [Backup Using Velero](6-setup-velero)
-7. [Estimate resource usage of starter kit](14-starter-kit-resource-usage)
+
+1. [Scope](#scope)
+2. [Set up DO Kubernetes](1-setup-DOKS)
+3. [Set up DO Container Registry](2-setup-DOCR)
+4. [Ingress Using Ambassador](3-setup-ingress-ambassador)
+5. [Prometheus Monitoring Stack](4-setup-prometheus-stack)
+6. [Logs Aggregation via Loki Stack](5-setup-loki-stack)
+7. [Backup Using Velero](6-setup-velero)
+8. [Estimate resource usage of starter kit](14-starter-kit-resource-usage)
 15.[Automate Everything Using Terraform and Flux](15-automate-with-terraform-flux)
 
 
-## Scope <a name="SCOP"></a>
+## Scope
 This tutorial demonstrates the basic setup you need to be operations-ready.
 
 All the steps are done manually using the command line interface (CLI). If you need end-to-end automation, refer to the last section.
@@ -47,5 +48,5 @@ Note: For this starter kit, we recommend to start with a nodepool of higher capa
 
 If you want to automate installation for all the components, refer to [section 15 - Automate with terraform & flux](15-automate-with-terraform-flux).
 
-Go to [section 1 - setup DOKS](1-setup-DOKS).
+Go to [Section 1 - Set up DigitalOcean Kubernetes](1-setup-DOKS).
 

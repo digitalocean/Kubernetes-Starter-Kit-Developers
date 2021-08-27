@@ -1,4 +1,5 @@
-## Set up DigitalOcean Container Registry 
+## Set up DigitalOcean Container Registry
+
 You need a container registry, such as Docker Hub or DigitalOcean Container Registry (DOCR), when you need to build a container image and deploy it to the cluster. The cluster can pull images from a configured registry. Here, we will set up a DOCR for our cluster.
 
 ```
@@ -21,4 +22,4 @@ registry-bg-reg-1   kubernetes.io/dockerconfigjson   1      13s
 
 This creates the above secret in the `default` namespace. 
 
-Go to [Section 3 - Set up Ingress](../3-setup-ingress-ambassador)
+Go to [Section 3 - Ingress using Ambassador](../3-setup-ingress-ambassador)
