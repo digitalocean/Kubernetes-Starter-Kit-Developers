@@ -28,7 +28,7 @@ Below is a diagram that gives a high-level overview of the setup presented in th
 6. [Logs Aggregation via Loki Stack](5-setup-loki-stack)
 7. [Backup Using Velero](6-setup-velero)
 8. [Estimate resource usage of starter kit](14-starter-kit-resource-usage)
-15.[Automate Everything Using Terraform and Flux](15-automate-with-terraform-flux)
+9. [Automate Everything Using Terraform and Flux](15-automate-with-terraform-flux)
 
 
 ## Scope
