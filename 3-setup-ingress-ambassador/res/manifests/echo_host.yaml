@@ -1,0 +1,16 @@
+---
+apiVersion: getambassador.io/v2
+kind: Host
+metadata:
+  name: echo-host
+  namespace: ambassador
+spec:
+  hostname: echo.mandrakee.xyz
+  acmeProvider:
+    email: echo@gmail.com
+  tlsSecret:
+    name: tls2-cert
+  requestPolicy:
+    insecure:
+      action: Redirect
+      additionalPort: 8080

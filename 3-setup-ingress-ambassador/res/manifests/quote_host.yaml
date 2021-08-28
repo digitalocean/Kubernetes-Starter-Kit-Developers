@@ -1,0 +1,16 @@
+---
+apiVersion: getambassador.io/v2
+kind: Host
+metadata:
+  name: quote-host
+  namespace: ambassador
+spec:
+  hostname: quote.mandrakee.xyz
+  acmeProvider:
+    email: quote@gmail.com
+  tlsSecret:
+    name: tls-cert
+  requestPolicy:
+    insecure:
+      action: Redirect
+      additionalPort: 8080

@@ -1,0 +1,10 @@
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: echo-backend
+  namespace: ambassador
+spec:
+  prefix: /echo/
+  host: echo.mandrakee.xyz
+  service: echo.backend
