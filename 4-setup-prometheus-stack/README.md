@@ -32,29 +32,48 @@ You will install the `kube-prometheus` stack using `Helm`, which is an opinionat
 
 Steps to follow:
 
-1. Add the `Helm` repo:
+1. Add the `Helm` repo and list the available charts:
 
     ```
     helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+
+    helm search repo prometheus-community
     ```
 
-2. Fetch the `values.yaml` file:
+    The output looks similar to the following:
+
+    ```
+    NAME                                                    CHART VERSION   APP VERSION     DESCRIPTION                                       
+    prometheus-community/alertmanager                       0.12.2          v0.22.1         The Alertmanager handles alerts sent by client ...
+    prometheus-community/kube-prometheus-stack              17.1.3          0.49.0          kube-prometheus-stack collects Kubernetes manif...
+    ...
+    ```
+
+    **Note:**
+
+    The chart of interes is `prometheus-community/kube-prometheus-stack`, which will install `Prometheus`, `Promtail`, `Alertmanager` and `Grafana` on the cluster. Please visit the [kube-prometheus-stack](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack) page for more details about this chart.
+2. Fetch and inspect the `values.yaml` file:
 
     ```shell
-    helm show values prometheus-community/kube-prometheus-stack > prom-stack-values.yaml
+    helm show values prometheus-community/kube-prometheus-stack --version 17.1.3 > prom-stack-values.yaml
     ```
 
     **Hint:**
 
-    It's good practice in general to fetch the values file and inspect it to see what options are available. This way, you can keep for example only the features that you need for your project and disable others to save on resource usage.
-
+    * It's good practice in general to fetch the values file and inspect it to see what options are available. This way, you can keep for example only the features that you need for your project and disable others to save on resources.
 3. Modify the `prom-stack-values.yaml` file to disable metrics for `etcd` and `kubeScheduler` (set their corresponding values to `false`). Those components are managed by `DOKS` and are not accessible to `Prometheus`. Note that we're keeping the `storage` to be `emptyDir`. It means the **storage will be gone** if `Prometheus` pods restart.
-
 4. Install the `kube-prometheus-stack`:
 
     ```
-    helm install kube-prom-stack prometheus-community/kube-prometheus-stack -n monitoring --create-namespace -f prom-stack-values.yaml
+    helm install kube-prom-stack prometheus-community/kube-prometheus-stack --version 17.1.3 \
+    --namespace monitoring \
+    --create-namespace \
+    -f prom-stack-values.yaml
     ```
+
+    **Note:**
+
+    A `specific` version for the `Helm` chart is used in this tutorial (`17.1.3`). It's good practice in general to lock on a specific version or range (e.g. `^17.1.3`). This helps to avoid future issues caused by breaking changes introduced in major version releases. On the other hand, it doesn't mean that a future major version ugrade is not an option. You need to make sure that the new version is tested first. Having a good strategy in place for backups and snapshots becomes handy here (covered in more detail in [Section 6 - Backup Using Velero](../6-setup-velero)).
 
 Now you can connect to `Grafana` (`admin/prom-operator`, see `prom-stack-values.yaml`) by port forwarding to local machine. Once in, you can go to dashboards - manage, and choose different dashboards.  You should NOT expose grafana to public network (eg. create an ingress mapping or LB service) with default login/password.
 

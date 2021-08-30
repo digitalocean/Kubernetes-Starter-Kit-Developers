@@ -62,30 +62,43 @@ In this section you will deploy the `Ambassador Edge Stack` into the `DOKS` clus
 
 Steps to follow:
 
-1. Add the Helm repo:
+1. Add the Helm repo and list the available charts:
 
     ```shell
     helm repo add datawire https://www.getambassador.io
-    helm repo update
-    ```
-2. List the available versions (pick the `6.7.13` version of the `Chart` which maps to the `1.13.0` release of `AES`):
 
-    ```shell
     helm search repo datawire
     ```
-   
-   The output looks similar to the following:
-   ```
-   NAME                            CHART VERSION   APP VERSION     DESCRIPTION                                       
-   datawire/ambassador             6.7.13          1.13.10         A Helm chart for Datawire Ambassador              
-   datawire/ambassador-operator    0.3.0           v1.3.0          A Helm chart for Kubernetes                       
-   datawire/telepresence           2.4.0           2.4.0           A chart for deploying the server-side component...
-   ```
-3. Create a dedicated `ambassador` namespace and finish the installation with:
+
+    The output looks similar to the following:
+    ```
+    NAME                            CHART VERSION   APP VERSION     DESCRIPTION                                       
+    datawire/ambassador             6.7.13          1.13.10         A Helm chart for Datawire Ambassador              
+    datawire/ambassador-operator    0.3.0           v1.3.0          A Helm chart for Kubernetes                       
+    datawire/telepresence           2.4.0           2.4.0           A chart for deploying the server-side component...
+    ```
+
+    **Note:**
+
+    The chart of interes is `datawire/ambassador`, which will install `Ambassador Edge Stack` on the cluster. Please visit the [ambassador-chart](https://github.com/datawire/ambassador-chart) page for more details about this chart.
+2. Fetch and inspect the values file to see what options are available:
 
     ```shell
-    helm install ambassador datawire/ambassador --version 6.7.13 --namespace ambassador --create-namespace
+    helm show values datawire/ambassador --version 6.7.13 > ambassador-values.yaml
     ```
+
+    **Hint:**
+
+    It's good practice in general to fetch the values file and inspect it to see what options are available. This way, you can keep for example only the features that you need for your project and disable others to save on resources.
+3. Finish the installation (a dedicated `ambassador` namespace will be created as well):
+
+    ```shell
+    helm install datawire/ambassador --version 6.7.13 --namespace ambassador --create-namespace ambassador
+    ```
+
+    **Note:**
+
+    A `specific` version for the `Helm` chart is used. In this case `6.7.13` was picked, which maps to the `1.13.10` release of `AES` (see the output from `Step 1.`). It's good practice in general to lock on a specific version or range (e.g. `^6.7.13`). This helps to avoid future issues caused by breaking changes introduced in major version releases. On the other hand, it doesn't mean that a future major version ugrade is not an option. You need to make sure that the new version is tested first. Having a good strategy in place for backups and snapshots becomes handy here (covered in more detail in [Section 6 - Backup Using Velero](../6-setup-velero)).
 
 
 ### Defining the Domain and Hosts
