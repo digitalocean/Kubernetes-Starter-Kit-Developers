@@ -1,14 +1,11 @@
-## Estimate Resources for Startup Kit<a name="COST"></a>
+## Estimate Resource Usage for Startup Kit
 
-In this part, we’ll focus on introductory CPU monitoring by using simple method, Grafana has some custom dashboards for these purposes. When you click `Manage`, you will see that `Kubernetes/Compute Resources/Cluster` section with `kubernetes-mixin` tag. 
+In this part, you’ll focus on some introductory `CPU` monitoring by using `Grafana` which has some custom dashboards for this purposes. When you click `Manage`, you will see the `Kubernetes/Compute Resources/Cluster` section available with `kubernetes-mixin` tag. 
 
+The value for each metric, like: `CPU Utilisation`, `CPU Requests Commitment`, `CPU Limits Commitment`, `Memory Utilisation`, `Memory Requests Commitment` and `Memory Limits Commitment` is included in the header. Besides this, if you scroll down, you can see more tables, such as: `Cpu Usage`, `Memory Usage`,`Network Usage`, `Request by Namespace` and `Bandwidth`.
 
- The size of `CPU Utilisation`,`CPU Requests Commitment`, `CPU Limits Commitment`, `Memory Utilisation`, `Memory Requests Commitment` and `Memory Limits Commitment` are included in headlines. Besides that, when you scroll down your page, you can see that more tables such as `Cpu Usage`, `Memory Usage`,`Network Usage`,`Request by Namespace` and `Bandwidths`.
+![Dashboard-Cost-CPU-Monitoring-Cluster](res/img/monitoring_cpu_ram_cluster.png)
 
-![Dashboard-Cost-CPU-Monitoring-Cluster](../images/monitoring_cpu_ram_cluster.png)
+There are even more dashboards available to study, so please navigate to `Dashboards -> Manage` and pick `Kubernetes/Compute Resources/Cluster` for example. It shows `CPU/Memory` usage for each `namespace` (`velero`, `ambassador`, `prometheus/loki/grafana`).
 
-As we already have the Grafana installed, you can review the dashboards (go to dashboards -> manage) to look at `Kubernetes/Compute Resources/Cluster` the cpu/memory utilized by each of the namespaces (velero, ambassador, prometheus/loki/grafana) will be shown in this part.But if you want, you can change queries by clicking `Edit` button for both charts and tables after selecting dropdownlist at the top of the charts.
-
-Hope you enjoyed so far. This was the last section for manual setup of startup kit.
-
-To automate all the components as part of DOKS install, refer to the [next section](50-automate-with-terraform-flux).
+To `automate everything` that was covered in the `Starter Kit`, please refer to [Section 15 - Automate everything using Terraform and Flux ](../15-automate-with-terraform-flux/README.md).
