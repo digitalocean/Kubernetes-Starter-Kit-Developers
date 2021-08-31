@@ -76,24 +76,44 @@ In the next part, you will deploy `Velero` and all the required components so th
 
 Steps to follow:
 
-1. Add the `Helm` repository:
+1. Add the `Helm` repo and list the available charts:
 
     ```
     helm repo add vmware-tanzu https://vmware-tanzu.github.io/helm-charts
+
+    helm search repo vmware-tanzu
     ```
 
-2. A cloud credentials file is needed in order for `Velero` to access `DO Spaces`. Create a file named `secrets.txt` under the current working directory with the following content (make sure to replace the `<>` placeholders accordingly):
+    The output looks similar to the following:
+
+    ```
+    NAME                    CHART VERSION   APP VERSION     DESCRIPTION            
+    vmware-tanzu/velero     2.23.6          1.6.3           A Helm chart for velero
+    ```
+
+    **Note:**
+
+    The chart of interes is `vmware-tanzu/velero`, which will install `Velero` on the cluster. Please visit the [velero-chart](https://github.com/vmware-tanzu/helm-charts/tree/main/charts/velero) page for more details about this chart.
+2. Fetch and inspect the values file to see what options are available:
+
+    ```shell
+    helm show values vmware-tanzu/velero --version 2.23.6 > velero-values.yaml
+    ```
+
+    **Hint:**
+
+    It's good practice in general to fetch the values file and inspect it to see what options are available. This way, you can keep for example only the features that you need for your project and disable others to save on resources.
+3. A cloud credentials file is needed in order for `Velero` to access `DO Spaces`. Create a file named `secrets.txt` under the current working directory with the following content (make sure to replace the `<>` placeholders accordingly):
 
     ```
     [default]
     aws_access_key_id=<DO_SPACES_ACCESS_KEY_ID>
     aws_secret_access_key=<DO_SPACES_SECRET_ACCESS_KEY>
     ```
-
-3. Deploy `Velero` using `Helm` (make sure to replace the `<>` placeholders accordingly):
+4. Deploy `Velero` using `Helm` (make sure to replace the `<>` placeholders accordingly):
 
     ```shell
-    helm install velero vmware-tanzu/velero \
+    helm install velero vmware-tanzu/velero --version 2.23.6 \
     --namespace velero \
     --create-namespace \
     --set credentials.extraEnvVars.digitalocean_token=<DIGITALOCEAN_API_TOKEN>  \
@@ -124,7 +144,11 @@ Steps to follow:
     * `<deployRestic=false>` - whether to deploy the restic daemonset (disabled in this example because it's considered beta).
     * `<DIGITALOCEAN_API_TOKEN>` - your DigitalOcean API Token. Velero needs it in order to authenticate with the DigitalOcean API when manipulating snapshots.
     * `<BUCKET_NAME>` and `<REGION>` - your DigitalOcean Spaces bucket name and region (e.g.: `nyc3`) created in the [Prerequisites](#prerequisites) section.
-4. Check the `Velero` deployment:
+
+    **Note:**
+
+    A `specific` version for the `Helm` chart is used. In this case `2.23.6` was picked, which maps to the `1.6.3` release of `Velero` (see the output from `Step 1.`). It's good practice in general to lock on a specific version or range (e.g. `^2.23.6`). This helps to avoid future issues caused by breaking changes introduced in major version releases. On the other hand, it doesn't mean that a future major version ugrade is not an option. You need to make sure that the new version is tested first. Having a good strategy in place for backups and snapshots becomes handy here (covered in more detail in [Section 6 - Backup Using Velero](../6-setup-velero)).
+5. Check the `Velero` deployment:
 
     ```shell
     helm ls -n velero
@@ -136,8 +160,7 @@ Steps to follow:
     NAME    NAMESPACE       REVISION        UPDATED                                 STATUS          CHART           APP VERSION
     velero  velero          1               2021-08-25 13:16:24.383446 +0300 EEST   deployed        velero-2.23.6   1.6.3 
     ```
-
-5. Check that `Velero` is up and running:
+6. Check that `Velero` is up and running:
 
     ```shell
     kubectl get deployment velero -n velero
