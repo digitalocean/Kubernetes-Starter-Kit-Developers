@@ -32,40 +32,59 @@ This is how the main setup looks like after completing this tutorial:
 
 ### Installing LOKI
 
-We need [Loki](https://github.com/grafana/helm-charts/tree/main/charts/loki-stack) for logs. `Loki` runs on the cluster itself as a `StatefulSet`. Logs are aggregated and compressed by `Loki`, then sent to the configured storage. Then, you can connect `Loki` data source to `Grafana` and view the logs.
+We need [Loki](https://github.com/grafana/helm-charts/tree/main/charts/loki-stack) for logs. `Loki` runs on the cluster itself as a `StatefulSet`. Logs are `aggregated` and `compressed` by `Loki`, then sent to the configured `storage`. Then, you can connect `Loki` data source to `Grafana` and view the logs.
 
 Steps to follow:
 
-1. Add the required `Helm` repository first:
+1. Add the `Helm` repo and list the available charts:
 
     ```shell
     helm repo add grafana https://grafana.github.io/helm-charts
+
     helm search repo grafana
     ```
 
-    We are interested in the `grafana/loki-stack`, which will install standalone `Loki` on the cluster.
+    The output looks similar to the following:
 
-2. Fetch the values file:
+    ```
+    NAME                                            CHART VERSION   APP VERSION     DESCRIPTION                                       
+    grafana/grafana                                 6.16.2          8.1.2           The leading tool for querying and visualizing t...
+    grafana/enterprise-metrics                      1.5.0           v1.5.0          Grafana Enterprise Metrics                        
+    grafana/fluent-bit                              2.3.0           v2.1.0          Uses fluent-bit Loki go plugin for gathering lo...
+    grafana/loki                                    2.4.1           v2.1.0          Loki: like Prometheus, but for logs.
+    ...
+    ```
+
+    **Note:**
+
+    The chart of interes is `grafana/loki-stack`, which will install standalone `Loki` on the cluster. Please visit the [loki-stack](https://github.com/grafana/helm-charts/tree/main/charts/loki-stack) page for more details about this chart.
+
+2. Fetch and inspect the values file:
 
     ```shell
-    helm show values grafana/loki-stack > loki-values.yaml
+    helm show values grafana/loki-stack --version 2.4.1 > loki-values.yaml
     ```
 
     **Hint:**
 
     It's good practice in general to fetch the values file and inspect it to see what options are available. This way, you can keep for example only the features that you need for your project and disable others to save on resource usage.
 
-3. Install the stack. You will disable `Prometheus` and `Grafana` installation, because [Section 4 - Set up Prometheus Stack](../4-setup-prometheus-stack) took care of it already. `Promtail` is needed so it will be enabled. The following command will take care of everything for you:
+3. Install the stack. The following command will take care of everything for you:
 
     ```shell
-    helm install loki \
+    helm install loki grafana/loki-stack --version 2.4.1 \
       --namespace=monitoring \
       --create-namespace \
       --set grafana.enabled=false \
       --set prometheus.enabled=false \
       --set promtail.enabled=true \
-      grafana/loki-stack
     ``` 
+
+    **Notes:**
+
+    * A `specific` version for the `Helm` chart is used. In this case `2.4.1` was picked, which maps to the `2.1.0` release of `Loki` (see the output from `Step 1.`). It's good practice in general to lock on a specific version or range (e.g. `^2.4.1`). This helps to avoid future issues caused by breaking changes introduced in major version releases. On the other hand, it doesn't mean that a future major version ugrade is not an option. You need to make sure that the new version is tested first. Having a good strategy in place for backups and snapshots becomes handy here (covered in more detail in [Section 6 - Backup Using Velero](../6-setup-velero)).
+    * `Promtail` is needed so it will be enabled (explained in [Promtail](#promtail) section).
+    * `Prometheus` and `Grafana` installation is disabled because [Section 4 - Set up Prometheus Stack](../4-setup-prometheus-stack) took care of it already.
 
 In the next part you will configure `Grafana` to use the `Loki` datasource so that you can query for logs.
 
