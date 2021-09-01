@@ -93,7 +93,7 @@ Steps to follow:
 3. Finish the installation (a dedicated `ambassador` namespace will be created as well):
 
     ```shell
-    helm install datawire/ambassador --version 6.7.13 --namespace ambassador --create-namespace ambassador
+    helm install ambassador datawire/ambassador --version 6.7.13 --namespace ambassador --create-namespace
     ```
 
     **Note:**
