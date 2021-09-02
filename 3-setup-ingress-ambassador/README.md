@@ -2,15 +2,20 @@
 
 ### Table of contents
 
-- [Options for Load Balancer and Ingress](#options-for-load-balancer-and-ingress)
-- [Ambassador Edge Stack Overview](#ambassador-edge-stack-overview)
-- [Ambassador Edge Stack Deployment](#ambassador-edge-stack-deployment)
-- [Defining the Domain and Hosts](#defining-the-domain-and-hosts)
-- [Configuring Domain Mappings](#configuring-domain-mappings)
-- [Creating AES Backend Services](#creating-aes-backend-services)
-- [Configuring AES Mappings for Hosts](#configuring-aes-mappings-for-hosts)
-- [Enabling Proxy Protocol](#enabling-proxy-protocol)
-- [Verifying the AES Setup](#verifying-the-aes-setup)
+- [Ingress using Ambassador](#ingress-using-ambassador)
+  - [Table of contents](#table-of-contents)
+  - [Options for Load Balancer and Ingress](#options-for-load-balancer-and-ingress)
+  - [Ambassador Edge Stack Overview](#ambassador-edge-stack-overview)
+  - [Ambassador Edge Stack Deployment](#ambassador-edge-stack-deployment)
+  - [Defining the Domain and Hosts](#defining-the-domain-and-hosts)
+  - [Configuring Domain Mappings](#configuring-domain-mappings)
+  - [Creating AES Backend Services](#creating-aes-backend-services)
+  - [Configuring AES Mappings for Hosts](#configuring-aes-mappings-for-hosts)
+  - [Enabling Proxy Protocol](#enabling-proxy-protocol)
+  - [Verifying the AES Setup](#verifying-the-aes-setup)
+  - [Performance Improvement for the AES](#performance-improvement-for-the-aes)
+    - [Reducing `replicas` from `3` to `2`](#reducing-replicas-from-3-to-2)
+    - [Adjusting `Requests` and `Limits`](#adjusting-requests-and-limits)
 
 
 ### Options for Load Balancer and Ingress
@@ -505,3 +510,54 @@ If everything looks like above, you configured the `Ambassador Edge Stack` succe
 `Monitoring` and `Logging` is a very important aspect of every `production ready` system. In the next section you will learn how to enable it via `Prometheus` and `Loki` for the `AES` stack as well as other backend services.
 
 Go to [Section 4 - Set up Prometheus Stack](../4-setup-prometheus-stack)
+
+### Performance Improvement for the AES 
+
+In this part, you want to create more space for your application besides boosting your cluster.This part shows how to use kubectl patch to update an API object in place.Because of that, we can give 2 important advises.
+
+So, the steps for creating more space and boosting are the following:
+1. Reducing `replicas` from `3` to `2`
+2. Adjusting `Requests` and `Limits`
+   
+#### Reducing `replicas` from `3` to `2`
+
+When reducing replica set from `3` to `2`, you can do that by using a `patch file`.Default Ambassador  has `3` replicas. Each replica is a Pod that has one container. 
+
+```
+spec:
+  replicas: 2
+```
+
+
+####  Adjusting `Requests` and `Limits`
+
+we have to be careful for enough resources because kubernetes scheduled a pod which needs a enough slot in both memory and cpu. Limited resources creates your application to stop working. `CPU` resources unit is `millicore`. If your container needs `4` full cores to run, you have to change the value `4000m`. If your container only needs 1/4 of a core, you should replace a value of `250m` with `4000m`. `Memory` has the same situation like `CPU`. if you create in a memory request that is larger than the memory of your nodes, the pod will never be scheduled.Because of that, you can reduce your both `Memory` and `CPU` together.`Ambassador` needs 1/4 ratio instead of existed values. 
+
+```
+   resources:
+      limits:
+        cpu: 50m
+        memory: 150Mi
+      requests:
+        cpu: 50m
+        memory: 75Mi
+       
+```
+
+* The sum of all the CPU limits can’t be higher than 1 core.
+* The sum of all the memory limits can’t be higher than 150Mi.
+* The sum of all the CPU requests can’t be higher than 50m (1/20 of 1 core).
+* The sum of all the memory requests can’t be higher than 75Mi.
+
+```
+kubectl get deployment ambassador --output yaml -n ambassador
+``` 
+
+Copying and naming with `patch-file.yml` the result of above command result, you can modify existed config means `replicas` and `limits/requests` with above configuration inside of the `patch-file.yml` and run as a `patch deployment`.
+
+```
+kubectl patch deployment ambassador --patch "$(cat patch-file.yml)" -n ambassador
+```
+What happens in this instance is the deployment will terminate the old pods and create the new ones.And that's all there is to patching a running Kubernetes service.you can check what happend now in your cluster by using first command `kubectl get deployment ambassador --output yaml -n ambassador` again.Also we can use Grafana Dashboards to observe changes of `memory` and `CPU`.
+
+
