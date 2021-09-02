@@ -122,7 +122,7 @@ Steps to follow:
     helm install velero vmware-tanzu/velero --version 2.23.6 \
     --namespace velero \
     --create-namespace \
-    --set credentials.extraEnvVars.digitalocean_token=<DIGITALOCEAN_API_TOKEN>  \
+    --set configuration.extraEnvVars.DIGITALOCEAN_TOKEN=<DIGITALOCEAN_API_TOKEN>  \
     --set-file credentials.secretContents.cloud=secrets.txt \
     --set configuration.provider=aws \
     --set configuration.backupStorageLocation.bucket=<BUCKET_NAME> \
@@ -277,12 +277,10 @@ Steps to follow:
 
 * Check the `Phase` line from the `velero restore describe ambassador-backup` command output. It should say `Completed`.
 * Take a note of the `Warnings` section from the above command as well - it tells if something went bad or not.
-* Check that the restored `PersistentVolume`, `Deployment`, and `Service` are back using `kubectl`:
+* Check that all the resources were restored for the `ambassador` namespace:
 
   ```shell
-  kubectl get persistentvolume --namespace ambassador
-  kubectl get service --namespace ambassador
-  kubectl get deployment --namespace ambassador
+  kubectl get all --namespace ambassador
   ```
 
 
@@ -411,7 +409,7 @@ There are two options available in this case:
 1. `Manually` deleting backups by hand via the `CLI`
 2. `Automatically` by setting backups `TTL` (Time To Live)
 
-**Manually deleting a backup via the CLI:**
+**Manually deleting a specific backup via the CLI**
 
 Deleting a specific backup:
 
@@ -421,11 +419,70 @@ velero backup delete kube-system-minute-backup-20210826094116
 
 After a few moments, check that it's gone from the `velero backup get` command output. It should be deleted from the `DO Spaces` bucket as well.
 
-Going further, you can explore the other available options (like using a `--selector` for example):
+**Manually deleting multiple backups via the CLI**
 
-```shell
-velero backup delete -h
-```
+The `velero backup delete` subcommand provides another useful flag called `--selector`. It allows you to delete multiple backups at once based on `Kubernetes Labels`. The same rules apply as for [Kubernetes Label Selectors](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#label-selectors).
+
+Steps to follow:
+
+1. List the available backups:
+
+    ```shell
+    velero backup get
+    ```
+
+    The output looks similar to:
+
+    ```
+    NAME                                       STATUS      ERRORS   WARNINGS   CREATED                          EXPIRES   STORAGE LOCATION   SELECTOR
+    ambassador-backup                          Completed   0        0          2021-08-25 19:33:03 +0300 EEST   23d       default            <none>
+    backend-minute-backup-20210826094116       Completed   0        0          2021-08-26 12:41:16 +0300 EEST   24d       default            <none>
+    backend-minute-backup-20210826094016       Completed   0        0          2021-08-26 12:40:16 +0300 EEST   24d       default            <none>
+    backend-minute-backup-20210826093916       Completed   0        0          2021-08-26 12:39:16 +0300 EEST   24d       default            <none>
+    backend-minute-backup-20210826093816       Completed   0        0          2021-08-26 12:38:16 +0300 EEST   24d       default            <none>
+    backend-minute-backup-20210826093716       Completed   0        0          2021-08-26 12:37:16 +0300 EEST   24d       default            <none>
+    backend-minute-backup-20210826093616       Completed   0        0          2021-08-26 12:36:16 +0300 EEST   24d       default            <none>
+    backend-minute-backup-20210826093509       Completed   0        0          2021-08-26 12:35:09 +0300 EEST   24d       default            <none>
+    ```
+2. Say that you want to delete all the `backend-minute-backup-*` assets:
+
+    Pick a backup from the list and inspect the `Labels`:
+
+    ```shell
+    velero describe backup backend-minute-backup-20210826094116
+    ```
+
+    The output looks similar to:
+
+    ```
+    Name:         backend-minute-backup-20210826094116
+    Namespace:    velero
+    Labels:       velero.io/schedule-name=backend-minute-backup
+                  velero.io/storage-location=default
+    Annotations:  velero.io/source-cluster-k8s-gitversion=v1.21.2
+                  velero.io/source-cluster-k8s-major-version=1
+                  velero.io/source-cluster-k8s-minor-version=21
+
+    Phase:  Completed
+
+    Errors:    0
+    Warnings:  0
+
+    Namespaces:
+    Included:  backend
+    Excluded:  <none>
+    ...
+    ```
+
+    Looking at the above, the `velero.io/schedule-name` label is a perfect match:
+
+    ```shell
+    velero backup delete --selector velero.io/schedule-name=backend-minute-backup
+    ```
+
+Expected results:
+
+All the `backend-minute-backup-*` assets should dissapear from the `velero backup get` command output, as well as from the `DO Spaces` bucket.
 
 **Automatic backup deletion via TTL**
 
@@ -494,6 +551,11 @@ Expected results:
 
 After three minutes or so, the backup and associated resources should be automatically deleted. You can verify that the backup object was destroyed via: `velero backup describe ambassador-backup-3min-ttl`. It should fail with an error stating that the backup doesn't exist anymore. The corresponding `DO Spaces` bucket folder should be gone as well.
 
+Going further, you can explore the other available options via:
+
+```shell
+velero backup delete -h
+```
 
 ### Final Notes
 
