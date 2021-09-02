@@ -94,11 +94,11 @@ spec:
           timeoutSeconds: 1
         resources:
           limits:
-            cpu: "1"
+            cpu: 50m
             memory: 150Mi
           requests:
             cpu: 50m
-            memory: 76Mi
+            memory: 75Mi
         securityContext:
           allowPrivilegeEscalation: false
         terminationMessagePath: /dev/termination-log
