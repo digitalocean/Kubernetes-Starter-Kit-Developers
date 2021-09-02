@@ -2,11 +2,15 @@
 
 ### Table of contents
 
-- [Overview](#overview)
-- [Installing Prometheus Stack](#installing-prometheus-stack)
-- [Configure Prometheus and Grafana](#configure-prometheus-and-grafana)
-- [PromQL (Prometheus Query Language)](#promql-prometheus-query-language)
-- [Grafana](#grafana)
+- [Prometheus Monitoring Stack](#prometheus-monitoring-stack)
+  - [Table of contents](#table-of-contents)
+  - [Overview](#overview)
+  - [Installing Prometheus Stack](#installing-prometheus-stack)
+  - [Configure Prometheus and Grafana](#configure-prometheus-and-grafana)
+  - [PromQL (Prometheus Query Language)](#promql-prometheus-query-language)
+  - [Grafana](#grafana)
+  - [Performance Improvements for Prometheus](#performance-improvements-for-prometheus)
+  - [Persistence Storage for Prometheus](#persistence-storage-for-prometheus)
 
 
 ### Overview
@@ -346,3 +350,24 @@ The output looks similar to the following:
 This concludes the `Grafana` setup. You can play around and add more panels for visualising other data sources, as well as group them together based on scope.
 
 Go to [Section 5 - Logs Aggregation via Loki Stack](../5-setup-loki-stack)
+
+
+### Performance Improvements for Prometheus
+Metric recording and `Alert rules` are now maintained in an hierarchical manner and allow more accurate aggregations and alerting, avoiding race conditions.On the other hand , it creates some costs for your `CPU` and `memory`.The ``Alertmanager` then manages those `alerts`, including `silencing`,`inhibition`, `aggregation`, `sending out notifications via methods such as email`, `on-call notification systems`, and `chat platforms`. Because of that, if you use Alert Manager rarely, you can switch off `alertmanager` by changing enabled property with false. It makes your bill reduced and creates more space for your application.
+
+```
+alertmanager:
+
+  ## Deploy alertmanager
+  ##
+  enabled: false
+```
+and then , please use `upgrade` method by helming.
+
+```
+helm upgrade kube-prom-stack prometheus-community/kube-prometheus-stack -n monitoring --version 17.1.3 -f prom-stack-values.yaml
+```
+After that, When you check your `Grafana` Dashboard (`Compute Resources / Namespace (Pods)`), you will that your earning as memory and CPU. 
+
+
+### Persistence Storage for Prometheus
