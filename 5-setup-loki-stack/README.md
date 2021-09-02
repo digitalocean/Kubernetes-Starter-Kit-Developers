@@ -242,8 +242,8 @@ storage_config:
     bucketnames: loki-starterkit-storage
     endpoint: fra1.digitaloceanspaces.com
     region: fra1
-    access_key_id: 5NPIUJ7DPF4B5THD3TK5
-    secret_access_key: CetB1roHmBuLYtT4XxlO0ieP+5Q9GdB114vcjIcKd6s
+    access_key_id: <DO_SPACES_ACCESS_KEY_ID>
+    secret_access_key=<DO_SPACES_SECRET_ACCESS_KEY>
     insecure: false
     sse_encryption: false
     http_config:
