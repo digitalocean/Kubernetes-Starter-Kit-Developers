@@ -255,12 +255,12 @@ storage_config:
 ```
 Upgrading modified `loki-values.yaml` helps us applying persistence storage changes for Digital Ocean Spaces. 
 ```
- helm upgrade  loki grafana/loki-stack --version 2.4.1 \
+helm upgrade loki grafana/loki-stack --version 2.4.1 \
       --namespace=monitoring \
       --create-namespace \
       --set grafana.enabled=false \
       --set prometheus.enabled=false \
       --set promtail.enabled=true \
-      -f loki-values.yaml \
+      -f loki-values.yaml
 
 ```
