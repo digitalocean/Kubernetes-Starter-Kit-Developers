@@ -371,3 +371,22 @@ After that, When you check your `Grafana` Dashboard (`Compute Resources / Namesp
 
 
 ### Persistence Storage for Prometheus
+
+Enable persistent storage for Prometheus, Grafana, and Alertmanager so that their data persists across Pod restarts. Behind the scenes, this defines a 5 Gi Persistent Volume Claim (PVC) for each component, using the DigitalOcean Block Storage storage class. You should modify the size of these PVCs to suit your monitoring storage needs. To learn more about PVCs, consult Persistent Volumes from the official Kubernetes docs.
+
+```
+storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: do-block-storage
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 5Gi
+```
+
+Copy and paste in `prom-stack-values.yaml` with the above custom values, which enable persistent storage in Digital Ocean default storageClass called `do-block-atorage` for the Prometheus.Also you have to disable `etcd: false` and `kubeScheduler: false`. And then you have to upgrade again for each changes.
+
+```
+helm upgrade kube-prom-stack prometheus-community/kube-prometheus-stack -n monitoring --version 17.1.3 -f prom-stack-values.yaml
+```
