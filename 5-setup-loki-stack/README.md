@@ -232,33 +232,3 @@ This concludes the `Loki` setup. For more details and in depth explanations plea
 Go to [Section 6 - Backup Using Velero](../6-setup-velero)
 
 
-When we decide Persistence Storage from default loki storage to Digital Ocean Storage, we have to create a space named `loki-starterkit-storage` and region part is prefered as `fra1` besides these, you have to add `access_key_id`, `secret_access_key` and `endpoint` at the end of `loki-values.yaml` file. S3 config now supports expanded config. Either s3 endpoint URL can be used or expanded config can be used. Changing storage by adding some config values in loki-values.yaml get described below.
-
-```
-storage_config:
-  aws:
-    bucketnames: loki-starterkit-storage
-    endpoint: fra1.digitaloceanspaces.com
-    region: fra1
-    access_key_id: 5NPIUJ7DPF4B5THD3TK5
-    secret_access_key: CetB1roHmBuLYtT4XxlO0ieP+5Q9GdB114vcjIcKd6s
-    insecure: false
-    sse_encryption: false
-    http_config:
-      idle_conn_timeout: 90s
-      response_header_timeout: 0s
-      insecure_skip_verify: false
-    s3forcepathstyle: true
-
-```
-Upgrading modified `loki-values.yaml` helps us applying persistence storage changes for Digital Ocean Spaces. 
-```
-helm upgrade loki grafana/loki-stack --version 2.4.1 \
-      --namespace=monitoring \
-      --create-namespace \
-      --set grafana.enabled=false \
-      --set prometheus.enabled=false \
-      --set promtail.enabled=true \
-      -f loki-values.yaml
-
-```
