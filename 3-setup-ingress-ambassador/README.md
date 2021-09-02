@@ -536,11 +536,11 @@ we have to be careful for enough resources because kubernetes scheduled a pod wh
 ```
    resources:
       limits:
-        cpu: "1"
+        cpu: 50m
         memory: 150Mi
       requests:
         cpu: 50m
-        memory: 77Mi
+        memory: 75Mi
        
 ```
 
