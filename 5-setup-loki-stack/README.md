@@ -9,7 +9,6 @@
   - [Configure Grafana with Loki](#configure-grafana-with-loki)
   - [Promtail](#promtail)
   - [LogQL](#logql)
-  - [Persistence Storage Changes](#persistence-storage-changes)
 
 
 ### Overview
@@ -232,7 +231,6 @@ This concludes the `Loki` setup. For more details and in depth explanations plea
 
 Go to [Section 6 - Backup Using Velero](../6-setup-velero)
 
-### Persistence Storage Changes
 
 When we decide Persistence Storage from default loki storage to Digital Ocean Storage, we have to create a space named `loki-starterkit-storage` and region part is prefered as `fra1` besides these, you have to add `access_key_id`, `secret_access_key` and `endpoint` at the end of `loki-values.yaml` file. S3 config now supports expanded config. Either s3 endpoint URL can be used or expanded config can be used. Changing storage by adding some config values in loki-values.yaml get described below.
 
