@@ -589,4 +589,8 @@ Hopefully you found this guide helpful. Here are some other resources to help yo
 * [Velero Documentation](https://velero.io/docs/latest/)
 * [Velero GitHub](https://github.com/vmware-tanzu/velero)
 
+**Next steps**
+
+This concludes the `Velero` setup. The next section will give you some insights about `DOKS` cluster resources usage.
+
 Go to [Section 14 - Estimate Resource Usage for Startup Kit](../14-starter-kit-resource-usage)

@@ -502,6 +502,8 @@ Given that proxy protocol is configured, you should see the original `client IP`
 
 If everything looks like above, you configured the `Ambassador Edge Stack` successfully. 
 
-`Monitoring` and `Logging` is a very important aspect of every `production ready` system. In the next section you will learn how to enable it via `Prometheus` and `Loki` for the `AES` stack as well as other backend services.
+**Next steps**
+
+`Monitoring` and `Logging` is a very important aspect of every `production ready` system. In the sections to follow, you will learn how to enable it via `Prometheus` and `Loki` for the `AES` stack as well as other backend services.
 
 Go to [Section 4 - Set up Prometheus Stack](../4-setup-prometheus-stack)

@@ -7,6 +7,7 @@
 - [Configure Prometheus and Grafana](#configure-prometheus-and-grafana)
 - [PromQL (Prometheus Query Language)](#promql-prometheus-query-language)
 - [Grafana](#grafana)
+- [Configuring Persistent Storage for Prometheus](#configuring-persistent-storage-for-prometheus)
 
 
 ### Overview
@@ -61,14 +62,14 @@ Steps to follow:
     **Hint:**
 
     * It's good practice in general to fetch the values file and inspect it to see what options are available. This way, you can keep for example only the features that you need for your project and disable others to save on resources.
-3. Modify the `prom-stack-values.yaml` file to disable metrics for `etcd` and `kubeScheduler` (set their corresponding values to `false`). Those components are managed by `DOKS` and are not accessible to `Prometheus`. Note that we're keeping the `storage` to be `emptyDir`. It means the **storage will be gone** if `Prometheus` pods restart.
-4. Install the `kube-prometheus-stack`:
+3. Modify the `prom-stack-values.yaml` file to disable metrics for `etcd` and `kubeScheduler` (set their corresponding values to `false`). Those components are managed by `DOKS` and are not accessible to `Prometheus`. Note that we're keeping the `storage` to be `emptyDir`. It means the **storage will be gone** if `Prometheus` pods restart. For your convenience, the [prom-stack-values.yaml](res/manifests/prom-stack-values.yaml) file provided in this `Git` repository, contains the required changes already.
+4. Change directory where this repository was cloned and install the `kube-prometheus-stack`:
 
     ```
     helm install kube-prom-stack prometheus-community/kube-prometheus-stack --version 17.1.3 \
     --namespace monitoring \
     --create-namespace \
-    -f prom-stack-values.yaml
+    -f 4-setup-prometheus-stack/res/manifests/prom-stack-values.yaml
     ```
 
     **Note:**
@@ -148,7 +149,7 @@ Let's configure it right now and see how it works. You're going to use the `prom
 
 There are only two steps needed in order to add a new service for monitoring:
 
-1. Add a new `ServiceMonitor` in the `prom-stack-values.yaml` values file. Make sure to adjust the `YAML` indentation, and add a new entry in the `additionalServiceMonitors` array, as seen below. Make sure to replace the `additionalServiceMonitors: []` line with:
+1. Add a new `ServiceMonitor` in the `prom-stack-values.yaml` values file. Make sure to adjust the `YAML` indentation, and add a new entry in the `additionalServiceMonitors` array, as seen below. For your convenience, you can use the [prom-stack-values.yaml](res/manifests/prom-stack-values.yaml#L2441) file that comes with this `Git` repository. Just uncomment the following section (search for the `# Add the Ambassador Service for monitoring` comment):
 
     ```
     additionalServiceMonitors:
@@ -175,30 +176,10 @@ There are only two steps needed in order to add a new service for monitoring:
 2. Apply the changes via `Helm`:
    
     ```shell
-    helm upgrade kube-prom-stack prometheus-community/kube-prometheus-stack -n monitoring -f prom-stack-values.yaml
+    helm upgrade kube-prom-stack prometheus-community/kube-prometheus-stack --version 17.1.3 \
+      -n monitoring \
+      -f 4-setup-prometheus-stack/res/manifests/prom-stack-values.yaml
     ```
-      **Important note:**
-
-      If the `Helm` upgrade process fails, then there's either a mistake in the `prom-stack-values.yaml` file or the `kube-prometheus-stack` chart was updated. This happens when using `helm repo update`. `Helm` will always use the latest chart available if no version is specified. Things may break because some `Helm` chart versions are **not backwards compatible**.
-
-      In order to fix this we have to find what version was deployed via:
-
-      ```shell
-      helm ls -n monitoring
-      ```
-
-      The output looks similar to the following:
-
-      ```
-      NAME            NAMESPACE       REVISION        UPDATED                                 STATUS          CHART                           APP VERSION
-      kube-prom-stack monitoring      2               2021-08-14 00:08:16.520902 +0300 EEST   deployed        kube-prometheus-stack-17.1.3    0.49.0 
-      ```
-
-      Looking at the `CHART` column, you can see that the deployed version is `17.1.3` in this case so, add the `--version` flag to the `upgrade` command:
-
-      ```shell
-      helm upgrade kube-prom-stack prometheus-community/kube-prometheus-stack -n monitoring --version 17.1.3 -f prom-stack-values.yaml
-      ```
 
 **Observation and Results:**
 
@@ -344,5 +325,87 @@ The output looks similar to the following:
 }
 ```
 This concludes the `Grafana` setup. You can play around and add more panels for visualising other data sources, as well as group them together based on scope.
+
+
+### Configuring Persistent Storage for Prometheus
+
+In this section, you will learn how to enable `persistent storage` for `Prometheus`, so that relevant data is persisted across `Pod` restarts. You will define a `5 Gi Persistent Volume Claim` (PVC), using the `DigitalOcean Block Storage`. Later on, a quick and easy guide is provided on how to plan the size of the PVC to suit your monitoring storage needs. To learn more about `PVCs`, please consult the [Persistent Volumes](https://kubernetes.io/docs/concepts/storage/persistent-volumes) page from the official `Kubernetes` documentation.
+
+First, check what storage class is present. You must have one ready and available in order to proceed:
+
+```shell
+kubectl get storageclass
+```
+
+The output should look similar to:
+
+```
+NAME                         PROVISIONER                 RECLAIMPOLICY   VOLUMEBINDINGMODE   ALLOWVOLUMEEXPANSION   AGE
+do-block-storage (default)   dobs.csi.digitalocean.com   Delete          Immediate           true                   4d2h
+```
+
+If the result looks like the one from above, you can proceed with the next steps.
+
+To enable `persistent` storage, the `storageSpec` must be defined for `Prometheus`, as seen below. For your convenience, the [prom-stack-values.yaml](res/manifests/prom-stack-values.yaml#L2241) file present in this `Git` repository, contains the changes already. Just uncomment the required section for Prometheus as seen below (search for the `# Prometheus StorageSpec for persistent data` comment):
+
+```
+storageSpec:
+  volumeClaimTemplate:
+    spec:
+      storageClassName: do-block-storage
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 5Gi
+```
+
+Explanations for the above configuration:
+
+* `volumeClaimTemplate` - defines a new `PVC`.
+* `storageClassName` - defines the storage class (should use the same value as from the `kubectl get storageclass` command output).
+* The `resources` section sets the storage requests value - in this case a total capacity of `5 Gi` is requested for the new volume.
+
+Apply the new setting with:
+
+```shell
+helm upgrade kube-prom-stack prometheus-community/kube-prometheus-stack --version 17.1.3 \
+  -n monitoring \
+  -f 4-setup-prometheus-stack/res/manifests/prom-stack-values.yaml
+```
+
+Check the new PVC status:
+
+```shell
+kubectl get pvc -n monitoring
+```
+
+The output looks similar to:
+
+```
+NAME                      STATUS   VOLUME                                     CAPACITY   ACCESS         MODES              AGE
+kube-prome-prometheus-0   Bound    pvc-768d85ff-17e7-4043-9aea-4929df6a35f4   5Gi        RWO            do-block-storage   4d2h
+```
+
+If the output looks like the one seen above (`Status` set to `Bound`), then you're all set. 
+
+A new `Volume` should appear as well in the [Volumes](https://cloud.digitalocean.com/volumes) section from your `DigitalOcean` account panel:
+
+![DOKS Volumes](res/img/prom_pvc.png)
+
+**Best practices for PV sizing**
+
+In order to compute the size needed for the volume based on your needs, please follow the official documentation advice and formula.
+
+> `Prometheus` stores an average of only `1-2 bytes` per sample. Thus, to `plan the capacity` of a `Prometheus` server, you can use the rough formula:
+
+> `needed_disk_space = retention_time_seconds * ingested_samples_per_second * bytes_per_sample`
+
+> To lower the rate of ingested samples, you can either `reduce` the `number of time series` you scrape (fewer targets or fewer series per target), or you can `increase` the `scrape interval`. However, `reducing` the number of series is likely more effective, due to `compression` of samples within a series.
+
+Please follow the official [Operational Aspects](https://prometheus.io/docs/prometheus/latest/storage/#operational-aspects) section for more details on the subject.
+
+**Next steps**
+
+This concludes the `Prometheus` stack setup. In the next section, you will learn about `logs` collection and aggregation via `Loki`.
 
 Go to [Section 5 - Logs Aggregation via Loki Stack](../5-setup-loki-stack)
