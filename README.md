@@ -5,7 +5,6 @@ In this tutorial, we provide developers a hands-on introduction on how to get st
 
 
 **TBD 
-- Need to fix the emptydir storage for prometheus, and use block storage instead. Likewise, use Spaces for Loki. 
 - Adjust the replicas and requests/limits for different namespaces.
 - Automation using terraform/flux. 
 
