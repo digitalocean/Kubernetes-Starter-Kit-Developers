@@ -7,6 +7,7 @@
 - [Configure Grafana with Loki](#configure-grafana-with-loki)
 - [Promtail](#promtail)
 - [LogQL](#logql)
+- [Setting Persistent Storage for Loki](#setting-persistent-storage-for-loki)
 
 
 ### Overview
@@ -75,14 +76,15 @@ Steps to follow:
     helm install loki grafana/loki-stack --version 2.4.1 \
       --namespace=monitoring \
       --create-namespace \
+      --set loki.enabled=true \
       --set grafana.enabled=false \
       --set prometheus.enabled=false \
-      --set promtail.enabled=true \
+      --set promtail.enabled=true
     ``` 
 
     **Notes:**
 
-    * A `specific` version for the `Helm` chart is used. In this case `2.4.1` was picked, which maps to the `2.1.0` release of `Loki` (see the output from `Step 1.`). It's good practice in general to lock on a specific version or range (e.g. `^2.4.1`). This helps to avoid future issues caused by breaking changes introduced in major version releases. On the other hand, it doesn't mean that a future major version ugrade is not an option. You need to make sure that the new version is tested first. Having a good strategy in place for backups and snapshots becomes handy here (covered in more detail in [Section 6 - Backup Using Velero](../6-setup-velero)).
+    * A `specific` version for the `Helm` chart is used. In this case `2.4.1` was picked, which maps to the `2.3.0` release of `Loki` (see the output from `Step 1.`). It's good practice in general to lock on a specific version or range (e.g. `^2.4.1`). This helps to avoid future issues caused by breaking changes introduced in major version releases. On the other hand, it doesn't mean that a future major version ugrade is not an option. You need to make sure that the new version is tested first. Having a good strategy in place for backups and snapshots becomes handy here (covered in more detail in [Section 6 - Backup Using Velero](../6-setup-velero)).
     * `Promtail` is needed so it will be enabled (explained in [Promtail](#promtail) section).
     * `Prometheus` and `Grafana` installation is disabled because [Section 4 - Set up Prometheus Stack](../4-setup-prometheus-stack) took care of it already.
 
@@ -225,6 +227,186 @@ Let's simplify it a little bit by taking the example from the above picture:
 
 The `label` in question is called `namespace` - remember that labels are `key-value` pairs ? You can see it right there inside the curly braces. This tells `LogQL` that you want to fetch all the log streams that are tagged with the label called `namespace` and has the value equal to `ambassador`.
 
-This concludes the `Loki` setup. For more details and in depth explanations please visit the [Loki](https://grafana.com/docs/loki/latest) official documentation page.
+
+### Setting Persistent Storage for Loki
+
+The default `Helm` install method used in the [Loki Install](#installing-loki) step doesn't configure `persistent` storage for `Loki`. It just uses the default [emptyDir](https://kubernetes.io/docs/concepts/storage/volumes/#emptydir) volume for storage which is ephemeral. To `preserve` indexed log data across Pod restarts, `Loki` can be set up to use `S3` compatible storage instead.
+
+In terms of storage details, the setup used in this tutorial is relying on the default implementation, namely the [BoltDB Shipper](https://grafana.com/docs/loki/latest/operations/storage/boltdb-shipper/) for logs retention. This is the `preferred` and recommended way for `Loki`. In the next steps you're going to set `BoltDB` to use a remote storage instead - `DO Spaces`, to persist the data.
+
+**Setting persistent storage via DO Spaces**
+
+Below is an example for using remote storage via `DO Spaces` (similar to `AWS` implementatin):
+
+```
+schema_config:
+  configs:
+    - from: "2020-10-24"
+      store: boltdb-shipper
+      object_store: aws
+      schema: v11
+      index:
+        prefix: index_
+        period: 24h
+storage_config:
+  boltdb_shipper:
+    active_index_directory: /data/loki/boltdb-shipper-active
+    cache_location: /data/loki/boltdb-shipper-cache
+    cache_ttl: 24h # Can be increased for faster performance over longer query periods, uses more disk space
+    shared_store: aws
+  aws:
+    bucketnames: <DO_SPACES_BUCKET_NAME>
+    endpoint: <DO_SPACES_BUCKET_ENDPOINT>  # format: <region>.digitaloceanspaces.com
+    region: <DO_SPACES_BUCKET_REGION>
+    access_key_id: <DO_SPACES_ACCESS_KEY>
+    secret_access_key: <DO_SPACES_SECRET_KEY>
+    s3forcepathstyle: true
+```
+
+Explanations for the above configuration:
+
+* `schema_config` - defines a storage `type`, schema `version` and other details required when doing migrations (schemas can `differ` between `Loki` installations, so `consistency` is required). In this case, `BoltDB Shipper` is specified as the storage implementation and a `v11` schema version. The `24h` period for the index is the default and preferred value, so please don't change it. Please visit [Schema Configs](https://grafana.com/docs/loki/latest/storage/#schema-configs) for more details.
+* `storage_config` - tells `Loki` about storage `configuration` details, like where data is stored and what kind of storage is used (`aws` type, which is the default implementation for `DO Spaces` as well).
+* `aws` - tells `Loki` about the `remote` storage details (`bucket` name, `credentials`, `region`, etc).
+
+In the next part, you're going to tell `Helm` how to configure the new `remote` storage and `schema`.
+
+Steps to follow:
+
+1. Change directory to where this repository was cloned.
+2. Edit the [loki-values.yaml](res/manifests/loki-values.yaml#L26) sample file provided with this `Git` repository, and uncomment the lines for `DO Spaces` remote storage setup. Also, make sure to replace the `<>` placeholders accordingly in the `aws` subsection.
+3. Upgrade the `Loki` stack to use the new storage settings via `Helm`:
+
+    ```shell
+      helm upgrade loki grafana/loki-stack --version 2.4.1 \
+        --namespace=monitoring \
+        --create-namespace \
+        -f 5-setup-loki-stack/res/manifests/loki-values.yaml
+      ```
+4. Check that the main `Loki` application pod is up and running (it may take up to `1 minute` or so to start, so please be patient):
+
+    ```shell
+    kubectl get pods -n monitoring -l app=loki
+    ```
+    The output looks similar to:
+
+    ```
+    NAME     READY   STATUS    RESTARTS   AGE
+    loki-0   1/1     Running   0          13m
+    ```
+
+    **Hint:**
+
+    You can also check the logs while waiting. It's also good practice to check the application logs to see if something goes bad or not.
+
+    ```shell
+    kubectl logs -n monitoring -l app=loki
+    ```
+5. If everything goes well, you should also be able to see the `DO Spaces` bucket containing the `index` and `chunks` folders (the `chunks` folder is called `fake` - this is by design when not running in `multi-tenant` mode).
+
+    ![Loki DO Spaces Storage](res/img/loki_storage_do_spaces.png)
+
+For more advanced options and fine tuning the `storage` setup for `Loki`, please visit the [Loki Storage](https://grafana.com/docs/loki/latest/operations/storage/) documentation page.
+
+**Setting Loki storage retention**
+
+`Retention` is a very important aspect as well when it comes to storage setup, because `storage is finite`. While `storage` is `not expensive` in general, it can become if retention is not handled properly or not at all. In the next part, a simple overview of the `retention options` available for `Loki` is presented, as well as a `basic` configuration example.
+
+Retention in `Loki` is achieved either through the [Table Manager](https://grafana.com/docs/loki/latest/operations/storage/retention/#table-manager) or the [Compactor](https://grafana.com/docs/loki/latest/operations/storage/retention/#Compactor).
+
+The `Compactor` is the preferred way because it offers many options and advantages over the `Table Manager`, such as more `fine grained` retention configuration and `multi-cluster` setup support. On the other hand, the `Compactor` method will have `long term support`, so it's best to stick with it. More details and explanations about which one to use over the other is provided in the [Loki Storage Retention](https://grafana.com/docs/loki/latest/operations/storage/retention/#loki-storage-retention) official page.
+
+You'll focus on the `Compactor` implementation, because this is the `preferred` way for `Loki`, as stated above. The default and recommended way to start with, looks like below:
+
+```
+compactor:
+  working_directory: /data/loki/boltdb-shipper-compactor
+  shared_store: aws
+  compaction_interval: 10m
+  retention_enabled: true
+  retention_delete_delay: 2h
+  retention_delete_worker_count: 150
+```
+
+Explanation for the above configuration:
+
+* `retention_enabled` - set to true. Without this, the `Compactor` will only compact tables.
+* `working_directory` - the directory where marked chunks and temporary tables will be saved.
+* `compaction_interval` - defines how often compaction and/or retention is applied. If the `Compactor` falls behind, compaction and/or retention occur as soon as possible. A `10m` value is recommended to start with, as per official documentation.
+* `retention_delete_delay` - the delay after which the compactor will delete marked chunks. A `2h` value is recommended to start with, as per official documentation.
+* `retention_delete_worker_count` - specifies the maximum quantity of goroutine workers instantiated to delete chunks. A value of `150` is recommended to start with, as per official documentation.
+
+The [loki-values.yaml](res/manifests/loki-values.yaml) sample file provided with this tutorial contains retention settings for both `Compactor` and `Table Manager`. Edit the `5-setup-loki-stack/res/manifests/loki-values.yaml` file by uncommenting the required section for the [Compactor](res/manifests/loki-values.yaml#L7) retention settings.
+
+**Important note:**
+
+Before upgrading, please check if the deployed `Loki` stack version is `>=2.3.0`. The features that you will configure next, work only if at least version `2.3.0` is used. The `2.4.1` version of the stack deployed in this tutorial, may use an older version for Loki, like `2.2.0`. Please follow the next steps in order to check if it's true or not.
+
+Steps to follow to update `Loki` to version `2.3.0` in order to benefit from new `Compactor` retention functionality:
+
+1. Check the image version used by the Loki `StatefulSet`:
+
+    ```shell
+    kubectl describe sts loki -n monitoring
+    ```
+2. In the `Containers` section check the `Image` key. If it says `grafana/loki:2.2.0`, then please proceed with the next steps.
+3. Update Loki application image to version `2.3.0`:
+
+    ```shell
+    kubectl set image statefulset/loki loki="grafana/loki:2.3.0" -n monitoring
+    ```
+4. Check the Loki `StatefulSet` image version used in the `Containers` section as detailed in `Step 1` and `Step 2`. It should say: `grafana/loki:2.3.0`.
+5. Verify that the `Rolling Update` for the Loki `StatefulSet` was performed succesfully (it comes with this `Strategy` enabled by default):
+
+    ```shell
+    kubectl rollout status sts loki -n monitoring
+    ```
+
+    If the above is stuck then, there's no other way than killing the main `Loki` Pod via: `kubectl delete pod loki-0 -n monitoring`
+6. See if the new `Pod` was `updated`:
+
+    ```shell
+    kubectl describe pod loki-0 -n monitoring
+    ```
+
+    The container image field should point to the new version: `2.3.0`.
+
+If all of the above completed succesfully, apply the new settings with:
+
+```
+helm upgrade loki grafana/loki-stack --version 2.4.1 \
+        --namespace=monitoring \
+        --create-namespace \
+        -f 5-setup-loki-stack/res/manifests/loki-values.yaml
+```
+
+Inspect the `logs` for the main `Loki` application and check if there are no errors:
+
+```shell
+  kubectl logs -n monitoring -l app=loki
+```
+
+`S3CMD` is a really good utility to have in order to inspect how many objects are present, as well as the size of the `DO Spaces` bucket. It will also help you to see if the retention policies set so far are working or not. Please follow the `DigitalOcean` guide for installing and setting up [s3cmd](https://docs.digitalocean.com/products/spaces/resources/s3cmd/).
+
+After finishing the above, you can inspect the bucket `size` and `number` of objects via the `du` subcommand (the name is borrowed from the `Linux Disk Usage` utility). Please replace the `<>` placeholders accordingly:
+
+```shell
+s3cmd du -H s3://<LOKI_DO_SPACES_BUCKET_NAME>
+```
+
+The output looks similar to the following:
+
+```
+19M    2799 objects s3://loki-storage-test/
+```
+
+For more details, please visit the [Compactor](https://grafana.com/docs/loki/latest/operations/storage/retention/#compactor) implementation page.
+
+
+**Next steps**
+
+This concludes the `Loki` setup. For more details and in depth explanations please visit the [Loki](https://grafana.com/docs/loki/latest) official documentation page. 
+
+In the next section, you will learn how to perform backups of your system as well as doing restores via `Velero`.
 
 Go to [Section 6 - Backup Using Velero](../6-setup-velero)
