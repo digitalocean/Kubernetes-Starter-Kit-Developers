@@ -308,15 +308,32 @@ Steps to follow:
 
 For more advanced options and fine tuning the `storage` setup for `Loki`, please visit the [Loki Storage](https://grafana.com/docs/loki/latest/operations/storage/) documentation page.
 
-**Setting Loki storage retention**
+#### **Setting Loki storage retention**
 
 `Retention` is a very important aspect as well when it comes to storage setup, because `storage is finite`. While `storage` is `not expensive` in general, it can become if retention is not handled properly or not at all. In the next part, a simple overview of the `retention options` available for `Loki` is presented, as well as a `basic` configuration example.
 
 Retention in `Loki` is achieved either through the [Table Manager](https://grafana.com/docs/loki/latest/operations/storage/retention/#table-manager) or the [Compactor](https://grafana.com/docs/loki/latest/operations/storage/retention/#Compactor).
 
+In the next part, you'll discover both options, based on the installed `Loki` application `version`.
+
+#### **Retention via Compactor**
+
+**Important note:**
+
+Before upgrading, please check if the deployed `Loki` application version is `>=2.3.0`. The features that you will configure next, work only if at least version `2.3.0` is used. The `2.4.1` version of the stack deployed in this tutorial, may use an older version for the `Loki` applicatiom, like `2.2.0`. Please follow the next steps in order to check if it's true or not.
+
+Steps to follow to check if `Loki` application version is `>=2.3.0`, in order to benefit from new `Compactor` retention functionality:
+
+1. Check the image version used by the Loki `StatefulSet`:
+
+    ```shell
+    kubectl describe sts loki -n monitoring
+    ```
+2. In the `Containers` section check the `Image` key. If it says `grafana/loki:2.3.0` or higher, please proceed with the next steps. Otherwise, go to [Retention via Table Manager](#retention-via-table-manager).
+
 The `Compactor` is the preferred way because it offers many options and advantages over the `Table Manager`, such as more `fine grained` retention configuration and `multi-cluster` setup support. On the other hand, the `Compactor` method will have `long term support`, so it's best to stick with it. More details and explanations about which one to use over the other is provided in the [Loki Storage Retention](https://grafana.com/docs/loki/latest/operations/storage/retention/#loki-storage-retention) official page.
 
-You'll focus on the `Compactor` implementation, because this is the `preferred` way for `Loki`, as stated above. The default and recommended way to start with, looks like below:
+In this section, main focus is on the `Compactor` implementation, because this is the `preferred` way for `Loki`, as stated above. The basic configuration, and recommended way to start with, looks like below:
 
 ```
 compactor:
@@ -336,48 +353,17 @@ Explanation for the above configuration:
 * `retention_delete_delay` - the delay after which the compactor will delete marked chunks. A `2h` value is recommended to start with, as per official documentation.
 * `retention_delete_worker_count` - specifies the maximum quantity of goroutine workers instantiated to delete chunks. A value of `150` is recommended to start with, as per official documentation.
 
-The [loki-values.yaml](res/manifests/loki-values.yaml) sample file provided with this tutorial contains retention settings for both `Compactor` and `Table Manager`. Edit the `5-setup-loki-stack/res/manifests/loki-values.yaml` file by uncommenting the required section for the [Compactor](res/manifests/loki-values.yaml#L7) retention settings.
+**Note:**
 
-**Important note:**
+Retention is only available if the [index period](res/manifests/loki-values.yaml#L34) from `schema_config` is set to `24h`.
 
-Before upgrading, please check if the deployed `Loki` stack version is `>=2.3.0`. The features that you will configure next, work only if at least version `2.3.0` is used. The `2.4.1` version of the stack deployed in this tutorial, may use an older version for Loki, like `2.2.0`. Please follow the next steps in order to check if it's true or not.
-
-Steps to follow to update `Loki` to version `2.3.0` in order to benefit from new `Compactor` retention functionality:
-
-1. Check the image version used by the Loki `StatefulSet`:
-
-    ```shell
-    kubectl describe sts loki -n monitoring
-    ```
-2. In the `Containers` section check the `Image` key. If it says `grafana/loki:2.2.0`, then please proceed with the next steps.
-3. Update Loki application image to version `2.3.0`:
-
-    ```shell
-    kubectl set image statefulset/loki loki="grafana/loki:2.3.0" -n monitoring
-    ```
-4. Check the Loki `StatefulSet` image version used in the `Containers` section as detailed in `Step 1` and `Step 2`. It should say: `grafana/loki:2.3.0`.
-5. Verify that the `Rolling Update` for the Loki `StatefulSet` was performed succesfully (it comes with this `Strategy` enabled by default):
-
-    ```shell
-    kubectl rollout status sts loki -n monitoring
-    ```
-
-    If the above is stuck then, there's no other way than killing the main `Loki` Pod via: `kubectl delete pod loki-0 -n monitoring`
-6. See if the new `Pod` was `updated`:
-
-    ```shell
-    kubectl describe pod loki-0 -n monitoring
-    ```
-
-    The container image field should point to the new version: `2.3.0`.
-
-If all of the above completed succesfully, apply the new settings with:
+The [loki-values.yaml](res/manifests/loki-values.yaml) sample file provided with this tutorial contains sample retention settings for `Compactor`. Edit the `5-setup-loki-stack/res/manifests/loki-values.yaml` file by uncommenting the required section for the [Compactor](res/manifests/loki-values.yaml#L7). Then, apply the changes with:
 
 ```
 helm upgrade loki grafana/loki-stack --version 2.4.1 \
-        --namespace=monitoring \
-        --create-namespace \
-        -f 5-setup-loki-stack/res/manifests/loki-values.yaml
+  --namespace=monitoring \
+  --create-namespace \
+  -f 5-setup-loki-stack/res/manifests/loki-values.yaml
 ```
 
 Inspect the `logs` for the main `Loki` application and check if there are no errors:
@@ -385,6 +371,8 @@ Inspect the `logs` for the main `Loki` application and check if there are no err
 ```shell
   kubectl logs -n monitoring -l app=loki
 ```
+
+**Hint:**
 
 `S3CMD` is a really good utility to have in order to inspect how many objects are present, as well as the size of the `DO Spaces` bucket. It will also help you to see if the retention policies set so far are working or not. Please follow the `DigitalOcean` guide for installing and setting up [s3cmd](https://docs.digitalocean.com/products/spaces/resources/s3cmd/).
 
@@ -400,8 +388,112 @@ The output looks similar to the following:
 19M    2799 objects s3://loki-storage-test/
 ```
 
+After a while, you can run some queries in `Grafana` and see if there are logs older than the specified retention interval. If the above configuration was applied succesfully, there should be only the new data persisted.
+
 For more details, please visit the [Compactor](https://grafana.com/docs/loki/latest/operations/storage/retention/#compactor) implementation page.
 
+#### **Retention via Table Manager**
+
+If the `Loki` application version is `2.2.0` or lower, retention can be achieved by [Table Manager](https://grafana.com/docs/loki/v2.2.0/operations/storage/table-manager).  In order to enable the `retention support`, the `Table Manager` needs to be configured to `enable deletions` and a `retention period`. Please refer to the [table_manager_config](https://grafana.com/docs/loki/v2.2.0/configuration#table_manager_config) section of the Loki configuration reference for all available options.
+
+**WARNING:**
+
+The `retention period` must be a `multiple` of the `index` and `chunks` table period, configured in the `period_config` block. See the [Table Manager](https://grafana.com/docs/loki/v2.2.0/operations/storage/table-manager#retention) documentation for more information.
+
+You can enable the data retention explicitly enabling it in the configuration and setting a `retention_period` greater than zero. Below is a `24h` example configuration (in a production environment you will want more, of course):
+
+```
+table_manager:
+  retention_deletes_enabled: true
+  retention_period: 24h
+chunk_store_config:
+  max_look_back_period: 24h
+```
+
+**Note:**
+
+To avoid querying of data beyond the retention period, `max_look_back_period` config in `chunk_store_config` must be set to a value less than or equal to what is set in `table_manager.retention_period`.
+
+The `Table Manager` implements the retention deleting the entire tables whose data exceeded the `retention_period`. This design allows to have `fast` delete operations, at the cost of having a retention granularity controlled by the table’s period.
+
+Given each table contains data for period of time and that the entire table is deleted, the `Table Manager` keeps the last tables alive using this formula:
+
+```
+number_of_tables_to_keep = floor(retention_period / table_period) + 1
+```
+
+**Note:**
+
+Due to the internal implementation, the `table period` and `retention_period` must be `multiples` of `24h` in order to get the expected behavior.
+
+The [loki-values.yaml](res/manifests/loki-values.yaml) sample file provided with this tutorial contains sample retention settings for `Table Manager`. Edit the `5-setup-loki-stack/res/manifests/loki-values.yaml` file by uncommenting the required section for the [Table Manager](res/manifests/loki-values.yaml#L18). Then, apply the changes with:
+
+```
+helm upgrade loki grafana/loki-stack --version 2.4.1 \
+  --namespace=monitoring \
+  --create-namespace \
+  -f 5-setup-loki-stack/res/manifests/loki-values.yaml
+```
+
+Inspect the `logs` for the main `Loki` application and check if there are no errors:
+
+```shell
+  kubectl logs -n monitoring -l app=loki
+```
+
+After a while, you can run some queries in `Grafana` and see if there are logs older than the specified retention interval. If the above configuration was applied succesfully, there should be only the new data persisted.
+
+**Setting DO Spaces retention policies**
+
+Another important thing to take into consideration is that the `Loki` storage retention settings configured so far, will not apply to the remote storage itself - in this case, `DO Spaces`. It only works at the filesystem level. 
+
+Why? Because `S3` compatible storage has its own set of policies and rules for retention settings. So, it's the `S3 implementation` responsibility to handle objects `lifecycle`. More details can be found in the DO Spaces [bucket lifecycle](https://docs.digitalocean.com/reference/api/spaces-api/#configure-a-buckets-lifecycle-rules) configuration page.
+
+Setting the lifecycle for the Loki storage bucket can be done very easy via `s3cmd` (if you don't have it installed, please follow the [s3cmd](https://docs.digitalocean.com/products/spaces/resources/s3cmd/) installation steps).
+
+Below is a sample configuration for the `fake/` and `index/` paths:
+
+```
+<LifecycleConfiguration xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+  <Rule>
+    <ID>Expire old fake data</ID>
+    <Prefix>fake/</Prefix>
+    <Status>Enabled</Status>
+    <Expiration>
+      <Days>1</Days>
+    </Expiration>
+  </Rule>
+
+  <Rule>
+    <ID>Expire old index data</ID>
+    <Prefix>index/</Prefix>
+    <Status>Enabled</Status>
+    <Expiration>
+      <Days>1</Days>
+    </Expiration>
+  </Rule>
+</LifecycleConfiguration>
+```
+What the above lifecycle configuration will do, is to `expire` after `1 day` all the objects from the `fake/` and `index/` paths of the `Loki` storage bucket. After the expiration period passed, the objects will be automatically deleted from the bucket.
+
+Steps to follow:
+
+1. Change directory where this repository was cloned.
+2. Edit the provided [loki_do_spaces_lifecycle.xml](res/manifests/loki_do_spaces_lifecycle.xml) file and adjust according to your needs.
+3. Set the lifecycle policy using the provided file (please replace the `<>` placeholders accordingly):
+
+    ```shell
+    s3cmd setlifecycle 5-setup-loki-stack/res/manifests/loki_do_spaces_lifecycle.xml s3://<LOKI_STORAGE_BUCKET_NAME>
+    ```
+4. Check that the policy was set (please replace the `<>` placeholders accordingly):
+
+    ```shell
+    s3cmd getlifecycle s3://<LOKI_STORAGE_BUCKET_NAME>
+    ```
+
+After running the last step, `s3cmd` should print the same content as the one set in the policy file.
+
+That's it. `DO Spaces` S3 implementation will take care of the rest and clean the old objects from the bucket automatically. You can always go back end edit the policy if needed later on, by uploading a new one.
 
 **Next steps**
 
