@@ -355,7 +355,7 @@ Setting the lifecycle for the Loki storage bucket can be done very easy via `s3c
   </Rule>
 </LifecycleConfiguration>
 ```
-What the above `lifecycle` configuration will do, is to automatically `delete` after `10 days` all the objects from the `fake/` and `index/` paths from the `Loki` storage bucket.
+What the above `lifecycle` configuration will do, is to automatically `delete` after `10 days` all the objects from the `fake/` and `index/` paths from the `Loki` storage bucket. A `10 days` lifespan is choosed in this example because it's usually enough when it comes to application debugging in general. For `production` systems or other critical stuff, a period of `30 days` or even more makes more sense.
 
 How to configure a `S3` bucket lifecycle:
 
