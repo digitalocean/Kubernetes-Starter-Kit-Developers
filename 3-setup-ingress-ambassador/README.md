@@ -140,9 +140,9 @@ Steps to follow:
     The output looks similar to the following:
 
     ```
-    NAME         HOSTNAME              STATE     PHASE COMPLETED      PHASE PENDING              AGE
-    echo-host    echo.mandrakee.xyz    Pending   ACMEUserRegistered   ACMECertificateChallenge   3s
-    quote-host   quote.mandrakee.xyz   Pending   ACMEUserRegistered   ACMECertificateChallenge   3s
+    NAME         HOSTNAME                   STATE     PHASE COMPLETED      PHASE PENDING              AGE
+    echo-host    echo.starterkits.online    Pending   ACMEUserRegistered   ACMECertificateChallenge   3s
+    quote-host   quote.starterkits.online   Pending   ACMEUserRegistered   ACMECertificateChallenge   3s
     ```
 
 **Observations and results:**
@@ -168,13 +168,13 @@ Events:
   Normal   Pending  32m                Ambassador Edge Stack  registering ACME account
   Normal   Pending  32m                Ambassador Edge Stack  ACME account registered
   Normal   Pending  32m                Ambassador Edge Stack  waiting for Host ACME account registration change to be reflected in snapshot
-  Normal   Pending  16m (x4 over 32m)  Ambassador Edge Stack  tlsSecret "tls2-cert"."ambassador" (hostnames=["echo.mandrakee.xyz"]): needs updated: tlsSecret does not exist
-  Normal   Pending  16m (x4 over 32m)  Ambassador Edge Stack  performing ACME challenge for tlsSecret "tls2-cert"."ambassador" (hostnames=["echo.mandrakee.xyz"])...
-  Warning  Error    16m (x4 over 32m)  Ambassador Edge Stack  obtaining tlsSecret "tls2-cert"."ambassador" (hostnames=["echo.mandrakee.xyz"]): acme: Error -> One or more domains had a problem:
-[echo.mandrakee.xyz] acme: error: 400 :: urn:ietf:params:acme:error:dns :: DNS problem: SERVFAIL looking up A for echo.mandrakee.xyz - the domain's nameservers may be malfunctioning
+  Normal   Pending  16m (x4 over 32m)  Ambassador Edge Stack  tlsSecret "tls2-cert"."ambassador" (hostnames=["echo.starterkits.online"]): needs updated: tlsSecret does not exist
+  Normal   Pending  16m (x4 over 32m)  Ambassador Edge Stack  performing ACME challenge for tlsSecret "tls2-cert"."ambassador" (hostnames=["echo.starterkits.online"])...
+  Warning  Error    16m (x4 over 32m)  Ambassador Edge Stack  obtaining tlsSecret "tls2-cert"."ambassador" (hostnames=["echo.starterkits.online"]): acme: Error -> One or more domains had a problem:
+[echo.starterkits.online] acme: error: 400 :: urn:ietf:params:acme:error:dns :: DNS problem: SERVFAIL looking up A for echo.starterkits.online - the domain's nameservers may be malfunctioning
 ...
 ```
-As seen above, the last event tells that there's no `A` record to point to the `echo` host for the `mandrakee.xyz` domain which results in a lookup failure. Let's fix this in the next section of the tutorial.
+As seen above, the last event tells that there's no `A` record to point to the `echo` host for the `starterkits.online` domain which results in a lookup failure. Let's fix this in the next section of the tutorial.
 
 
 ### Configuring Domain Mappings
@@ -183,20 +183,22 @@ Adding a domain you own to your `DigitalOcean` account lets you manage the domai
 
 What you need to do next is to create a `domain` and add the required `A` records for the new hosts: `echo` and `quote`. You can do that using the [doctl](https://docs.digitalocean.com/reference/doctl/how-to/install) utility.
 
-First, you create a new `domain` (`mandrakee.xyz` in this example):
+First, you create a new `domain` (`starterkits.online` in this example):
 
 ```shell
-doctl compute domain create mandrakee.xyz
+doctl compute domain create starterkits.online
 ```
 
 The output looks similar to the following:
 
 ```
 Domain           TTL
-mandrakee.xyz    0
+starterkits.online    0
 ```
 
-YOU NEED TO ENSURE THAT YOUR DOMAIN REGISTRAR IS CONFIGURED TO POINT TO DO NAMESERVERS.
+**Note:**
+
+**YOU NEED TO ENSURE THAT YOUR DOMAIN REGISTRAR IS CONFIGURED TO POINT TO DO NAMESERVERS**. More information on how to do that is available [here](https://www.digitalocean.com/community/tutorials/how-to-point-to-digitalocean-nameservers-from-common-domain-registrars).
 
 Let's add some `A` records now for the hosts created earlier. First, you need to identify the `Load Balancer` IP that points to your `Kubernetes` cluster (one should be already available when the cluster was created). Pick the one that matches your configuration from the list:
 
@@ -207,8 +209,8 @@ doctl compute load-balancer list
 Then add the records (please replace the `<>` placheholders accordingly):
 
 ```shell
-doctl compute domain records create mandrakee.xyz --record-type "A" --record-name "echo" --record-data "<your_lb_ip_address>"
-doctl compute domain records create mandrakee.xyz --record-type "A" --record-name "quote" --record-data "<your_lb_ip_address>"
+doctl compute domain records create starterkits.online --record-type "A" --record-name "echo" --record-data "<your_lb_ip_address>"
+doctl compute domain records create starterkits.online --record-type "A" --record-name "quote" --record-data "<your_lb_ip_address>"
 ```
 
 **Note:**
@@ -217,16 +219,16 @@ If you have only one `LB` in your account then this snippet should help:
 
 ```shell
 LOAD_BALANCER_IP=$(doctl compute load-balancer list --format IP --no-header)
-doctl compute domain records create mandrakee.xyz --record-type "A" --record-name "echo" --record-data "$LOAD_BALANCER_IP"
-doctl compute domain records create mandrakee.xyz --record-type "A" --record-name "quote" --record-data "$LOAD_BALANCER_IP"
+doctl compute domain records create starterkits.online --record-type "A" --record-name "echo" --record-data "$LOAD_BALANCER_IP"
+doctl compute domain records create starterkits.online --record-type "A" --record-name "quote" --record-data "$LOAD_BALANCER_IP"
 ```
 
 **Observation and results:**
 
-List the available records for the `mandrakee.xyz` domain:
+List the available records for the `starterkits.online` domain:
 
 ```shell
-doctl compute domain records list mandrakee.xyz
+doctl compute domain records list starterkits.online
 ```
 
 The output looks similar to the following:
@@ -250,9 +252,9 @@ kubectl get hosts -n ambassador
 The output looks similar to the following:
 
 ```
-NAME         HOSTNAME              STATE   PHASE COMPLETED   PHASE PENDING   AGE
-echo-host    echo.mandrakee.xyz    Ready                                     2m11s
-quote-host   quote.mandrakee.xyz   Ready                                     2m12s
+NAME         HOSTNAME                   STATE   PHASE COMPLETED   PHASE PENDING   AGE
+echo-host    echo.starterkits.online    Ready                                     2m11s
+quote-host   quote.starterkits.online   Ready                                     2m12s
 ```
 
 If the `STATE` column prints `Ready` then awesome! Now you're ready to rock!
@@ -360,13 +362,13 @@ kubectl get mappings -n ambassador
 The output looks similar to the following (notice the `echo-backend` and `quote-backend` lines):
 
 ```
-NAME                          SOURCE HOST           SOURCE PREFIX                               DEST SERVICE     STATE   REASON
-ambassador-devportal                                /documentation/                             127.0.0.1:8500           
-ambassador-devportal-api                            /openapi/                                   127.0.0.1:8500           
-ambassador-devportal-assets                         /documentation/(assets|styles)/(.*)(.css)   127.0.0.1:8500           
-ambassador-devportal-demo                           /docs/                                      127.0.0.1:8500           
-echo-backend                  echo.mandrakee.xyz    /echo/                                      echo.backend             
-quote-backend                 quote.mandrakee.xyz   /quote/                                     quote.backend 
+NAME                          SOURCE HOST                SOURCE PREFIX                               DEST SERVICE     STATE   REASON
+ambassador-devportal                                     /documentation/                             127.0.0.1:8500           
+ambassador-devportal-api                                 /openapi/                                   127.0.0.1:8500           
+ambassador-devportal-assets                              /documentation/(assets|styles)/(.*)(.css)   127.0.0.1:8500           
+ambassador-devportal-demo                                /docs/                                      127.0.0.1:8500           
+echo-backend                  echo.starterkits.online    /echo/                                      echo.backend             
+quote-backend                 quote.starterkits.online   /quote/                                     quote.backend 
 ```
 
 **Next Steps**
@@ -400,9 +402,9 @@ Please note that module configuration is a `global` option (enable/disable) for 
 
 ### Verifying the AES Setup
 
-In the current setup you have two hosts configured with `TLS` termination and `ACME` protocol: `quote.mandrakee.xyz` and `echo.mandrakee.xyz`. By creating AES `Mappings` it's very easy to have `TLS` termination support and `API Gateway` capabilities. 
+In the current setup you have two hosts configured with `TLS` termination and `ACME` protocol: `quote.starterkits.online` and `echo.starterkits.online`. By creating AES `Mappings` it's very easy to have `TLS` termination support and `API Gateway` capabilities. 
 
-If pinging `quote.mandrakee.xyz` or `echo.mandrakee.xyz` in the terminal you can see that packets are being sent to the `AES` external `IP`. Then, `AES` is using the mapping feature to reach the endpoints. 
+If pinging `quote.starterkits.online` or `echo.starterkits.online` in the terminal you can see that packets are being sent to the `AES` external `IP`. Then, `AES` is using the mapping feature to reach the endpoints. 
 
 ```shell
 kubectl get svc -n ambassador 
@@ -418,13 +420,13 @@ ambassador-redis   ClusterIP      10.245.9.81    <none>           6379/TCP      
 ```
 
 ```shell
-ping quote.mandrakee.xyz
+ping quote.starterkits.online
 ```
 
 The output looks similar to the following:
 
 ```
-PING quote.mandrakee.xyz (68.183.252.190): 56 data bytes
+PING quote.starterkits.online (68.183.252.190): 56 data bytes
 64 bytes from 68.183.252.190: icmp_seq=0 ttl=54 time=199.863 ms
 64 bytes from 68.183.252.190: icmp_seq=1 ttl=54 time=202.999 ms
 ...
@@ -435,14 +437,14 @@ As explained above, notice that it hits the `AES` external IP (`68.183.252.190`)
 Test the backend services now via `curl`, using the `quote` service first. You can also inspect and see the results in a web browser if desired.
 
 ```shell
-curl -Li http://quote.mandrakee.xyz/quote/
+curl -Li http://quote.starterkits.online/quote/
 ```
 
 The output looks similar to the following (notice how it automatically redirects and uses `https` instead):
 
 ```
 HTTP/1.1 301 Moved Permanently
-location: https://quote.mandrakee.xyz/quote/
+location: https://quote.starterkits.online/quote/
 date: Thu, 12 Aug 2021 18:28:43 GMT
 server: envoy
 content-length: 0
@@ -464,13 +466,13 @@ server: envoy
 Let's do the same for the `echo` service:
 
 ```shell
-curl -Li http://echo.mandrakee.xyz/echo/
+curl -Li http://echo.starterkits.online/echo/
 ```
 
 The output looks similar to the following (notice how it automatically redirects and uses `https` instead):
 ```
 HTTP/1.1 301 Moved Permanently
-location: https://echo.mandrakee.xyz/echo/
+location: https://echo.starterkits.online/echo/
 date: Thu, 12 Aug 2021 18:31:27 GMT
 server: envoy
 content-length: 0
@@ -486,7 +488,7 @@ Request served by echo-5d5bdf99cf-cq8nh
 
 HTTP/1.1 GET /
 
-Host: echo.mandrakee.xyz
+Host: echo.starterkits.online
 X-Forwarded-Proto: https
 X-Envoy-Internal: true
 X-Request-Id: 07afec17-4535-4157-bf5f-ad19dafb7bff

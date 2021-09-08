@@ -313,7 +313,7 @@ If you call the service 2 times, you will see 4 responses being plotted. This is
 `CLI` command used for testing the above scenario:
 
 ```shell
-curl -Lk https://quote.mandrakee.xyz/quote/
+curl -Lk https://quote.starterkits.online/quote/
 ```
 
 The output looks similar to the following:

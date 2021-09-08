@@ -5,7 +5,7 @@ metadata:
   name: echo-host
   namespace: ambassador
 spec:
-  hostname: echo.mandrakee.xyz
+  hostname: echo.starterkits.online
   acmeProvider:
     email: echo@gmail.com
   tlsSecret:
