@@ -4,7 +4,7 @@
     <Prefix>fake/</Prefix>
     <Status>Enabled</Status>
     <Expiration>
-      <Days>1</Days>
+      <Days>10</Days>
     </Expiration>
   </Rule>
 
@@ -13,7 +13,7 @@
     <Prefix>index/</Prefix>
     <Status>Enabled</Status>
     <Expiration>
-      <Days>1</Days>
+      <Days>10</Days>
     </Expiration>
   </Rule>
 </LifecycleConfiguration>

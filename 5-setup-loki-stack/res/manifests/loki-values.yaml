@@ -1,25 +1,6 @@
 loki:
   enabled: true
   config:
-    # ================== RETENTION SETTINGS FOR THE COMPACTOR ============================
-    # Uncomment the below `compactor` section to enable the recommended `Compactor` retention settings
-    #
-    # compactor:
-    #   working_directory: /data/loki/boltdb-shipper-compactor
-    #   shared_store: aws
-    #   compaction_interval: 10m
-    #   retention_enabled: true
-    #   retention_delete_delay: 2h
-    #   retention_delete_worker_count: 150
-    #
-    # =================== RETENTION SETTINGS FOR TABLE MANAGER ============================
-    # Uncomment the below `table_manager` and `chunk_store_config` section to enable the recommended `Table Manager` retention settings
-    #
-    # table_manager:
-    #   retention_deletes_enabled: true
-    #   retention_period: 24h
-    # chunk_store_config:
-    #   max_look_back_period: 24h
     # ======================== REMOTE STORAGE SETUP FOR DO SPACES ==============================
     # Uncomment the `schema_config` and `storage_config` section, to enable remote storage setup for `DO Spaces`
     # Make sure to replace the <> placeholders for the `aws` subsection accordingly
