@@ -11,7 +11,7 @@ fullnameOverride: ''
 # Defaults to .Release.Namespace
 namespaceOverride: ''
 
-replicaCount: 3
+replicaCount: 2
 daemonSet: false
 
 # This will enable the test-ready Pod (https://github.com/datawire/ambassador-chart/blob/master/templates/tests/test-ready.yaml).
@@ -280,13 +280,12 @@ deploymentAnnotations: {}
   # configmap.reloader.stakater.com/auto: "true"
 
 resources:
-  # Recommended resource requests and limits for Ambassador
   limits:
     cpu: 1000m
     memory: 600Mi
   requests:
     cpu: 200m
-    memory: 300Mi
+    memory: 200Mi
 
 priorityClassName: ''
 
