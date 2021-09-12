@@ -273,6 +273,8 @@ Steps to follow:
     velero restore create --from-backup ambassador-backup
     ```
 
+*Important: When you delete the ambassador namespace, the load balancer resource associated will the ambassador service will be deleted as well. So when you restore the ambassador service, the LB will be recreated by DigitalOcean. The issue is that you will get a NEW ip address for your LB. And so you will need to adjust the A records for getting traffic into your domains hosted on the cluster.*
+
 **Results and Observations:**
 
 * Check the `Phase` line from the `velero restore describe ambassador-backup` command output. It should say `Completed`.
