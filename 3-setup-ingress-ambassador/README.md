@@ -514,140 +514,91 @@ The performance of `Ambassador Edge Stack's` control plane can be characterized 
 * The number of `Mapping` resources per Host resource.
 * The number of `unconstrained Mapping resources` (these will apply to all `Host` resources).
 
-Taking each key factor from above into consideration and mapping it to the Kubernetes realm, it means that you may need to adjust the `requests` and `limits` for the deployment pods, and/or the `replica` count. When it comes to scaling, `Kubernetes` will generally kill an `Ambassador Edge Stack` pod for one of two reasons: `exceeding memory limits` or `failed liveness/readiness` probes.
+Taking each key factor from above into consideration and mapping it to the Kubernetes realm, it means that you need to adjust the `requests` and `limits` for the deployment pods, and/or the `replica` count. When it comes to scaling, `Kubernetes` will generally kill an `Ambassador Edge Stack` pod for one of two reasons: `exceeding memory limits` or `failed liveness/readiness` probes.
 
 `Ambassador Edge Stack` can `grow` in terms of `memory usage` so it's very likely to get the application pods killed because of `OOM` issues. Having a system for indexing application logs comes very handy in this situation (covered in more detail in [Section 5 - Logs Aggregation via Loki Stack](../5-setup-loki-stack)). 
 
-`AES` internally tracks a number of key `performance indicators`. You can inspect these via the `debug` endpoint.
+In general you should try to keep AES `memory usage` below `50%` of the pod's `limit`. This may seem like a generous safety margin, but when reconfiguration occurs, `Ambassador Edge Stack` requires `additional memory to avoid disrupting active connections`.
+
+Going further, what you can do on the `Kubernetes` side is to adjust the `replica count` and resource `requests` for pods. 
+
+**Adjusting the replica count**
+
+Based on our findings, a value of `2`, should suffice in case of small development environments.
+
+In the next part, you're going to scale the deployment via `Helm` and adjust the `replicaCount` field by editing the [ambassador-values.yaml](res/manifests/ambassador-values.yaml) file provided in this `Git` repository.
 
 Steps to follow:
 
-1. List the `AES` pods:
-   
-    ```shell
-    kubectl get pods -n ambassador -l app.kubernetes.io/name=ambassador
-    ```
-
-    The output looks similar to:
-
-    ```
-    NAME                         READY   STATUS    RESTARTS   AGE
-    ambassador-bcb5b8d67-44sc4   1/1     Running   0          6d3h
-    ambassador-bcb5b8d67-m6mcv   1/1     Running   0          6d3h
-    ambassador-bcb5b8d67-pthd6   1/1     Running   0          6d3h
-    ```
-2. Get one pod name from the list and call the `debug` endpoint (make sure to replace the `<>` placeholders accordingly):
+1. Change directory where this `Git` repository was cloned.
+2. Search for the [replicaCount](res/manifests/ambassador-values.yaml#L14) line and change the value to `2`. 
+3. Run a `Helm` upgrade:
 
     ```shell
-    kubectl exec -n ambassador -it <aes_pod_name> -- curl localhost:8877/debug
+    helm upgrade ambassador datawire/ambassador --version 6.7.13 \
+        --namespace ambassador \
+        -f 3-setup-ingress-ambassador/res/manifests/ambassador-values.yaml
     ```
-
-    The output looks similar to:
-    ```
-    {
-    "timers": {
-        "check_alive": "177193, 192.404µs/841.216µs/45.021952ms",
-        "check_ready": "177193, 210.649µs/796.42µs/38.417973ms",
-        "katesUpdate": "149844, 828ns/258.091µs/196.466889ms",
-        "notifyWebhook:diagd": "620, 14.56354ms/224.538671ms/519.505642ms",
-        "notifyWebhook:edgestack sidecar": "620, 3.120633ms/11.90359ms/75.218911ms",
-        "notifyWebhooks": "619, 125.090379ms/238.523677ms/1.230018253s",
-        "parseAnnotations": "963, 3.065µs/12.812µs/1.060445ms",
-        "reconcileConsul": "963, 2.543µs/5.164µs/105.867µs",
-        "reconcileSecrets": "963, 27.3µs/76.389µs/7.733922ms"
-    },
-    "values": {
-            "envoyReconfigs": {
-                "times": [
-                    "2021-09-08T15:04:37.282995434Z",
-                    "2021-09-08T15:04:37.544916436Z"
-                ],
-                "staleCount": 28,
-                "staleMax": 0,
-                "synced": true,
-                "disableRatelimiter": false
-            },
-            "memory": "0.15Gi of 0.59Gi (26%)"
-        }
-    }
-    ```
-
-Looking closer at the last line you can see `valuable` information about `memory usage`.
-
-In general you should try to keep AES `memory usage` below `50%` of the pod's `limit`. This may seem like a generous safety margin, but when reconfiguration occurs, `Ambassador Edge Stack` requires `additional memory to avoid disrupting active connections`.
-
-Exact `memory usage` depends on (among other things) how many `Host` and `Mapping` resources are defined in your cluster. If this number has grown over time, you may need to `increase` the `memory limit` defined in your `deployment`.
-
-Going further, what you can do on the `Kubernetes` side is to reduce the `replicaCount` form the default value of `3` to `2` in case of small development environments. Can be accomplished by `scaling the deployment` via `kubectl` or via `Helm`.
-
-Scaling the deployment via kubectl:
-
-1. List the `ambassador` namespace deployments:
+4. After a while, check the `ambassador` deployment:
 
     ```shell
     kubectl get deployments -n ambassador
     ```
 
     The output looks similar to:
+
     ```
     NAME               READY   UP-TO-DATE   AVAILABLE   AGE
-    ambassador         3/3     3            3           6d3h
+    ambassador         2/2     3            3           6d3h
     ambassador-agent   1/1     1            1           6d3h
     ambassador-redis   1/1     1            1           6d3h
     ```
-2. Scale the `ambassador` deployment to have a replica count of `2`:
+
+**Adjusting pods resource requests**
+
+Based on our findings, the requests for memory should be adjusted to a value of `200m`, which cover most development needs in general. 
+
+In the next part, you're going to adjust memory requests via `Helm` and adjust the `memory` requests field by editing the [ambassador-values.yaml](res/manifests/ambassador-values.yaml) file provided in this `Git` repository.
+
+Steps to follow:
+
+1. Change directory where this `Git` repository was cloned.
+2. Search for the [memory requests](res/manifests/ambassador-values.yaml#L288) line and change the value to `200Mi`. 
+3. Run a `Helm` upgrade:
 
     ```shell
-    kubectl scale deployment ambassador --replicas=2 -n ambassador
+    helm upgrade ambassador datawire/ambassador --version 6.7.13 \
+        --namespace ambassador \
+        -f 3-setup-ingress-ambassador/res/manifests/ambassador-values.yaml
     ```
-3. Check the `events` for the `ambassador` deployment:
+4. Check the memory requests new value - it should say `200Mi` (look in the `Containers` section from the command output):
 
     ```shell
     kubectl describe deployment ambassador -n ambassador
     ```
 
     The output looks similar to:
+
     ```
-    Events:
-    Type    Reason             Age                  From                   Message
-    ----    ------             ----                 ----                   -------
-    Normal  ScalingReplicaSet  85s (x2 over 6d4h)   deployment-controller  Scaled up replica set ambassador-bcb5b8d67 to 3
-    Normal  ScalingReplicaSet  10s (x2 over 9m56s)  deployment-controller  Scaled down replica set ambassador-bcb5b8d67 to 2
+    ...
+    Containers:
+      ambassador:
+       Image:       docker.io/datawire/aes:1.13.10
+       Ports:       8080/TCP, 8443/TCP, 8877/TCP
+       Host Ports:  0/TCP, 0/TCP, 0/TCP
+       Limits:
+         cpu:     1
+         memory:  600Mi
+       Requests:
+         cpu:      200m
+         memory:   200Mi
+    ...
     ```
 
-Looking at the above result, the `replica count` was reduced to `2`. 
+Another way of finding and setting the right values for requests/limits, is to evaluate `Ambassador` for a period of time (a few days or so). Then, you can run statistical queries via `Prometheus` and find the best values for your use case. A good article to read on this topic can be found [here](https://blog.kubecost.com/blog/requests-and-limits).
 
-Achieving the same result via `Helm` can be done by editing the [ambassador-values.yaml](res/manifests/ambassador-values.yaml#L14). Search for the `replicaCount` line and change the value accordingly. 
+For more information about performance tuning please visit the [AES Performance and Scaling](https://www.getambassador.io/docs/edge-stack/latest/topics/running/scaling) official documentation page.
 
-Then, run a `Helm` upgrade from where this `Git` repository was cloned:
-
-```shell
-helm upgrade ambassador datawire/ambassador --version 6.7.13 \
-    --namespace ambassador \
-    -f 3-setup-ingress-ambassador/res/manifests/ambassador-values.yaml
-```
-
-Checking the `ambassador` deployment `events` should reveal that the `replica count` was reduced to `2` as well.
-
-Touching the `AES` deployment pods requests and limits values is a sensitive thing. Based on the official recommendation the values are already tuned in to cover most of cases. Looking at the [ambassador-values.yaml](res/manifests/ambassador-values.yaml#L282), you can already see that:
-
-```
-resources:
-  # Recommended resource requests and limits for Ambassador
-  limits:
-    cpu: 1000m
-    memory: 600Mi
-  requests:
-    cpu: 200m
-    memory: 300Mi
-```
-
-If really needed, you can change the above values after evaluating `Ambassador` for at least a few days or so, and watching the debug endpoint numbers or even better by running statistical queries in `Prometheus`. You already `reduced` the `replica count`, so the overall cluster resources usage should go down as well to some extent. In the end, it's always a tradeoff between reducing resources usage and `costs` vs `performance`. It means that by applying aggressive rules when it comes to resource limits, the application may suffer in terms of performance.
-
-**Learn More:**
-
-* For more information about performance tuning please visit the [AES Performance and Scaling](https://www.getambassador.io/docs/edge-stack/latest/topics/running/scaling) official documentation page.
-* Another interesting article and solution based on [Kubecost](https://blog.kubecost.com/blog/requests-and-limits/). Patterns for analyzing historical usage are presented as well, which can provide a good representation of the future in terms of resources usage.
 
 **Next steps**
 
