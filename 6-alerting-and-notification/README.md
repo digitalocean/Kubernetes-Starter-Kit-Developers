@@ -99,6 +99,7 @@ additionalPrometheusRules:
          summary: Prometheus all targets missing (instance {{ $labels.instance }})
          description: "A Prometheus job does not have living target anymore.\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
 ```
+
 Creating above rules helps us to understand our cluster needs and health condition.`additionalPrometheusRules` part enables you to use PromQL to define metric expressions that you can alert on. You define the alert conditions using the PromQL-based metric expression. This way, you can combine different metrics and warn on cases like service-level agreement breach, running out of disk space in a day, and so on.
 
 * `InstanceDown` helps us to catch any replica not running or unhealth pod(s) appear in ambassador namespace. 
@@ -113,7 +114,7 @@ when you visit  `http://localhost:9093/alerts`, you can see that one of the crea
 
 1. Add the `config` part should include `slack_api_url`, `routes` and `slack_config` parts:
 
- ```
+ ```shell
  alertmanager:
   config:
     global:
@@ -135,16 +136,17 @@ when you visit  `http://localhost:9093/alerts`, you can see that one of the crea
         send_resolved: false
         title: '[{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] Monitoring Event Notification'
         text: "test 123"
-    ```
+  ```
 
 2. Apply below upgrading command:
 
-    ```shell
-      helm upgrade kube-prom-stack prometheus-community/kube-prometheus-stack --version 17.1.3 --namespace monitoring --create-namespace -f prom-stack-values.yaml
+    ```
+    helm upgrade kube-prom-stack prometheus-community/kube-prometheus-stack --version 17.1.3 --namespace monitoring --create-namespace -f prom-stack-values.yaml
     ```
 
     **Notes:**
-    - slack_api_url : When you decide to send notification by using slack you have to create a channel that gives you a token inside of the url. we prefer here `Incoming WebHooks` for hooking. it's an easiest way  to send a notification. Please visit to create a channel and get your own token from Slack.[Slack messaging](https://api.slack.com/legacy/custom-integrations/messaging/webhooks)
+    
+    - slack_api_url : When you decide to send notification by using slack you have to create a channel that gives you a token inside of the url. we prefer here `Incoming WebHooks` for hooking. it is an easiest way  to send a notification. Please visit to create a channel and get your own token from Slack.[Slack messaging](https://api.slack.com/legacy/custom-integrations/messaging/webhooks)
     - routes: in this part you will have some `receivers` and tell `routes` for `match` receiver here.
     - slack_configs: this segment imcludes more than `4` parts but here, `channel`,`title`,`text` are important parts for telling `Slack router` which channel and which title-text message will have. 
     This part totally related with how to use notification in `prom-stack-values.yaml`. Please visit the [Prometheus-Notifications](https://prometheus.io/docs/alerting/latest/notification_examples/) page for more details about this chart.
@@ -174,7 +176,7 @@ Running Notification:
 3. Click the `Edit` top of the panel.
 4. Add `sum(kube_pod_owner{namespace="ambassador"}) by (namespace) <5`  command when total replicas reduce under 5(ambassador-agent,redis,3 pods), it will throw a notification.
 5. Click the `Alert` tab and Click `Create Alert` button inside panel.
-6. Add `Condition` part with `WHEN min () OF query (A, 5m, now) IS BELOW 5` as a rule
+6. Add `Condition` part with  *WHEN min() OF query (A, 5m, now) IS BELOW 5* as a rule
 7. Fill `evaluate every` with 1m  and `For` with 5m parts
 8. Choose `promalerts` as `sendto` in Notification part 
 9. write `it is a kind of test for starterkit` as a message.
