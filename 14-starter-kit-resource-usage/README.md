@@ -8,4 +8,14 @@ The value for each metric, like: `CPU Utilisation`, `CPU Requests Commitment`, `
 
 There are even more dashboards available to study, so please navigate to `Dashboards -> Manage` and pick `Kubernetes/Compute Resources/Cluster` for example. It shows `CPU/Memory` usage for each `namespace` (`velero`, `ambassador`, `prometheus/loki/grafana`).
 
+Our observation on the resource utilization of the starter kit components are as follows. Note that this is the default state - meaning Ambassador is processing almost no traffic, there's no active backups going on, and there're only infrastructure logs and metrics to process.
+- CPU usage across the components is minimal.
+- Ambassador uses 300MB/replica, total ~600MB.
+- Velero usage is minimal.
+- Monitoring (prometheus, alert manager, grafana) uses up to 1GB.
+
+So the starting resource requirements for these components is ~1CPU and ~2GB RAM. 
+
+This completes the start kit tutorial. In a real-life scenario, most users would like to automate the bootstrapping of a DOKS cluster.
+
 To `automate everything` that was covered in the `Starter Kit`, please refer to [Section 15 - Automate everything using Terraform and Flux ](../15-automate-with-terraform-flux/README.md).

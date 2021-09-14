@@ -2,6 +2,7 @@
 
 ### Table of contents
 
+<<<<<<< HEAD
 - [Ingress using Ambassador](#ingress-using-ambassador)
   - [Table of contents](#table-of-contents)
   - [Options for Load Balancer and Ingress](#options-for-load-balancer-and-ingress)
@@ -16,6 +17,18 @@
   - [Performance Improvement for the AES](#performance-improvement-for-the-aes)
     - [Reducing `replicas` from `3` to `2`](#reducing-replicas-from-3-to-2)
     - [Adjusting `Requests` and `Limits`](#adjusting-requests-and-limits)
+=======
+- [Options for Load Balancer and Ingress](#options-for-load-balancer-and-ingress)
+- [Ambassador Edge Stack Overview](#ambassador-edge-stack-overview)
+- [Ambassador Edge Stack Deployment](#ambassador-edge-stack-deployment)
+- [Defining the Domain and Hosts](#defining-the-domain-and-hosts)
+- [Configuring Domain Mappings](#configuring-domain-mappings)
+- [Creating AES Backend Services](#creating-aes-backend-services)
+- [Configuring AES Mappings for Hosts](#configuring-aes-mappings-for-hosts)
+- [Enabling Proxy Protocol](#enabling-proxy-protocol)
+- [Verifying the AES Setup](#verifying-the-aes-setup)
+- [Performance Considerations for the AES](#performance-considerations-for-the-aes)
+>>>>>>> 2c2123e124ca3d98ac3762859f9324d77dc5034f
 
 
 ### Options for Load Balancer and Ingress
@@ -145,9 +158,9 @@ Steps to follow:
     The output looks similar to the following:
 
     ```
-    NAME         HOSTNAME              STATE     PHASE COMPLETED      PHASE PENDING              AGE
-    echo-host    echo.mandrakee.xyz    Pending   ACMEUserRegistered   ACMECertificateChallenge   3s
-    quote-host   quote.mandrakee.xyz   Pending   ACMEUserRegistered   ACMECertificateChallenge   3s
+    NAME         HOSTNAME                   STATE     PHASE COMPLETED      PHASE PENDING              AGE
+    echo-host    echo.starterkits.online    Pending   ACMEUserRegistered   ACMECertificateChallenge   3s
+    quote-host   quote.starterkits.online   Pending   ACMEUserRegistered   ACMECertificateChallenge   3s
     ```
 
 **Observations and results:**
@@ -173,13 +186,13 @@ Events:
   Normal   Pending  32m                Ambassador Edge Stack  registering ACME account
   Normal   Pending  32m                Ambassador Edge Stack  ACME account registered
   Normal   Pending  32m                Ambassador Edge Stack  waiting for Host ACME account registration change to be reflected in snapshot
-  Normal   Pending  16m (x4 over 32m)  Ambassador Edge Stack  tlsSecret "tls2-cert"."ambassador" (hostnames=["echo.mandrakee.xyz"]): needs updated: tlsSecret does not exist
-  Normal   Pending  16m (x4 over 32m)  Ambassador Edge Stack  performing ACME challenge for tlsSecret "tls2-cert"."ambassador" (hostnames=["echo.mandrakee.xyz"])...
-  Warning  Error    16m (x4 over 32m)  Ambassador Edge Stack  obtaining tlsSecret "tls2-cert"."ambassador" (hostnames=["echo.mandrakee.xyz"]): acme: Error -> One or more domains had a problem:
-[echo.mandrakee.xyz] acme: error: 400 :: urn:ietf:params:acme:error:dns :: DNS problem: SERVFAIL looking up A for echo.mandrakee.xyz - the domain's nameservers may be malfunctioning
+  Normal   Pending  16m (x4 over 32m)  Ambassador Edge Stack  tlsSecret "tls2-cert"."ambassador" (hostnames=["echo.starterkits.online"]): needs updated: tlsSecret does not exist
+  Normal   Pending  16m (x4 over 32m)  Ambassador Edge Stack  performing ACME challenge for tlsSecret "tls2-cert"."ambassador" (hostnames=["echo.starterkits.online"])...
+  Warning  Error    16m (x4 over 32m)  Ambassador Edge Stack  obtaining tlsSecret "tls2-cert"."ambassador" (hostnames=["echo.starterkits.online"]): acme: Error -> One or more domains had a problem:
+[echo.starterkits.online] acme: error: 400 :: urn:ietf:params:acme:error:dns :: DNS problem: SERVFAIL looking up A for echo.starterkits.online - the domain's nameservers may be malfunctioning
 ...
 ```
-As seen above, the last event tells that there's no `A` record to point to the `echo` host for the `mandrakee.xyz` domain which results in a lookup failure. Let's fix this in the next section of the tutorial.
+As seen above, the last event tells that there's no `A` record to point to the `echo` host for the `starterkits.online` domain which results in a lookup failure. Let's fix this in the next section of the tutorial.
 
 
 ### Configuring Domain Mappings
@@ -188,20 +201,22 @@ Adding a domain you own to your `DigitalOcean` account lets you manage the domai
 
 What you need to do next is to create a `domain` and add the required `A` records for the new hosts: `echo` and `quote`. You can do that using the [doctl](https://docs.digitalocean.com/reference/doctl/how-to/install) utility.
 
-First, you create a new `domain` (`mandrakee.xyz` in this example):
+First, you create a new `domain` (`starterkits.online` in this example):
 
 ```shell
-doctl compute domain create mandrakee.xyz
+doctl compute domain create starterkits.online
 ```
 
 The output looks similar to the following:
 
 ```
 Domain           TTL
-mandrakee.xyz    0
+starterkits.online    0
 ```
 
-YOU NEED TO ENSURE THAT YOUR DOMAIN REGISTRAR IS CONFIGURED TO POINT TO DO NAMESERVERS.
+**Note:**
+
+**YOU NEED TO ENSURE THAT YOUR DOMAIN REGISTRAR IS CONFIGURED TO POINT TO DO NAMESERVERS**. More information on how to do that is available [here](https://www.digitalocean.com/community/tutorials/how-to-point-to-digitalocean-nameservers-from-common-domain-registrars).
 
 Let's add some `A` records now for the hosts created earlier. First, you need to identify the `Load Balancer` IP that points to your `Kubernetes` cluster (one should be already available when the cluster was created). Pick the one that matches your configuration from the list:
 
@@ -212,8 +227,8 @@ doctl compute load-balancer list
 Then add the records (please replace the `<>` placheholders accordingly):
 
 ```shell
-doctl compute domain records create mandrakee.xyz --record-type "A" --record-name "echo" --record-data "<your_lb_ip_address>"
-doctl compute domain records create mandrakee.xyz --record-type "A" --record-name "quote" --record-data "<your_lb_ip_address>"
+doctl compute domain records create starterkits.online --record-type "A" --record-name "echo" --record-data "<your_lb_ip_address>"
+doctl compute domain records create starterkits.online --record-type "A" --record-name "quote" --record-data "<your_lb_ip_address>"
 ```
 
 **Note:**
@@ -222,16 +237,16 @@ If you have only one `LB` in your account then this snippet should help:
 
 ```shell
 LOAD_BALANCER_IP=$(doctl compute load-balancer list --format IP --no-header)
-doctl compute domain records create mandrakee.xyz --record-type "A" --record-name "echo" --record-data "$LOAD_BALANCER_IP"
-doctl compute domain records create mandrakee.xyz --record-type "A" --record-name "quote" --record-data "$LOAD_BALANCER_IP"
+doctl compute domain records create starterkits.online --record-type "A" --record-name "echo" --record-data "$LOAD_BALANCER_IP"
+doctl compute domain records create starterkits.online --record-type "A" --record-name "quote" --record-data "$LOAD_BALANCER_IP"
 ```
 
 **Observation and results:**
 
-List the available records for the `mandrakee.xyz` domain:
+List the available records for the `starterkits.online` domain:
 
 ```shell
-doctl compute domain records list mandrakee.xyz
+doctl compute domain records list starterkits.online
 ```
 
 The output looks similar to the following:
@@ -255,9 +270,9 @@ kubectl get hosts -n ambassador
 The output looks similar to the following:
 
 ```
-NAME         HOSTNAME              STATE   PHASE COMPLETED   PHASE PENDING   AGE
-echo-host    echo.mandrakee.xyz    Ready                                     2m11s
-quote-host   quote.mandrakee.xyz   Ready                                     2m12s
+NAME         HOSTNAME                   STATE   PHASE COMPLETED   PHASE PENDING   AGE
+echo-host    echo.starterkits.online    Ready                                     2m11s
+quote-host   quote.starterkits.online   Ready                                     2m12s
 ```
 
 If the `STATE` column prints `Ready` then awesome! Now you're ready to rock!
@@ -365,13 +380,13 @@ kubectl get mappings -n ambassador
 The output looks similar to the following (notice the `echo-backend` and `quote-backend` lines):
 
 ```
-NAME                          SOURCE HOST           SOURCE PREFIX                               DEST SERVICE     STATE   REASON
-ambassador-devportal                                /documentation/                             127.0.0.1:8500           
-ambassador-devportal-api                            /openapi/                                   127.0.0.1:8500           
-ambassador-devportal-assets                         /documentation/(assets|styles)/(.*)(.css)   127.0.0.1:8500           
-ambassador-devportal-demo                           /docs/                                      127.0.0.1:8500           
-echo-backend                  echo.mandrakee.xyz    /echo/                                      echo.backend             
-quote-backend                 quote.mandrakee.xyz   /quote/                                     quote.backend 
+NAME                          SOURCE HOST                SOURCE PREFIX                               DEST SERVICE     STATE   REASON
+ambassador-devportal                                     /documentation/                             127.0.0.1:8500           
+ambassador-devportal-api                                 /openapi/                                   127.0.0.1:8500           
+ambassador-devportal-assets                              /documentation/(assets|styles)/(.*)(.css)   127.0.0.1:8500           
+ambassador-devportal-demo                                /docs/                                      127.0.0.1:8500           
+echo-backend                  echo.starterkits.online    /echo/                                      echo.backend             
+quote-backend                 quote.starterkits.online   /quote/                                     quote.backend 
 ```
 
 **Next Steps**
@@ -405,9 +420,9 @@ Please note that module configuration is a `global` option (enable/disable) for 
 
 ### Verifying the AES Setup
 
-In the current setup you have two hosts configured with `TLS` termination and `ACME` protocol: `quote.mandrakee.xyz` and `echo.mandrakee.xyz`. By creating AES `Mappings` it's very easy to have `TLS` termination support and `API Gateway` capabilities. 
+In the current setup you have two hosts configured with `TLS` termination and `ACME` protocol: `quote.starterkits.online` and `echo.starterkits.online`. By creating AES `Mappings` it's very easy to have `TLS` termination support and `API Gateway` capabilities. 
 
-If pinging `quote.mandrakee.xyz` or `echo.mandrakee.xyz` in the terminal you can see that packets are being sent to the `AES` external `IP`. Then, `AES` is using the mapping feature to reach the endpoints. 
+If pinging `quote.starterkits.online` or `echo.starterkits.online` in the terminal you can see that packets are being sent to the `AES` external `IP`. Then, `AES` is using the mapping feature to reach the endpoints. 
 
 ```shell
 kubectl get svc -n ambassador 
@@ -423,13 +438,13 @@ ambassador-redis   ClusterIP      10.245.9.81    <none>           6379/TCP      
 ```
 
 ```shell
-ping quote.mandrakee.xyz
+ping quote.starterkits.online
 ```
 
 The output looks similar to the following:
 
 ```
-PING quote.mandrakee.xyz (68.183.252.190): 56 data bytes
+PING quote.starterkits.online (68.183.252.190): 56 data bytes
 64 bytes from 68.183.252.190: icmp_seq=0 ttl=54 time=199.863 ms
 64 bytes from 68.183.252.190: icmp_seq=1 ttl=54 time=202.999 ms
 ...
@@ -440,14 +455,14 @@ As explained above, notice that it hits the `AES` external IP (`68.183.252.190`)
 Test the backend services now via `curl`, using the `quote` service first. You can also inspect and see the results in a web browser if desired.
 
 ```shell
-curl -Li http://quote.mandrakee.xyz/quote/
+curl -Li http://quote.starterkits.online/quote/
 ```
 
 The output looks similar to the following (notice how it automatically redirects and uses `https` instead):
 
 ```
 HTTP/1.1 301 Moved Permanently
-location: https://quote.mandrakee.xyz/quote/
+location: https://quote.starterkits.online/quote/
 date: Thu, 12 Aug 2021 18:28:43 GMT
 server: envoy
 content-length: 0
@@ -469,13 +484,13 @@ server: envoy
 Let's do the same for the `echo` service:
 
 ```shell
-curl -Li http://echo.mandrakee.xyz/echo/
+curl -Li http://echo.starterkits.online/echo/
 ```
 
 The output looks similar to the following (notice how it automatically redirects and uses `https` instead):
 ```
 HTTP/1.1 301 Moved Permanently
-location: https://echo.mandrakee.xyz/echo/
+location: https://echo.starterkits.online/echo/
 date: Thu, 12 Aug 2021 18:31:27 GMT
 server: envoy
 content-length: 0
@@ -491,7 +506,7 @@ Request served by echo-5d5bdf99cf-cq8nh
 
 HTTP/1.1 GET /
 
-Host: echo.mandrakee.xyz
+Host: echo.starterkits.online
 X-Forwarded-Proto: https
 X-Envoy-Internal: true
 X-Request-Id: 07afec17-4535-4157-bf5f-ad19dafb7bff
@@ -507,7 +522,104 @@ Given that proxy protocol is configured, you should see the original `client IP`
 
 If everything looks like above, you configured the `Ambassador Edge Stack` successfully. 
 
-`Monitoring` and `Logging` is a very important aspect of every `production ready` system. In the next section you will learn how to enable it via `Prometheus` and `Loki` for the `AES` stack as well as other backend services.
+### Performance Considerations for the AES
+
+The performance of `Ambassador Edge Stack's` control plane can be characterized along a number of different `dimensions`. The following list contains each `dimension` that has an impact at the application level:
+
+* The number of `TLSContext` resources.
+* The number of `Host` resources.
+* The number of `Mapping` resources per Host resource.
+* The number of `unconstrained Mapping resources` (these will apply to all `Host` resources).
+
+Taking each key factor from above into consideration and mapping it to the Kubernetes realm, it means that you need to adjust the `requests` and `limits` for the deployment pods, and/or the `replica` count. When it comes to scaling, `Kubernetes` will generally kill an `Ambassador Edge Stack` pod for one of two reasons: `exceeding memory limits` or `failed liveness/readiness` probes.
+
+`Ambassador Edge Stack` can `grow` in terms of `memory usage` so it's very likely to get the application pods killed because of `OOM` issues. Having a system for indexing application logs comes very handy in this situation (covered in more detail in [Section 5 - Logs Aggregation via Loki Stack](../5-setup-loki-stack)). 
+
+In general you should try to keep AES `memory usage` below `50%` of the pod's `limit`. This may seem like a generous safety margin, but when reconfiguration occurs, `Ambassador Edge Stack` requires `additional memory to avoid disrupting active connections`.
+
+Going further, what you can do on the `Kubernetes` side is to adjust the `replica count` and resource `requests` for pods. 
+
+**Adjusting the replica count**
+
+Based on our findings, a value of `2`, should suffice in case of small development environments.
+
+In the next part, you're going to scale the deployment via `Helm` and adjust the `replicaCount` field by editing the [ambassador-values.yaml](res/manifests/ambassador-values.yaml) file provided in this `Git` repository.
+
+Steps to follow:
+
+1. Change directory where this `Git` repository was cloned.
+2. Search for the [replicaCount](res/manifests/ambassador-values.yaml#L14) line and change the value to `2`. 
+3. Run a `Helm` upgrade:
+
+    ```shell
+    helm upgrade ambassador datawire/ambassador --version 6.7.13 \
+        --namespace ambassador \
+        -f 3-setup-ingress-ambassador/res/manifests/ambassador-values.yaml
+    ```
+4. After a while, check the `ambassador` deployment:
+
+    ```shell
+    kubectl get deployments -n ambassador
+    ```
+
+    The output looks similar to:
+
+    ```
+    NAME               READY   UP-TO-DATE   AVAILABLE   AGE
+    ambassador         2/2     3            3           6d3h
+    ambassador-agent   1/1     1            1           6d3h
+    ambassador-redis   1/1     1            1           6d3h
+    ```
+
+**Adjusting pods resource requests**
+
+Based on our findings, the requests for memory should be adjusted to a value of `200m`, which cover most development needs in general. 
+
+In the next part, you're going to adjust memory requests via `Helm` and adjust the `memory` requests field by editing the [ambassador-values.yaml](res/manifests/ambassador-values.yaml) file provided in this `Git` repository.
+
+Steps to follow:
+
+1. Change directory where this `Git` repository was cloned.
+2. Search for the [memory requests](res/manifests/ambassador-values.yaml#L288) line and change the value to `200Mi`. 
+3. Run a `Helm` upgrade:
+
+    ```shell
+    helm upgrade ambassador datawire/ambassador --version 6.7.13 \
+        --namespace ambassador \
+        -f 3-setup-ingress-ambassador/res/manifests/ambassador-values.yaml
+    ```
+4. Check the memory requests new value - it should say `200Mi` (look in the `Containers` section from the command output):
+
+    ```shell
+    kubectl describe deployment ambassador -n ambassador
+    ```
+
+    The output looks similar to:
+
+    ```
+    ...
+    Containers:
+      ambassador:
+       Image:       docker.io/datawire/aes:1.13.10
+       Ports:       8080/TCP, 8443/TCP, 8877/TCP
+       Host Ports:  0/TCP, 0/TCP, 0/TCP
+       Limits:
+         cpu:     1
+         memory:  600Mi
+       Requests:
+         cpu:      200m
+         memory:   200Mi
+    ...
+    ```
+
+Another way of finding and setting the right values for requests/limits, is to evaluate `Ambassador` for a period of time (a few days or so). Then, you can run statistical queries via `Prometheus` and find the best values for your use case. A good article to read on this topic can be found [here](https://blog.kubecost.com/blog/requests-and-limits).
+
+For more information about performance tuning please visit the [AES Performance and Scaling](https://www.getambassador.io/docs/edge-stack/latest/topics/running/scaling) official documentation page.
+
+
+**Next steps**
+
+`Monitoring` and `Logging` is a very important aspect of every `production ready` system. In the sections to follow, you will learn how to enable it via `Prometheus` and `Loki` for the `AES` stack as well as other backend services.
 
 Go to [Section 4 - Set up Prometheus Stack](../4-setup-prometheus-stack)
 

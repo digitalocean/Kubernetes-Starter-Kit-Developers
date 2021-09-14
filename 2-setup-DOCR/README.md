@@ -22,4 +22,8 @@ registry-bg-reg-1   kubernetes.io/dockerconfigjson   1      13s
 
 This creates the above secret in the `default` namespace. 
 
+**Next steps**
+
+This concludes the `DOCR` setup. In the next section, you will learn how to set up an `Ingress` controller and some sample `backend` applications to serve content from, by making use of the `Ambassador Edge Stack` solution.
+
 Go to [Section 3 - Ingress using Ambassador](../3-setup-ingress-ambassador)

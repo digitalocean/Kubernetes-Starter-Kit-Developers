@@ -1,0 +1,19 @@
+<LifecycleConfiguration xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+  <Rule>
+    <ID>Expire old 'fake' data</ID>
+    <Prefix>fake/</Prefix>
+    <Status>Enabled</Status>
+    <Expiration>
+      <Days>10</Days>
+    </Expiration>
+  </Rule>
+
+  <Rule>
+    <ID>Expire old 'index' data</ID>
+    <Prefix>index/</Prefix>
+    <Status>Enabled</Status>
+    <Expiration>
+      <Days>10</Days>
+    </Expiration>
+  </Rule>
+</LifecycleConfiguration>
