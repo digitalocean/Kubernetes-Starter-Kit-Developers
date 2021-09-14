@@ -71,4 +71,8 @@ basicnp-865xu   Ready    <none>   2m56s   v1.20.7
 ~ 
 ```
 
+**Next steps**
+
+This concludes the `DOKS` cluster setup. In the next section, you will learn how to set up a private `Docker` registry by using the `DigitalOcean Container Registry` (DOCR).
+
 Go to [Section 2 - Setting up DOCR](../2-setup-DOCR)

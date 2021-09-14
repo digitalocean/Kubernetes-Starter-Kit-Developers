@@ -6,5 +6,5 @@ metadata:
   namespace: ambassador
 spec:
   prefix: /quote/
-  host: quote.mandrakee.xyz
+  host: quote.starterkits.online
   service: quote.backend

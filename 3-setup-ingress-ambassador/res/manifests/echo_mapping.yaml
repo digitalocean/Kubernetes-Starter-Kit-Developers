@@ -6,5 +6,5 @@ metadata:
   namespace: ambassador
 spec:
   prefix: /echo/
-  host: echo.mandrakee.xyz
+  host: echo.starterkits.online
   service: echo.backend
