@@ -108,7 +108,7 @@ Creating above rules helps us to understand our cluster needs and health conditi
 
 when you visit  `http://localhost:9093/alerts`, you can see that one of the created rules by yourself when you make filtering.
 
-[AlertManager Filtering](res/img/alertmanager-filtering.png)
+![AlertManager Filtering](res/img/alertmanager-filtering.png)
 
 #### Notification By Slack
 
@@ -182,7 +182,7 @@ Running Notification:
 9. write `it is a kind of test for starterkit` as a message.
 10. Test and Save.
 
-[Grafana Alert and Slack Notify](res/img/alertmanager-grafana-slack.png)
+![Grafana Alert and Slack Notify](res/img/alertmanager-grafana-slack.png)
 
 
  When defining our alert rules helping you how to connect Grafana to Slack, so that alerts in Grafana create notifications like above picture. For more detail [Please visit Grafana page ,Step-by-step guide to setting up Prometheus Alertmanager with Slack, PagerDuty, and Gmail](https://grafana.com/blog/2020/02/25/step-by-step-guide-to-setting-up-prometheus-alertmanager-with-slack-pagerduty-and-gmail/)
