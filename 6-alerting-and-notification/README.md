@@ -113,8 +113,8 @@ when you visit  `http://localhost:9093/alerts`, you can see that one of the crea
 
 1. Add the `config` part should include `slack_api_url`, `routes` and `slack_config` parts:
 
-  ```
-  alertmanager:
+ ```
+ alertmanager:
   config:
     global:
       resolve_timeout: 5m
