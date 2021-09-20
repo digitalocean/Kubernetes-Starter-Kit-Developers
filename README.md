@@ -43,7 +43,11 @@ For every service that gets deployed, we will enable metrics and logs. At the en
 
 Note: For this starter kit, we recommend to start with a nodepool of higher capacity nodes (say, 4cpu/8gb RAM) and have 2 nodes. Otherwise, review and allocate node capacity if you run into pods in PENDING state.
 <br/><br/>
+This tutorial will use manifest files from this repo. It is recomended to clone this repository to your local environment. The below command can be used to clone this repository.
 
+   ```shell
+    git clone https://github.com/digitalocean/Kubernetes-Starter-Kit-Developers.git
+   ```
 If you want to automate installation for all the components, refer to [section 15 - Automate with terraform & flux](15-automate-with-terraform-flux).
 
 Go to [Section 1 - Set up DigitalOcean Kubernetes](1-setup-DOKS).

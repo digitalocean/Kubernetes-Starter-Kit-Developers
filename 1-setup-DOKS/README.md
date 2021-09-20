@@ -32,7 +32,7 @@ In the example below, we create 4cpu/8gb basic nodes ($40/month), 2 default, and
 --maintenance-window "saturday=21:00" \
 --node-pool "name=basicnp;size=s-4vcpu-8gb;count=3;tag=cluster2;label=type=basic;auto-scale=true;min-nodes=2;max-nodes=4" \
 --region nyc1 \
---tag k8s:ha \
+--tag k8s:ha 
 
 Notice: Cluster is provisioning, waiting for cluster to be running
 ..................................................................
