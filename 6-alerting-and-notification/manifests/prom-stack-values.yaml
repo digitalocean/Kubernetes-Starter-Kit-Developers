@@ -80,7 +80,7 @@ additionalPrometheusRules:
      rules:
      - alert: InstanceDown
        # Condition for alerting
-       expr: sum(kube_pod_owner{namespace="ambassador"}) by (namespace) < 5
+       expr: sum(kube_pod_owner{namespace="ambassador"}) by (namespace) >= 5
        for: 1m
        # Annotation - additional informational labels to store more information
        annotations:
@@ -182,23 +182,25 @@ alertmanager:
   config:
     global:
       resolve_timeout: 5m
-      slack_api_url: "https://hooks.slack.com/services/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"
+      slack_api_url: "https://hooks.slack.com/services/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"
     route:
       group_by: ['job']
       group_wait: 30s
-      group_interval: 5m
-      repeat_interval: 24h
+      group_interval: 1m
+      repeat_interval: 5m
       routes:
       - match:
+          alertname: InstanceDown
         receiver: 'slack'
         continue: true
     receivers:
+    - name: 'null'
     - name: 'slack'
       slack_configs:
       - channel: '#promalerts'
         send_resolved: false
         title: '[{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] Monitoring Event Notification'
-        text: "this is a test from blueprint team from Digital Ocean"
+        text: "this is a test of StarterKit"
 
   ## Pass the Alertmanager configuration directives through Helm's templating
   ## engine. If the Alertmanager configuration contains Alertmanager templates,
