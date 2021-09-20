@@ -2,7 +2,6 @@
 
 ### Table of contents
 
-<<<<<<< HEAD
 - [Ingress using Ambassador](#ingress-using-ambassador)
   - [Table of contents](#table-of-contents)
   - [Options for Load Balancer and Ingress](#options-for-load-balancer-and-ingress)
@@ -14,21 +13,10 @@
   - [Configuring AES Mappings for Hosts](#configuring-aes-mappings-for-hosts)
   - [Enabling Proxy Protocol](#enabling-proxy-protocol)
   - [Verifying the AES Setup](#verifying-the-aes-setup)
+  - [Performance Considerations for the AES](#performance-considerations-for-the-aes)
   - [Performance Improvement for the AES](#performance-improvement-for-the-aes)
     - [Reducing `replicas` from `3` to `2`](#reducing-replicas-from-3-to-2)
     - [Adjusting `Requests` and `Limits`](#adjusting-requests-and-limits)
-=======
-- [Options for Load Balancer and Ingress](#options-for-load-balancer-and-ingress)
-- [Ambassador Edge Stack Overview](#ambassador-edge-stack-overview)
-- [Ambassador Edge Stack Deployment](#ambassador-edge-stack-deployment)
-- [Defining the Domain and Hosts](#defining-the-domain-and-hosts)
-- [Configuring Domain Mappings](#configuring-domain-mappings)
-- [Creating AES Backend Services](#creating-aes-backend-services)
-- [Configuring AES Mappings for Hosts](#configuring-aes-mappings-for-hosts)
-- [Enabling Proxy Protocol](#enabling-proxy-protocol)
-- [Verifying the AES Setup](#verifying-the-aes-setup)
-- [Performance Considerations for the AES](#performance-considerations-for-the-aes)
->>>>>>> 2c2123e124ca3d98ac3762859f9324d77dc5034f
 
 
 ### Options for Load Balancer and Ingress
