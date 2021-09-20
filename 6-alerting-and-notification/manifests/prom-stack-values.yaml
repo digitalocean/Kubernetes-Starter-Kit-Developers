@@ -79,35 +79,15 @@ additionalPrometheusRules:
    - name: AllInstances
      rules:
      - alert: InstanceDown
-       # Condition for alerting
-       expr: sum(kube_pod_owner{namespace="ambassador"}) by (namespace) >= 5
+       expr: sum(kube_pod_owner{namespace="ambassador"}) by (namespace) < 5
        for: 1m
-       # Annotation - additional informational labels to store more information
        annotations:
          title: 'Instance {{ $labels.instance }} down'
          description: '{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 1 minute.'
-       # Labels - additional labels to be attached to the alert
        labels:
          severity: 'critical'
-     - alert: PrometheusJobMissing
-       expr: absent(up{job="prometheus"})
-       for: 1m
-       labels:
-         severity: warning
-       annotations:
-         summary: Prometheus job missing (instance {{ $labels.instance }})
-         description: "A Prometheus job has disappeared\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
-     - alert: PrometheusAllTargetsMissing
-       expr: count by (job) (up) != 0
-       for: 0m
-       labels:
-         severity: critical
-       annotations:
-         summary: Prometheus all targets missing (instance {{ $labels.instance }})
-         description: "A Prometheus job does not have living target anymore.\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
-
-
-        
+    
+ 
 
 ## Provide custom recording or alerting rules to be deployed into the cluster.
 ##
@@ -182,7 +162,7 @@ alertmanager:
   config:
     global:
       resolve_timeout: 5m
-      slack_api_url: "https://hooks.slack.com/services/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"
+      slack_api_url: "https://hooks.slack.com/services/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"
     route:
       group_by: ['job']
       group_wait: 30s
