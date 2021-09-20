@@ -200,7 +200,7 @@ alertmanager:
       - channel: '#promalerts'
         send_resolved: false
         title: '[{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] Monitoring Event Notification'
-        text: "this is a test of StarterKit"
+        text: "ambassador pod(s) is down for more than 1 minute."
 
   ## Pass the Alertmanager configuration directives through Helm's templating
   ## engine. If the Alertmanager configuration contains Alertmanager templates,
