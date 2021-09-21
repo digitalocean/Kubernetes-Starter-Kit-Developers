@@ -2,24 +2,12 @@
 
 ### Table of contents
 
-<<<<<<< HEAD
-- [Prometheus Monitoring Stack](#prometheus-monitoring-stack)
-  - [Table of contents](#table-of-contents)
-  - [Overview](#overview)
-  - [Installing Prometheus Stack](#installing-prometheus-stack)
-  - [Configure Prometheus and Grafana](#configure-prometheus-and-grafana)
-  - [PromQL (Prometheus Query Language)](#promql-prometheus-query-language)
-  - [Grafana](#grafana)
-  - [Performance Improvements for Prometheus](#performance-improvements-for-prometheus)
-  - [Persistence Storage for Prometheus](#persistence-storage-for-prometheus)
-=======
 - [Overview](#overview)
 - [Installing Prometheus Stack](#installing-prometheus-stack)
 - [Configure Prometheus and Grafana](#configure-prometheus-and-grafana)
 - [PromQL (Prometheus Query Language)](#promql-prometheus-query-language)
 - [Grafana](#grafana)
 - [Configuring Persistent Storage for Prometheus](#configuring-persistent-storage-for-prometheus)
->>>>>>> 2c2123e124ca3d98ac3762859f9324d77dc5034f
 
 
 ### Overview
@@ -421,43 +409,3 @@ Please follow the official [Operational Aspects](https://prometheus.io/docs/prom
 This concludes the `Prometheus` stack setup. In the next section, you will learn about `logs` collection and aggregation via `Loki`.
 
 Go to [Section 5 - Logs Aggregation via Loki Stack](../5-setup-loki-stack)
-
-
-### Performance Improvements for Prometheus
-Metric recording and `Alert rules` are now maintained in an hierarchical manner and allow more accurate aggregations and alerting, avoiding race conditions.On the other hand , it creates some costs for your `CPU` and `memory`.The ``Alertmanager` then manages those `alerts`, including `silencing`,`inhibition`, `aggregation`, `sending out notifications via methods such as email`, `on-call notification systems`, and `chat platforms`. Because of that, if you use Alert Manager rarely, you can switch off `alertmanager` by changing enabled property with false. It makes your bill reduced and creates more space for your application.
-
-```
-alertmanager:
-
-  ## Deploy alertmanager
-  ##
-  enabled: false
-```
-and then , please use `upgrade` method by helming.
-
-```
-helm upgrade kube-prom-stack prometheus-community/kube-prometheus-stack -n monitoring --version 17.1.3 -f prom-stack-values.yaml
-```
-After that, When you check your `Grafana` Dashboard (`Compute Resources / Namespace (Pods)`), you will that your earning as memory and CPU. 
-
-
-### Persistence Storage for Prometheus
-
-Enable persistent storage for Prometheus, Grafana, and Alertmanager so that their data persists across Pod restarts. Behind the scenes, this defines a 5 Gi Persistent Volume Claim (PVC) for each component, using the DigitalOcean Block Storage storage class. You should modify the size of these PVCs to suit your monitoring storage needs. To learn more about PVCs, consult Persistent Volumes from the official Kubernetes docs.
-
-```
-storageSpec:
-      volumeClaimTemplate:
-        spec:
-          storageClassName: do-block-storage
-          accessModes: ["ReadWriteOnce"]
-          resources:
-            requests:
-              storage: 5Gi
-```
-
-Copy and paste in `prom-stack-values.yaml` with the above custom values, which enable persistent storage in Digital Ocean default storageClass called `do-block-atorage` for the Prometheus.Also you have to disable `etcd: false` and `kubeScheduler: false`. And then you have to upgrade again for each changes.
-
-```
-helm upgrade kube-prom-stack prometheus-community/kube-prometheus-stack -n monitoring --version 17.1.3 -f prom-stack-values.yaml
-```

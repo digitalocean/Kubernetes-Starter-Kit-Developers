@@ -25,10 +25,9 @@ Below is a diagram that gives a high-level overview of the setup presented in th
 4. [Ingress Using Ambassador](3-setup-ingress-ambassador)
 5. [Prometheus Monitoring Stack](4-setup-prometheus-stack)
 6. [Logs Aggregation via Loki Stack](5-setup-loki-stack)
-7. [Alerting and Notifications](6-alerting-and-notification)
-8. [Backup Using Velero](7-setup-velero)
-9. [Estimate resource usage of starter kit](14-starter-kit-resource-usage)
-10. [Automate Everything Using Terraform and Flux](15-automate-with-terraform-flux)
+7. [Backup Using Velero](6-setup-velero)
+8. [Estimate resource usage of starter kit](14-starter-kit-resource-usage)
+9. [Automate Everything Using Terraform and Flux](15-automate-with-terraform-flux)
 
 
 ## Scope

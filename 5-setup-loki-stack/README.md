@@ -2,22 +2,12 @@
 
 ### Table of contents
 
-<<<<<<< HEAD
-- [Logs Aggregation via Loki Stack](#logs-aggregation-via-loki-stack)
-  - [Table of contents](#table-of-contents)
-  - [Overview](#overview)
-  - [Installing LOKI](#installing-loki)
-  - [Configure Grafana with Loki](#configure-grafana-with-loki)
-  - [Promtail](#promtail)
-  - [LogQL](#logql)
-=======
 - [Overview](#overview)
 - [Installing LOKI](#installing-loki)
 - [Configure Grafana with Loki](#configure-grafana-with-loki)
 - [Promtail](#promtail)
 - [LogQL](#logql)
 - [Setting Persistent Storage for Loki](#setting-persistent-storage-for-loki)
->>>>>>> 2c2123e124ca3d98ac3762859f9324d77dc5034f
 
 
 ### Overview
@@ -403,5 +393,3 @@ This concludes the `Loki` setup. For more details and in depth explanations plea
 In the next section, you will learn how to perform backups of your system as well as doing restores via `Velero`.
 
 Go to [Section 6 - Backup Using Velero](../6-setup-velero)
-
-
