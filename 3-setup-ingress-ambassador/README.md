@@ -207,11 +207,11 @@ Let's add some `A` records now for the hosts created earlier. First, you need to
 doctl compute load-balancer list
 ```
 
-Then add the records (please replace the `<>` placheholders accordingly):
+Then add the records (please replace the `<>` placheholders accordingly). You can change the TTL value as per your requiremt.:
 
 ```shell
-doctl compute domain records create starterkits.online --record-type "A" --record-name "echo" --record-data "<your_lb_ip_address>"
-doctl compute domain records create starterkits.online --record-type "A" --record-name "quote" --record-data "<your_lb_ip_address>"
+doctl compute domain records create starterkits.online --record-type "A" --record-name "echo" --record-data "<your_lb_ip_address>" --record-ttl "30"
+doctl compute domain records create starterkits.online --record-type "A" --record-name "quote" --record-data "<your_lb_ip_address>" --record-ttl "30"
 ```
 
 **Note:**
@@ -220,8 +220,8 @@ If you have only one `LB` in your account then this snippet should help:
 
 ```shell
 LOAD_BALANCER_IP=$(doctl compute load-balancer list --format IP --no-header)
-doctl compute domain records create starterkits.online --record-type "A" --record-name "echo" --record-data "$LOAD_BALANCER_IP"
-doctl compute domain records create starterkits.online --record-type "A" --record-name "quote" --record-data "$LOAD_BALANCER_IP"
+doctl compute domain records create starterkits.online --record-type "A" --record-name "echo" --record-data "$LOAD_BALANCER_IP" --record-ttl "30"
+doctl compute domain records create starterkits.online --record-type "A" --record-name "quote" --record-data "$LOAD_BALANCER_IP" --record-ttl "30"
 ```
 
 **Observation and results:**

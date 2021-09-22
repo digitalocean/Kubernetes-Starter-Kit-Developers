@@ -195,7 +195,7 @@ Navigating to the `Status -> Targets` page should give the following result (not
 
 **Note:**
 
-There are **3 entries** under the discovered target because the `AES` deployment consists of 3 `Pods`. Verify it via:
+There are **2 entries** under the discovered target because the `AES` deployment consists of 2 `Pods`. Verify it via:
 
 ```shell
 kubectl get deployments -n ambassador
@@ -205,9 +205,9 @@ The output looks similar to the following (notice the `ambassador` line):
 
 ```
 NAME               READY   UP-TO-DATE   AVAILABLE   AGE
-ambassador         3/3     3            3           3d3h
-ambassador-agent   1/1     1            1           3d3h
-ambassador-redis   1/1     1            1           3d3h
+ambassador         2/2     2            2           4d17h
+ambassador-agent   1/1     1            1           4d17h
+ambassador-redis   1/1     1            1           4d17h
 ```
 
 In the next section you'll discover `PromQL` along with some simple examples in order to get a basic understanding of its powerful features.
