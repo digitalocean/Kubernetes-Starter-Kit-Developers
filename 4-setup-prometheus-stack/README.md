@@ -12,13 +12,13 @@
 
 ### Overview
 
-So, why `Prometheus` in the first place? 
+So, why `Prometheus` in the first place?
 
 Because it supports `multidimensional data collection` and `data queuing`, it's reliable and allows customers to quickly diagnose problems. Since each server is independent, it can be leaned on when other infrastructure is damaged, without requiring additional infrastructure. It also integrates very well with the `Kubernetes` model and way of working and that's a big plus as well.
 
 `Prometheus` follows a `pull` model when it comes to metrics gathering meaning that it expects a `/metrics` endpoint to be exposed by the service in question for scraping. 
 
-In this tutorial you'll install and configure `Prometheus` to monitor the `AES` stack and not only - `Kubernetes` cluster state metrics is an extra bonus! You'll configure `Grafana` as well to visualise metrics.
+In this tutorial you'll install and configure `Prometheus` to monitor the `AES` stack and not only - `Kubernetes` cluster state metrics is an extra bonus! You'll configure `Grafana` as well to visualize metrics.
 
 In the end, this is how the setup will look like (`AES` + `Prometheus` + `Grafana`):
 
@@ -33,7 +33,8 @@ You will install the `kube-prometheus` stack using `Helm`, which is an opinionat
 
 Steps to follow:
 
-1. Add the `Helm` repo and list the available charts:
+1. Clone the `Starter Kit` repository and change directory to your local copy.
+2. Add the `Helm` repo and list the available charts:
 
     ```
     helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
@@ -52,42 +53,34 @@ Steps to follow:
 
     **Note:**
 
-    The chart of interes is `prometheus-community/kube-prometheus-stack`, which will install `Prometheus`, `Promtail`, `Alertmanager` and `Grafana` on the cluster. Please visit the [kube-prometheus-stack](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack) page for more details about this chart.
-2. Fetch and inspect the `values.yaml` file:
+    The chart of interest is `prometheus-community/kube-prometheus-stack`, which will install `Prometheus`, `Promtail`, `Alertmanager` and `Grafana` on the cluster. Please visit the [kube-prometheus-stack](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack) page for more details about this chart.
+3. Edit the `4-setup-prometheus-stack/res/manifests/prom-stack-values-v17.1.3.yaml` file provided in the `Starter Kit` repository, to disable metrics for `etcd` and `kubeScheduler` (set their corresponding values to `false`). Those components are managed by `DOKS` and are not accessible to `Prometheus`. Note that we're keeping the `storage` to be `emptyDir`. It means the **storage will be gone** if `Prometheus` pods restart.
+4. Next, install the `kube-prometheus-stack`:
 
     ```shell
-    helm show values prometheus-community/kube-prometheus-stack --version 17.1.3 > prom-stack-values.yaml
-    ```
+    HELM_CHART_VERSION="17.1.3"
 
-    **Hint:**
-
-    * It's good practice in general to fetch the values file and inspect it to see what options are available. This way, you can keep for example only the features that you need for your project and disable others to save on resources.
-3. Modify the `prom-stack-values.yaml` file to disable metrics for `etcd` and `kubeScheduler` (set their corresponding values to `false`). Those components are managed by `DOKS` and are not accessible to `Prometheus`. Note that we're keeping the `storage` to be `emptyDir`. It means the **storage will be gone** if `Prometheus` pods restart. For your convenience, the [prom-stack-values.yaml](res/manifests/prom-stack-values.yaml) file provided in this `Git` repository, contains the required changes already.
-4. Change directory where this repository was cloned and install the `kube-prometheus-stack`:
-
-    ```
-    helm install kube-prom-stack prometheus-community/kube-prometheus-stack --version 17.1.3 \
-    --namespace monitoring \
-    --create-namespace \
-    -f 4-setup-prometheus-stack/res/manifests/prom-stack-values.yaml
+    helm install kube-prom-stack prometheus-community/kube-prometheus-stack --version "${HELM_CHART_VERSION}" \
+      --namespace monitoring \
+      --create-namespace \
+      -f "4-setup-prometheus-stack/res/manifests/prom-stack-values-v${HELM_CHART_VERSION}.yaml"
     ```
 
     **Note:**
 
-    A `specific` version for the `Helm` chart is used in this tutorial (`17.1.3`). It's good practice in general to lock on a specific version or range (e.g. `^17.1.3`). This helps to avoid future issues caused by breaking changes introduced in major version releases. On the other hand, it doesn't mean that a future major version ugrade is not an option. You need to make sure that the new version is tested first. Having a good strategy in place for backups and snapshots becomes handy here (covered in more detail in [Section 6 - Backup Using Velero](../6-setup-velero)).
+    A `specific` version for the `Helm` chart is used in this tutorial (`17.1.3`). It's good practice in general to lock on a specific version or range (e.g. `^17.1.3`). This approach helps to have predictable results, and to avoid future issues caused by breaking changes introduced in major version releases. On the other hand, it doesn't mean that a future major version ugrade is not an option. You need to make sure that the new version is tested first. Having a good strategy in place for backups and snapshots becomes handy here (covered in more detail in [Section 6 - Backup Using Velero](../6-setup-velero)).
 
-Now you can connect to `Grafana` (`admin/prom-operator`, see `prom-stack-values.yaml`) by port forwarding to local machine. Once in, you can go to dashboards - manage, and choose different dashboards.  You should NOT expose grafana to public network (eg. create an ingress mapping or LB service) with default login/password.
+Now you can connect to `Grafana` (`admin/prom-operator`, see `prom-stack-values` file) by port forwarding to local machine. Once in, you can go to dashboards - manage, and choose different dashboards.  You should **NOT** expose Grafana to public network (eg. create an ingress mapping or LB service) with default login/password.
 
 ```
 kubectl --namespace monitoring port-forward svc/kube-prom-stack-grafana 3000:80
 ```
 
-**Hints:**
+**Hint:**
 
-* `Grafana` installation comes with a number of dashboards. Review those by going to `Grafana -> Dashboards -> Manage`.
-* Please keep the `prom-stack-values.yaml` file because it reflects the current state of the deployment (we need it later on as well).
+`Grafana` installation comes with a number of dashboards. Review those by going to `Grafana -> Dashboards -> Manage`.
 
-In the next part you will discover how to set up Prometheus to discover targets for monitoring. As an example, the `Ambassador Edge Stack` will be used. You'll learn what a `ServiceMonitor` is, as well.
+In the next part, you will discover how to set up `Prometheus` to discover targets for monitoring. As an example, the `Ambassador Edge Stack` will be used. You'll learn what a `ServiceMonitor` is, as well.
 
 
 ### Configure Prometheus and Grafana
@@ -117,7 +110,7 @@ Then it's just a matter of invoking the `port-forward` subcommand of `kubectl` f
 kubectl port-forward svc/ambassador-admin 8877:8877 -n ambassador
 ```
 
-The exposed metrics can be visualised using the web browser on [localhost](http://localhost:8877/metrics) or via a simple `curl` command like this:
+The exposed metrics can be visualized using the web browser on [localhost](http://localhost:8877/metrics) or via a simple `curl` command like this:
 
 ```
 curl -s http://localhost:8877/metrics
@@ -137,6 +130,7 @@ envoy_cluster_assignment_stale{envoy_cluster_name="xds_cluster"} 0
 ```
 
 Next, connect `Prometheus` to this new `target`. There are several ways of achieving this:
+
 * [<static_config>](https://prometheus.io/docs/prometheus/latest/configuration/configuration/#static_config) - allows specifying a list of targets and a common label set for them.
 * [<kubernetes_sd_config>](https://prometheus.io/docs/prometheus/latest/configuration/configuration/#kubernetes_sd_config) - allows retrieving scrape targets from `Kubernetes' REST API` and always staying synchronized with the cluster state.
 * [Prometheus Operator](https://github.com/prometheus-operator/prometheus-operator) - simplifies `Prometheus` monitoring inside a `Kubernetes` cluster via `CRDs`.
@@ -145,13 +139,14 @@ As you can see, there are many ways to tell `Prometheus` to scrape an endpoint, 
 Good news is that you already have access to the `Prometheus Operator` because it comes bundled into the [Prometheus Monitoring Stack](#installing-prometheus-stack) installed earlier. So, you're going to focus on it in the next steps and see how easy it is to add a new scraping endpoint for `Prometheus` to use. On top of that, managing the [kube-prometheus-stack](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack) via `Helm` simplifies things even more.
 A really cool feature of `Prometheus Operator` is the `ServiceMonitor` CRD which lets us define a new target for monitoring.
 
-Let's configure it right now and see how it works. You're going to use the `prom-stack-values.yaml` file downloaded earlier. Open it using a text editor of your choice (it's recommended to have one that has `YAML` linting support).
+Let's configure it right now and see how it works. You're going to use the `prom-stack-values-v17.1.3.yaml` file downloaded earlier. Open it using a text editor of your choice (it's recommended to have one that has `YAML` linting support).
 
-There are only two steps needed in order to add a new service for monitoring:
+There are only two steps needed, in order to add a new service for monitoring:
 
-1. Add a new `ServiceMonitor` in the `prom-stack-values.yaml` values file. Make sure to adjust the `YAML` indentation, and add a new entry in the `additionalServiceMonitors` array, as seen below. For your convenience, you can use the [prom-stack-values.yaml](res/manifests/prom-stack-values.yaml#L2441) file that comes with this `Git` repository. Just uncomment the following section (search for the `# Add the Ambassador Service for monitoring` comment):
+1. Change directory where the `Starter Kit` Git repository was cloned.
+2. Edit the `4-setup-prometheus-stack/res/manifests/prom-stack-values-v17.1.3.yaml` file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support). Uncomment the following section (search for the `# Add the Ambassador Service for monitoring` comment):
 
-    ```
+    ```yaml
     additionalServiceMonitors:
       - name: "ambassador-monitor"
         selector:
@@ -173,23 +168,25 @@ There are only two steps needed in order to add a new service for monitoring:
     * `port` - can be a literal port `number` as defined in the `ambassador-metrics` service or a reference to the port `name`. 
     * `namespaceSelector` - here, you want to match the namespace of the `Ambassador Metrics Service` we have just created via the `matchNames` key.
 
-2. Apply the changes via `Helm`:
+3. Apply the changes via `Helm`:
    
     ```shell
-    helm upgrade kube-prom-stack prometheus-community/kube-prometheus-stack --version 17.1.3 \
-      -n monitoring \
-      -f 4-setup-prometheus-stack/res/manifests/prom-stack-values.yaml
+    HELM_CHART_VERSION="17.1.3"
+
+    helm upgrade kube-prom-stack prometheus-community/kube-prometheus-stack --version "${HELM_CHART_VERSION}" \
+      --namespace monitoring \
+      -f "4-setup-prometheus-stack/res/manifests/prom-stack-values-v${HELM_CHART_VERSION}.yaml"
     ```
 
 **Observation and Results:**
 
-That's it! You can inspect now the `Ambassador` target that was added to `Prometheus` for scraping. But first, a `port-forward` is needed, so that you can see it in the web interface:
+Please check if the `Ambassador` target is added to `Prometheus` for scraping:
 
 ```shell
 kubectl port-forward svc/kube-prom-stack-kube-prome-prometheus 9090:9090 -n monitoring
 ```
 
-Navigating to the `Status -> Targets` page should give the following result (notice the `serviceMonitor/monitoring/ambassador-monitor/0` path):
+By navigating to the `Status -> Targets` page, should give you the following result (notice the `serviceMonitor/monitoring/ambassador-monitor/0` path):
 
 ![Ambassador Prometheus Target](res/img/prom_amb_target.png)
 
@@ -267,7 +264,7 @@ This is just a very simple introduction to what `PromQL` is and what it's capabl
 
 ### Grafana
 
-Although `Prometheus` has some support for visualising data built in, a better way of doing it is via `Grafana` which is an open-source platform for monitoring and observability that lets you visualize and explore the state of your systems.
+Although `Prometheus` has some support for visualizing data built in, a better way of doing it is via `Grafana` which is an open-source platform for monitoring and observability that lets you visualize and explore the state of your systems.
 
 On the official page is described as being able to:
 
@@ -279,7 +276,7 @@ Because it's the leading open source monitoring and analytics platform available
 
 No extra steps are needed for installation because the [Prometheus Monitoring Stack](#installing-prometheus-stack) deployed earlier already took care of it. All you have to do is a port forwarding like below and get immediate access to the dashboards (default credentials: `admin/prom-monitor`):
 
-```
+```shell
 kubectl --namespace monitoring port-forward svc/kube-prom-stack-grafana 3000:80
 ```
 
@@ -317,13 +314,15 @@ curl -Lk https://quote.starterkits.online/quote/
 ```
 
 The output looks similar to the following:
-```
+
+```json
 {
     "server": "buoyant-pear-girnlk37",
     "quote": "A small mercy is nothing at all?",
     "time": "2021-08-11T18:18:56.654108372Z"
 }
 ```
+
 This concludes the `Grafana` setup. You can play around and add more panels for visualising other data sources, as well as group them together based on scope.
 
 
@@ -331,49 +330,54 @@ This concludes the `Grafana` setup. You can play around and add more panels for 
 
 In this section, you will learn how to enable `persistent storage` for `Prometheus`, so that relevant data is persisted across `Pod` restarts. You will define a `5 Gi Persistent Volume Claim` (PVC), using the `DigitalOcean Block Storage`. Later on, a quick and easy guide is provided on how to plan the size of the PVC to suit your monitoring storage needs. To learn more about `PVCs`, please consult the [Persistent Volumes](https://kubernetes.io/docs/concepts/storage/persistent-volumes) page from the official `Kubernetes` documentation.
 
-First, check what storage class is present. You must have one ready and available in order to proceed:
+Steps to follow:
 
-```shell
-kubectl get storageclass
-```
+1. First, check what storage class is available - you need one, in order to proceed:
 
-The output should look similar to:
+    ```shell
+    kubectl get storageclass
+    ```
 
-```
-NAME                         PROVISIONER                 RECLAIMPOLICY   VOLUMEBINDINGMODE   ALLOWVOLUMEEXPANSION   AGE
-do-block-storage (default)   dobs.csi.digitalocean.com   Delete          Immediate           true                   4d2h
-```
+    The output should look similar to:
 
-If the result looks like the one from above, you can proceed with the next steps.
+    ```text
+    NAME                         PROVISIONER                 RECLAIMPOLICY   VOLUMEBINDINGMODE   ALLOWVOLUMEEXPANSION   AGE
+    do-block-storage (default)   dobs.csi.digitalocean.com   Delete          Immediate           true                   4d2h
+    ```
 
-To enable `persistent` storage, the `storageSpec` must be defined for `Prometheus`, as seen below. For your convenience, the [prom-stack-values.yaml](res/manifests/prom-stack-values.yaml#L2241) file present in this `Git` repository, contains the changes already. Just uncomment the required section for Prometheus as seen below (search for the `# Prometheus StorageSpec for persistent data` comment):
+2. Change directory where the `Starter Kit` Git repository was cloned.
+3. Edit the `4-setup-prometheus-stack/res/manifests/prom-stack-values-v17.1.3.yaml` file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support). Search for the `storageSpec` line, and uncomment the required section for `Prometheus`.
 
-```
-storageSpec:
-  volumeClaimTemplate:
-    spec:
-      storageClassName: do-block-storage
-      accessModes: ["ReadWriteOnce"]
-      resources:
-        requests:
-          storage: 5Gi
-```
+    The `storageSpec` definition should look like:
 
-Explanations for the above configuration:
+    ```yaml
+    storageSpec:
+    volumeClaimTemplate:
+      spec:
+        storageClassName: do-block-storage
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 5Gi
+    ```
 
-* `volumeClaimTemplate` - defines a new `PVC`.
-* `storageClassName` - defines the storage class (should use the same value as from the `kubectl get storageclass` command output).
-* The `resources` section sets the storage requests value - in this case a total capacity of `5 Gi` is requested for the new volume.
+    Explanations for the above configuration:
 
-Apply the new setting with:
+    * `volumeClaimTemplate` - defines a new `PVC`.
+    * `storageClassName` - defines the storage class (should use the same value as from the `kubectl get storageclass` command output).
+    * The `resources` section sets the storage requests value - in this case a total capacity of `5 Gi` is requested for the new volume.
 
-```shell
-helm upgrade kube-prom-stack prometheus-community/kube-prometheus-stack --version 17.1.3 \
-  -n monitoring \
-  -f 4-setup-prometheus-stack/res/manifests/prom-stack-values.yaml
-```
+4. Apply the settings using `Helm`:
 
-Check the new PVC status:
+    ```shell
+    HELM_CHART_VERSION="17.1.3"
+
+    helm upgrade kube-prom-stack prometheus-community/kube-prometheus-stack --version "${HELM_CHART_VERSION}" \
+      --namespace monitoring \
+      -f "4-setup-prometheus-stack/res/manifests/prom-stack-values-v${HELM_CHART_VERSION}.yaml"
+    ```
+
+After completing the steps, check the `PVC` status:
 
 ```shell
 kubectl get pvc -n monitoring

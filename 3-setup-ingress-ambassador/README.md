@@ -63,7 +63,8 @@ In this section you will deploy the `Ambassador Edge Stack` into the `DOKS` clus
 
 Steps to follow:
 
-1. Add the Helm repo and list the available charts:
+1. Clone the `Starter Kit` repository and change directory to your local copy.
+2. Add the Helm repo and list the available charts:
 
     ```shell
     helm repo add datawire https://www.getambassador.io
@@ -82,24 +83,21 @@ Steps to follow:
     **Note:**
 
     The chart of interes is `datawire/ambassador`, which will install `Ambassador Edge Stack` on the cluster. Please visit the [ambassador-chart](https://github.com/datawire/ambassador-chart) page for more details about this chart.
-2. Fetch and inspect the values file to see what options are available:
+3. Edit and adjust as needed the `3-setup-ingress-ambassador/res/manifests/ambassador-values-v6.7.13.yaml` file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support).
+4. Next, finish the installation (a dedicated `ambassador` namespace will be created as well):
 
     ```shell
-    helm show values datawire/ambassador --version 6.7.13 > ambassador-values.yaml
-    ```
+    HELM_CHART_VERSION="6.7.13"
 
-    **Hint:**
-
-    It's good practice in general to fetch the values file and inspect it to see what options are available. This way, you can keep for example only the features that you need for your project and disable others to save on resources.
-3. Finish the installation (a dedicated `ambassador` namespace will be created as well):
-
-    ```shell
-    helm install ambassador datawire/ambassador --version 6.7.13 --namespace ambassador --create-namespace
+    helm install ambassador datawire/ambassador --version "$HELM_CHART_VERSION" \
+        --namespace ambassador \
+        --create-namespace \
+        -f "3-setup-ingress-ambassador/res/manifests/ambassador-values-v${HELM_CHART_VERSION}.yaml"
     ```
 
     **Note:**
 
-    A `specific` version for the `Helm` chart is used. In this case `6.7.13` was picked, which maps to the `1.13.10` release of `AES` (see the output from `Step 1.`). It's good practice in general to lock on a specific version or range (e.g. `^6.7.13`). This helps to avoid future issues caused by breaking changes introduced in major version releases. On the other hand, it doesn't mean that a future major version ugrade is not an option. You need to make sure that the new version is tested first. Having a good strategy in place for backups and snapshots becomes handy here (covered in more detail in [Section 6 - Backup Using Velero](../6-setup-velero)).
+    A `specific` version for the `Helm` chart is used. In this case `6.7.13` was picked, which maps to the `1.13.10` release of `AES` (see the output from `Step 1.`). It's good practice in general to lock on a specific version or range (e.g. `^6.7.13`). This helps to have predictable results, and to avoid future issues caused by breaking changes introduced in major version releases. On the other hand, it doesn't mean that a future major version ugrade is not an option. You need to make sure that the new version is tested first. Having a good strategy in place for backups and snapshots becomes handy here (covered in more detail in [Section 6 - Backup Using Velero](../6-setup-velero)).
 
 
 ### Defining the Domain and Hosts
@@ -124,7 +122,7 @@ The following example will configure the `TLS` enabled `hosts` for this tutorial
 
 Steps to follow:
 
-1. Change directory where this repository was cloned.
+1. Change directory where the `Starter Kit` repository was cloned.
 2. Apply the manifests:
 
     ```shell
@@ -277,7 +275,7 @@ First, you define a new `namespace` for the `quote` and `echo` backend applicati
 
 Steps to follow:
 
-1. Change directory where this repository was cloned.
+1. Change directory where the `Starter Kit` repository was cloned.
 2. Create the `backend` namespace:
 
     ```shell
@@ -343,7 +341,7 @@ What a `Mapping` does is to manage routing for all inbound traffic to the `/quot
 
 Steps to follow:
 
-1. Change directory where this repository was cloned.
+1. Change directory where the `Starter Kit` repository was cloned.
 2. Create a `Mapping` for `echo` and `quote` backend application:
 
     ```shell
@@ -392,7 +390,7 @@ For different DO LB configurations, please refer to the examples from the offici
 
 You can enable proxy support in the `Ambassador` stack via the [aes_proxy_module](res/manifests/aes_proxy_module.yaml) manifest.
 
-Change directory where this repository was cloned and:
+Change directory where the `Starter Kit` repository was cloned and:
 
 ```shell
 kubectl apply -f 3-setup-ingress-ambassador/res/manifests/aes_proxy_module.yaml
@@ -526,18 +524,20 @@ Going further, what you can do on the `Kubernetes` side is to adjust the `replic
 
 Based on our findings, a value of `2`, should suffice in case of small development environments.
 
-In the next part, you're going to scale the deployment via `Helm` and adjust the `replicaCount` field by editing the [ambassador-values.yaml](res/manifests/ambassador-values.yaml) file provided in this `Git` repository.
+In the next part, you're going to scale the deployment via `Helm` and adjust the `replicaCount` field by editing the [ambassador-values.yaml](res/manifests/ambassador-values-v6.7.13.yaml) file provided in this `Git` repository.
 
 Steps to follow:
 
-1. Change directory where this `Git` repository was cloned.
-2. Search for the [replicaCount](res/manifests/ambassador-values.yaml#L14) line and change the value to `2`. 
+1. Change directory where the `Starter Kit` Git repository was cloned.
+2. Search for `replicaCount` in the [ambassador-values](res/manifests/ambassador-values-v6.7.13.yaml#L14) file, and change the value to `2`.
 3. Run a `Helm` upgrade:
 
     ```shell
-    helm upgrade ambassador datawire/ambassador --version 6.7.13 \
+    HELM_CHART_VERSION="6.7.13"
+
+    helm upgrade ambassador datawire/ambassador --version "$HELM_CHART_VERSION" \
         --namespace ambassador \
-        -f 3-setup-ingress-ambassador/res/manifests/ambassador-values.yaml
+        -f "3-setup-ingress-ambassador/res/manifests/ambassador-values-v${HELM_CHART_VERSION}.yaml"
     ```
 4. After a while, check the `ambassador` deployment:
 
@@ -558,18 +558,20 @@ Steps to follow:
 
 Based on our findings, the requests for memory should be adjusted to a value of `200m`, which cover most development needs in general. 
 
-In the next part, you're going to adjust memory requests via `Helm` and adjust the `memory` requests field by editing the [ambassador-values.yaml](res/manifests/ambassador-values.yaml) file provided in this `Git` repository.
+In the next part, you're going to adjust memory requests via `Helm` and adjust the `memory` requests field by editing the [ambassador-values.yaml](res/manifests/ambassador-values-v6.7.13.yaml) file provided in this `Git` repository.
 
 Steps to follow:
 
-1. Change directory where this `Git` repository was cloned.
-2. Search for the [memory requests](res/manifests/ambassador-values.yaml#L288) line and change the value to `200Mi`. 
+1. Change directory where the `Starter Kit` Git repository was cloned.
+2. Search for `resources -> requests -> memory` in the [ambassador-values](res/manifests/ambassador-values-v6.7.13.yaml#L288) line and change the value to `200Mi`.
 3. Run a `Helm` upgrade:
 
     ```shell
-    helm upgrade ambassador datawire/ambassador --version 6.7.13 \
+    HELM_CHART_VERSION="6.7.13"
+
+    helm upgrade ambassador datawire/ambassador --version "$HELM_CHART_VERSION" \
         --namespace ambassador \
-        -f 3-setup-ingress-ambassador/res/manifests/ambassador-values.yaml
+        -f "3-setup-ingress-ambassador/res/manifests/ambassador-values-v${HELM_CHART_VERSION}.yaml"
     ```
 4. Check the memory requests new value - it should say `200Mi` (look in the `Containers` section from the command output):
 

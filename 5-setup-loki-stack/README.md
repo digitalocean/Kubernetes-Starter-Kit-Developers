@@ -37,7 +37,8 @@ We need [Loki](https://github.com/grafana/helm-charts/tree/main/charts/loki-stac
 
 Steps to follow:
 
-1. Add the `Helm` repo and list the available charts:
+1. Clone the `Starter Kit` repository and change directory to your local copy.
+2. Add the `Helm` repo and list the available charts:
 
     ```shell
     helm repo add grafana https://grafana.github.io/helm-charts
@@ -60,33 +61,23 @@ Steps to follow:
 
     The chart of interes is `grafana/loki-stack`, which will install standalone `Loki` on the cluster. Please visit the [loki-stack](https://github.com/grafana/helm-charts/tree/main/charts/loki-stack) page for more details about this chart.
 
-2. Fetch and inspect the values file:
+3. Edit and adjust as needed the `5-setup-loki-stack/res/manifests/loki-stack-values-v2.4.1.yaml` file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support).
+4. Next, install the stack using `Helm`:
 
     ```shell
-    helm show values grafana/loki-stack --version 2.4.1 > loki-values.yaml
-    ```
+    HELM_CHART_VERSION="2.4.1"
 
-    **Hint:**
-
-    It's good practice in general to fetch the values file and inspect it to see what options are available. This way, you can keep for example only the features that you need for your project and disable others to save on resource usage.
-
-3. Install the stack. The following command will take care of everything for you:
-
-    ```shell
-    helm install loki grafana/loki-stack --version 2.4.1 \
+    helm install loki grafana/loki-stack --version "${HELM_CHART_VERSION}" \
       --namespace=monitoring \
       --create-namespace \
-      --set loki.enabled=true \
-      --set grafana.enabled=false \
-      --set prometheus.enabled=false \
-      --set promtail.enabled=true
-    ``` 
+      -f "5-setup-loki-stack/res/manifests/loki-stack-values-v${HELM_CHART_VERSION}.yaml"
+    ```
 
     **Notes:**
 
-    * A `specific` version for the `Helm` chart is used. In this case `2.4.1` was picked, which maps to the `2.3.0` release of `Loki` (see the output from `Step 1.`). It's good practice in general to lock on a specific version or range (e.g. `^2.4.1`). This helps to avoid future issues caused by breaking changes introduced in major version releases. On the other hand, it doesn't mean that a future major version ugrade is not an option. You need to make sure that the new version is tested first. Having a good strategy in place for backups and snapshots becomes handy here (covered in more detail in [Section 6 - Backup Using Velero](../6-setup-velero)).
+    * A `specific` version for the `Helm` chart is used. In this case `2.4.1` was picked, which maps to the `2.3.0` release of `Loki` (see the output from `Step 1.`). It's good practice in general to lock on a specific version or range (e.g. `^2.4.1`). This helps to have predictable results, and to avoid future issues caused by breaking changes introduced in major version releases. On the other hand, it doesn't mean that a future major version upgrade is not an option. You need to make sure that the new version is tested first. Having a good strategy in place for backups and snapshots becomes handy here (covered in more detail in [Section 6 - Backup Using Velero](../6-setup-velero)).
     * `Promtail` is needed so it will be enabled (explained in [Promtail](#promtail) section).
-    * `Prometheus` and `Grafana` installation is disabled because [Section 4 - Set up Prometheus Stack](../4-setup-prometheus-stack) took care of it already.
+    * `Prometheus` and `Grafana` installation is disabled, because [Section 4 - Set up Prometheus Stack](../4-setup-prometheus-stack) took care of it already.
 
 In the next part you will configure `Grafana` to use the `Loki` datasource so that you can query for logs.
 
@@ -95,7 +86,7 @@ In the next part you will configure `Grafana` to use the `Loki` datasource so th
 
 You already have `Loki` and `Grafana` installed. Now it's time to connect things together to benefit from both worlds.
 
-Let's add the `Loki` data source to `Grafana`. Go to the `Grafana` web console and follow these steps: 
+Add the `Loki` data source to `Grafana`. Go to the `Grafana` web console and follow these steps:
 
 1. Click the `Settings` gear from the left panel.
 2. Select `Data sources`.
@@ -148,7 +139,7 @@ kubectl get cm loki-promtail -n monitoring -o yaml
 
 The output looks similar to the following:
 
-```
+```yaml
 scrape_configs:
   - job_name: kubernetes-pods-name
     pipeline_stages:
@@ -187,10 +178,11 @@ Let's move to a practical example now and query `Ambassador` logs from the `AES`
     ```shell
     kubectl port-forward svc/kube-prom-stack-grafana 3000:80 -n monitoring
     ```
+
 2. Open the [web console](http://localhost:3000) and navigate to the `Explore` tab from the left panel. Select `Loki` from the data source menu and run this query:
-    
-    ```
-    {container="ambassador",namespace="ambassador"}
+
+    ```json
+    {container="ambassador", namespace="ambassador"}
     ```
 
     The output looks similar to the following:
@@ -198,8 +190,8 @@ Let's move to a practical example now and query `Ambassador` logs from the `AES`
     ![LogQL Query Example](res/img/lql_first_example.png)
 3. Let's query again, but this time filter the results to include only `warning` messages:
 
-    ```
-    {container="ambassador",namespace="ambassador"} |= "warning"
+    ```json
+    {container="ambassador", namespace="ambassador"} |= "warning"
     ```
 
     The output looks similar to the following (notice the `warning` word being highlighted in the results window):
@@ -221,7 +213,7 @@ The picture down below will highlight this feature in the `Log labels` sub-windo
 
 Let's simplify it a little bit by taking the example from the above picture:
 
-```
+```json
 {namespace="ambassador"}
 ```
 
@@ -241,7 +233,7 @@ In terms of storage details, the setup used in this tutorial is relying on the d
 
 Below is an example for using remote storage via `DO Spaces`:
 
-```
+```yaml
 schema_config:
   configs:
     - from: "2020-10-24"
@@ -275,17 +267,23 @@ In the next part, you're going to tell `Helm` how to configure `Loki` to access 
 
 Steps to follow:
 
-1. Change directory to where this repository was cloned.
-2. Open the [loki-values.yaml](res/manifests/loki-values.yaml#L7) sample file provided with this `Git` repository, using a text editor of your choice and preferrably with `YAML` linting support.
-3. Uncomment the corresponding sections for `schema_config` and `storage_config`. Also, make sure to replace the `<>` placeholders accordingly in the `aws` subsection.
-4. Upgrade the `Loki` stack to use the new storage settings via `Helm`:
+1. Change directory where the `Starter Kit` repository was cloned.
+2. Edit the `5-setup-loki-stack/res/manifests/loki-stack-values-v2.4.1.yaml` file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support).
+3. Next, please uncomment the corresponding sections for `schema_config` and `storage_config`, making sure to replace the `<>` placeholders as well.
+
+    **Hints:**
+     - To quickly find all the `<>` placeholders that need to be replaced in the `YAML` file, please perform a quick search using this pattern: `YOUR_DO`.
+     - Explanations for each configuration, is available inside the values file.
+4. Apply settings using `Helm`:
 
     ```shell
-      helm upgrade loki grafana/loki-stack --version 2.4.1 \
-        --namespace=monitoring \
-        --create-namespace \
-        -f 5-setup-loki-stack/res/manifests/loki-values.yaml
-      ```
+    HELM_CHART_VERSION="2.4.1"
+
+    helm upgrade loki grafana/loki-stack --version "${HELM_CHART_VERSION}" \
+      --namespace=monitoring \
+      -f "5-setup-loki-stack/res/manifests/loki-stack-values-v${HELM_CHART_VERSION}.yaml"
+    ```
+
 5. Check that the main `Loki` application pod is up and running (it may take up to `1 minute` or so to start, so please be patient):
 
     ```shell
