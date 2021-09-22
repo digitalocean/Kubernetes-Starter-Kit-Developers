@@ -20,11 +20,11 @@ loki:
     #     cache_ttl: 24h # Can be increased for faster performance over longer query periods, uses more disk space
     #     shared_store: aws
     #   aws:
-    #     bucketnames: <DO_SPACES_BUCKET_NAME>
-    #     endpoint: <DO_SPACES_BUCKET_ENDPOINT>  # in the following format: <region>.digitaloceanspaces.com (e.g.: fra1.digitaloceanspaces.com)
-    #     region: <DO_SPACES_BUCKET_REGION>      # short region name (e.g.: fra1)
-    #     access_key_id: <DO_SPACES_ACCESS_KEY>
-    #     secret_access_key: <DO_SPACES_SECRET_KEY>
+    #     bucketnames: <YOUR_DO_SPACES_BUCKET_NAME_HERE>
+    #     endpoint: <YOUR_DO_SPACES_BUCKET_ENDPOINT_HERE>  # in the following format: <region>.digitaloceanspaces.com (e.g.: fra1.digitaloceanspaces.com)
+    #     region: <YOUR_DO_SPACES_BUCKET_REGION_HERE>      # short region name (e.g.: fra1)
+    #     access_key_id: <YOUR_DO_SPACES_ACCESS_KEY_HERE>
+    #     secret_access_key: <YOURDO_SPACES_SECRET_KEY_HERE>
     #     s3forcepathstyle: true
 
 promtail:

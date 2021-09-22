@@ -82,7 +82,8 @@ In the next part, you will deploy `Velero` and all the required components so th
 
 Steps to follow:
 
-1. Add the `Helm` repo and list the available charts:
+1. Clone the `Starter Kit` Git repository and change directory to your local copy.
+2. Add the `Helm` repo and list the available charts:
 
     ```
     helm repo add vmware-tanzu https://vmware-tanzu.github.io/helm-charts
@@ -99,61 +100,27 @@ Steps to follow:
 
     **Note:**
 
-    The chart of interes is `vmware-tanzu/velero`, which will install `Velero` on the cluster. Please visit the [velero-chart](https://github.com/vmware-tanzu/helm-charts/tree/main/charts/velero) page for more details about this chart.
-2. Fetch and inspect the values file to see what options are available:
+    The chart of interest is `vmware-tanzu/velero`, which will install `Velero` on the cluster. Please visit the [velero-chart](https://github.com/vmware-tanzu/helm-charts/tree/main/charts/velero) page for more details about this chart.
+3. Edit the `6-setup-velero/res/manifests/velero-values.yaml` file provided in the `Starter kit` repository, using an editor of your choice (preferably with `YAML` lint support), and replace the `<>` placeholders accordingly.
 
-    ```shell
-    helm show values vmware-tanzu/velero --version 2.23.6 > velero-values.yaml
-    ```
+    **Hints:**
+     - To quickly find all the `<>` placeholders that need to be replaced in the `YAML` file, please perform a quick search using this pattern: `YOUR_DO`.
+     - Explanations for each configuration, is available inside the values file.
 
-    **Hint:**
-
-    It's good practice in general to fetch the values file and inspect it to see what options are available. This way, you can keep for example only the features that you need for your project and disable others to save on resources.
-3. A cloud credentials file is needed in order for `Velero` to access `DO Spaces`. Create a file named `secrets.txt` under the current working directory with the following content (make sure to replace the `<>` placeholders accordingly):
-
-    ```
-    [default]
-    aws_access_key_id=<DO_SPACES_ACCESS_KEY_ID>
-    aws_secret_access_key=<DO_SPACES_SECRET_ACCESS_KEY>
-    ```
 4. Deploy `Velero` using `Helm` (make sure to replace the `<>` placeholders accordingly):
 
     ```shell
-    helm install velero vmware-tanzu/velero --version 2.23.6 \
-    --namespace velero \
-    --create-namespace \
-    --set configuration.extraEnvVars.DIGITALOCEAN_TOKEN=<DIGITALOCEAN_API_TOKEN>  \
-    --set-file credentials.secretContents.cloud=secrets.txt \
-    --set configuration.provider=aws \
-    --set configuration.backupStorageLocation.bucket=<BUCKET_NAME> \
-    --set configuration.backupStorageLocation.config.region=<REGION> \
-    --set configuration.backupStorageLocation.config.s3Url=https://<REGION>.digitaloceanspaces.com \
-    --set initContainers[0].name=velero-plugin-for-aws \
-    --set initContainers[0].image=velero/velero-plugin-for-aws:v1.0.0 \
-    --set initContainers[0].volumeMounts[0].mountPath=/target \
-    --set initContainers[0].volumeMounts[0].name=plugins \
-    --set initContainers[1].name=velero-plugin \
-    --set initContainers[1].image=digitalocean/velero-plugin:v1.0.0 \
-    --set initContainers[1].volumeMounts[0].mountPath=/target \
-    --set initContainers[1].volumeMounts[0].name=plugins \
-    --set snapshotsEnabled=true \
-    --set configuration.volumeSnapshotLocation.provider=digitalocean.com/velero \
-    --set deployRestic=false
+    HELM_CHART_VERSION="2.23.6"
+
+    helm install velero vmware-tanzu/velero --version "${HELM_CHART_VERSION}" \
+      --namespace velero \
+      --create-namespace \
+      -f 6-setup-velero/res/manifests/velero-values-v${HELM_CHART_VERSION}.yaml
     ```
-
-    Explanations for the above configuration:
-
-    * `<configuration.provider=aws>` - enables the DigitalOcean `S3` like storage provider.
-    * `<configuration.volumeSnapshotLocation.provider=digitalocean.com/velero>` - enables the DigitalOcean `Block Storage` provider. It is designed to create filesystem snapshots of `Block Storage` backed `PersistentVolumes`.
-    * `<initContainers[<index>]= ...>` - stores plugin configuration for each provider being used.
-    * `<snapshotsEnabled=true>` - enables the `Snapshots` feature.
-    * `<deployRestic=false>` - [OPTIONAL] whether to deploy the `Restic` DaemonSet (please visit the official [Restic Integration](https://velero.io/docs/v1.6/restic/) page for more details)). Disabled in this tutorial as it takes extra resources and it's not needed anyway.
-    * `<DIGITALOCEAN_API_TOKEN>` - your DigitalOcean `API` token. Velero needs it in order to authenticate with the `DigitalOcean API` when manipulating snapshots.
-    * `<BUCKET_NAME>` and `<REGION>` - your DigitalOcean `Spaces` bucket `name` and `region` (e.g.: `nyc3`) created in the [Prerequisites](#prerequisites) section.
 
     **Note:**
 
-    A `specific` version for the `Helm` chart is used. In this case `2.23.6` was picked, which maps to the `1.6.3` release of `Velero` (see the output from `Step 1.`). It's good practice in general to lock on a specific version or range (e.g. `^2.23.6`). This helps to avoid future issues caused by breaking changes introduced in major version releases. On the other hand, it doesn't mean that a future major version ugrade is not an option. You need to make sure that the new version is tested first. Having a good strategy in place for backups and snapshots becomes handy here.
+    A `specific` version for the `Helm` chart is used. In this case `2.23.6` was picked, which maps to the `1.6.3` release of `Velero` (see the output from `Step 1.`). It's good practice in general to lock on a specific version or range (e.g. `^2.23.6`). This helps to have predictable results, and avoid future issues caused by breaking changes introduced in major version releases. On the other hand, it doesn't mean that a future major version ugrade is not an option. You need to make sure that the new version is tested first. Having a good strategy in place for backups and snapshots becomes handy here.
 5. Check the `Velero` deployment:
 
     ```shell
