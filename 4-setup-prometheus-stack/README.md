@@ -78,7 +78,10 @@ kubectl --namespace monitoring port-forward svc/kube-prom-stack-grafana 3000:80
 
 **Hint:**
 
-`Grafana` installation comes with a number of dashboards. Review those by going to `Grafana -> Dashboards -> Manage`.
+`Grafana` installation comes with a number of dashboards. Grafana dashboard can be visualized using the web browser on localhost (http://localhost:3000).
+
+Grafana login creditials are present in [promo-stack-values](res/manifests/prom-stack-values-v17.1.3.yaml) file. The default username is `admin` and password is `prom-operator`.
+Review those by going to `Grafana -> Dashboards -> Manage`.
 
 In the next part, you will discover how to set up `Prometheus` to discover targets for monitoring. As an example, the `Ambassador Edge Stack` will be used. You'll learn what a `ServiceMonitor` is, as well.
 
