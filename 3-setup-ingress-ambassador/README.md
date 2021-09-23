@@ -61,6 +61,10 @@ This is how the `Ambassador Edge Stack` setup will look like after following the
 
 In this section you will deploy the `Ambassador Edge Stack` into the `DOKS` cluster via [Helm](https://helm.sh).
 
+**Note:**
+
+  A `specific` version for the `Helm` chart is used here. In this case `6.7.13` was picked, which maps to the `1.13.10` release of `AES` (see the output from `Step 1.`). It’s good practice in general to lock on a specific version or range (e.g. `^6.7.13`). This helps to have predictable results, and to avoid future issues caused by breaking changes introduced in major version releases. On the other hand, it doesn’t mean that a future major version ugrade is not an option. You need to make sure that the new version is tested first. Having a good strategy in place for backups and snapshots becomes handy here (covered in more detail in [Section 6 - Backup Using Velero](../6-setup-velero)).
+
 Steps to follow:
 
 1. Clone the `Starter Kit` repository and change directory to your local copy.
@@ -94,11 +98,6 @@ Steps to follow:
         --create-namespace \
         -f "3-setup-ingress-ambassador/res/manifests/ambassador-values-v${HELM_CHART_VERSION}.yaml"
     ```
-
-    **Note:**
-
-    A `specific` version for the `Helm` chart is used. In this case `6.7.13` was picked, which maps to the `1.13.10` release of `AES` (see the output from `Step 1.`). It's good practice in general to lock on a specific version or range (e.g. `^6.7.13`). This helps to have predictable results, and to avoid future issues caused by breaking changes introduced in major version releases. On the other hand, it doesn't mean that a future major version ugrade is not an option. You need to make sure that the new version is tested first. Having a good strategy in place for backups and snapshots becomes handy here (covered in more detail in [Section 6 - Backup Using Velero](../6-setup-velero)).
-
 
 ### Defining the Domain and Hosts
 
