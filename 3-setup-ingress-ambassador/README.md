@@ -16,7 +16,7 @@
 
 ### Options for Load Balancer and Ingress
 
-In most of the cases, you will use the `Load Balancer` that is made available by the `Cloud` provider of your choice. In case of `DigitalOcean` when you configure a service as a `Load Balancer`, `DOKS` automatically provisions one in your account (unless you configure to use an existing one). Now the `service` is exposed to the outside world and can be accessed via the `Load Balancer` endpoint. In a real world scenario you do not want to use one `Load Balancer` per service so you need a `proxy` inside the cluster. That is `Ingress`.
+In most of the cases, you will use the `Load Balancer` that is made available by the `Cloud` provider of your choice. In case of `DigitalOcean` when you configure a service as a `Load Balancer`, `DOKS` automatically provisions one in your account. Now the `service` is exposed to the outside world and can be accessed via the `Load Balancer` endpoint. In a real world scenario you do not want to use one `Load Balancer` per service so you need a `proxy` inside the cluster. That is `Ingress`.
 
 When an `Ingress Proxy` is installed it creates a service and exposes it as a `Load Balancer`. Now you can have as many services behind the ingress and all accessible through a single endpoint. Ingress operates at the `HTTP` layer.
 
@@ -61,6 +61,10 @@ This is how the `Ambassador Edge Stack` setup will look like after following the
 
 In this section you will deploy the `Ambassador Edge Stack` into the `DOKS` cluster via [Helm](https://helm.sh).
 
+**Note:**
+
+  A `specific` version for the `Helm` chart is used here. In this case `6.7.13` was picked, which maps to the `1.13.10` release of `AES` (see the output from `Step 1.`). It’s good practice in general to lock on a specific version or range (e.g. `^6.7.13`). This helps to have predictable results, and to avoid future issues caused by breaking changes introduced in major version releases. On the other hand, it doesn’t mean that a future major version ugrade is not an option. You need to make sure that the new version is tested first. Having a good strategy in place for backups and snapshots becomes handy here (covered in more detail in [Section 6 - Backup Using Velero](../6-setup-velero)).
+
 Steps to follow:
 
 1. Clone the `Starter Kit` repository and change directory to your local copy.
@@ -94,11 +98,6 @@ Steps to follow:
         --create-namespace \
         -f "3-setup-ingress-ambassador/res/manifests/ambassador-values-v${HELM_CHART_VERSION}.yaml"
     ```
-
-    **Note:**
-
-    A `specific` version for the `Helm` chart is used. In this case `6.7.13` was picked, which maps to the `1.13.10` release of `AES` (see the output from `Step 1.`). It's good practice in general to lock on a specific version or range (e.g. `^6.7.13`). This helps to have predictable results, and to avoid future issues caused by breaking changes introduced in major version releases. On the other hand, it doesn't mean that a future major version ugrade is not an option. You need to make sure that the new version is tested first. Having a good strategy in place for backups and snapshots becomes handy here (covered in more detail in [Section 6 - Backup Using Velero](../6-setup-velero)).
-
 
 ### Defining the Domain and Hosts
 
@@ -258,6 +257,10 @@ quote-host   quote.starterkits.online   Ready                                   
 
 If the `STATE` column prints `Ready` then awesome! Now you're ready to rock!
 
+**Note:**
+
+In case the hosts are still showing as pending, it might be due to the DNS propagation delay. Please wait for couple of minutes and verify your hosts state column again.
+
 At this point the network traffic will reach the `AES enabled` cluster but you need to configure the `backend services paths` for each of the hosts. All `DNS` records have one thing in common: `TTL` or time to live. It determines how long a `record` can remain cached before it expires. Loading data from a local cache is faster but visitors won’t see `DNS` changes until their local cache expires and gets updated after a new `DNS` lookup. As a result, higher `TTL` values give visitors faster performance and lower `TTL` values ensure that `DNS` changes are picked up quickly. All `DNS` records require a minimum `TTL` value of `30 seconds`.
 
 Please visit the [How to Create, Edit and Delete DNS Records](https://docs.digitalocean.com/products/networking/dns/how-to/manage-records) page for more information.
@@ -342,7 +345,7 @@ What a `Mapping` does is to manage routing for all inbound traffic to the `/quot
 Steps to follow:
 
 1. Change directory where the `Starter Kit` repository was cloned.
-2. Create a `Mapping` for `echo` and `quote` backend application:
+2. Create a `Mapping` for [echo](res/manifests/echo_mapping.yaml) and [quote](res/manifests/quote_mapping.yaml) backend application:
 
     ```shell
     kubectl apply -f 3-setup-ingress-ambassador/res/manifests/echo_mapping.yaml
