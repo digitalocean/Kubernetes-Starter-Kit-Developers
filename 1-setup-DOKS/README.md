@@ -1,78 +1,355 @@
-## Set up DigitalOcean Kubernetes 
+# How to Set Up a DigitalOcean Managed Kubernetes Cluster (DOKS)
 
-Explore `doctl` options.
+## Introduction
 
+In this tutorial, you will learn how set up a `DigitalOcean` managed [Kubernetes](https://docs.digitalocean.com/products/kubernetes) cluster (`DOKS`), using the `command-line` interface. Then, you're going to `inspect` the cluster `state`, as well as the available `features`.
+
+After completing this tutorial, you will be able to:
+
+- Use the [doctl](https://docs.digitalocean.com/reference/doctl) command, to create and manage `DOKS` clusters.
+- Inspect `DOKS` clusters state.
+
+## Table of contents
+
+- [Introduction](#introduction)
+- [Table of contents](#table-of-contents)
+- [Prerequisites](#prerequisites)
+- [Step 1 - Doctl CLI Introduction](#step-1---doctl-cli-introduction)
+- [Step 2 - Authenticating to DigitalOcean API with Doctl](#step-2---authenticating-to-digitalocean-api-with-doctl)
+- [Step 3 - Creating the DOKS Cluster](#step-3---creating-the-doks-cluster)
+- [Conclusion](#conclusion)
+
+## Prerequisites
+
+To complete this tutorial, you will need:
+
+1. A DigitalOcean [account](https://docs.digitalocean.com/products/getting-started/#sign-up), for accessing the `DigitalOcean` platform.
+2. A DigitalOcean [personal access token](https://docs.digitalocean.com/reference/api/create-personal-access-token), for using the `DigitalOcean` API.
+3. [Doctl](https://docs.digitalocean.com/reference/doctl/how-to/install) utility, for managing `DigitalOcean` resources using the `command-line` interface.
+4. [Kubectl](https://kubernetes.io/docs/tasks/tools), for `Kubernetes` cluster interaction.
+
+## Step 1 - Doctl CLI Introduction
+
+In this step, you will learn how to use the `doctl` utility, and explore the available options for the `DigitalOcean` platform. The way `Doctl` works, is by using `commands` to create and manage `DigitalOcean` resources. Each `command` in turn, may have a `sub-command` as well. You can get `help` for each command and sub-command via the `--help` flag.
+
+**Note:**
+
+`Doctl` needs to authenticate with DigitalOcean `API` to perform `queries` and `create` resources on your behalf, hence an `access token` is needed (`Step #2` from [Prerequisites](#prerequisites)).
+
+Please open a terminal, and type the following command to list all the available options for `doctl`:
+
+```shell
+doctl --help
 ```
-~ doctl version
-doctl version 1.61.0-release
-~ doctl auth list
-bgdo (current)
+
+The output looks similar to:
+
+```text
+doctl is a command line interface (CLI) for the DigitalOcean API.
+
+Usage:
+  doctl [command]
+
+Available Commands:
+  1-click         Display commands that pertain to 1-click applications
+  account         Display commands that retrieve account details
+  apps            Display commands for working with apps
+  auth            Display commands for authenticating doctl with an account
+  balance         Display commands for retrieving your account balance
+  billing-history Display commands for retrieving your billing history
+  completion      Modify your shell so doctl commands autocomplete with TAB
+  compute         Display commands that manage infrastructure
+  databases       Display commands that manage databases
+  help            Help about any command
+  invoice         Display commands for retrieving invoices for your account
+  kubernetes      Displays commands to manage Kubernetes clusters and configurations
+  monitoring      [Beta] Display commands to manage monitoring
+  projects        Manage projects and assign resources to them
+  registry        Display commands for working with container registries
+  version         Show the current version
+  vpcs            Display commands that manage VPCs
+  ...
+```
+
+Next, inspect the `auth` command help page:
+
+```shell
+doctl auth --help
+```
+
+The output looks similar to (some parts were hidden for simplicity):
+
+```text
+The `doctl auth` commands allow you to authenticate doctl for use with your DigitalOcean account using tokens that you generate in the control panel at https://cloud.digitalocean.com/account/api/tokens.
+...
+
+Usage:
+  doctl auth [command]
+
+Available Commands:
+  init        Initialize doctl to use a specific account
+  list        List available authentication contexts
+  remove      Remove authentication contexts 
+  switch      Switches between authentication contexts
+  ...
+```
+
+Then, see what options are available for the `list` sub-command (part of the `doctl auth` command):
+
+```shell
+doctl auth list --help
+```
+
+The output looks similar to:
+
+```text
+List named authentication contexts that you created with `doctl auth init`.
+
+To switch between the contexts use `doctl switch <name>`, where `<name>` is one of the contexts listed.
+
+To create new contexts, see the help for `doctl auth init`.
+
+Usage:
+  doctl auth list [flags]
+...
+```
+
+In the next step, you're going to learn how to `authenticate` to DigitalOcean `API` with `doctl`, to `create` and `manage` resources on the `DigitalOcean` platform.
+
+## Step 2 - Authenticating to DigitalOcean API with Doctl
+
+To authenticate `doctl` with DigitalOcean `API`, you can use the `auth` command of `doctl`.
+
+First, list the available options for the `auth` command:
+
+```shell
+doctl auth -h
+```
+
+The output looks similar to:
+
+```text
+...
+Usage:
+  doctl auth [command]
+
+Available Commands:
+  init        Initialize doctl to use a specific account
+  list        List available authentication contexts
+  remove      Remove authentication contexts 
+  switch      Switches between authentication contexts
+```
+
+Next, you're going to use the `init` sub-command for `doctl auth`, to perform the initialization (when asked, please enter the personal access token created in the [Prerequisites](#prerequisites) step):
+
+```shell
+doctl auth init
+```
+
+The output looks similar to:
+
+```text
+Please authenticate doctl for use with your DigitalOcean account. You can generate a token in the control panel at https://cloud.digitalocean.com/account/api/tokens
+
+Enter your access token: <paste_your_personal_token_here>
+
+Validating token... OK
+```
+
+Finally, check that your account is configured for `doctl` to use:
+
+```shell
+doctl auth list
+```
+
+The output looks similar to (notice the line containing `(current)`):
+
+```text
 default
-~ 
+doks-starterkit (current)
 ```
 
-Explore options for creating the cluster.
+Next, you're going to learn how to spin up a `DOKS` cluster, and explore the available options.
 
+## Step 3 - Creating the DOKS Cluster
+
+In this step, you will learn how to use the `doctl k8s` command to create a `DOKS` cluster.
+
+First, explore the available `doctl` commands for use with `DOKS` clusters:
+
+- `Manage` a `DOKS` cluster:
+
+    ```shell
+    doctl k8s -h
+    ```
+
+- List available `options` for a `DOKS` cluster, like: `region`, `size` and `version`:
+  
+  ```shell
+  doctl k8s options -h
+  ```
+
+- List what `regions` are available to use, when creating a `DOKS` cluster:
+
+  ```shell
+  doctl k8s options regions
+  ```
+
+- List machine `sizes` that can be used in a `DOKS` cluster:
+
+  ```shell
+  doctl k8s options sizes
+  ```
+
+- List `Kubernetes` versions that can be used with `DigitalOcean` clusters:
+
+  ```shell
+  doctl k8s options versions
+  ```
+
+- Display commands for managing `Kubernetes` clusters:
+
+  ```shell
+  doctl k8s cluster -h
+  ```
+
+Next, you're going to focus on the `create` sub-command of `doctl k8s cluster`. Inspect the available options via:
+
+```shell
+doctl k8s cluster create -h
 ```
-~ doctl k8s -h
-~ doctl k8s options -h
-~ doctl k8s options regions
-~ doctl k8s options sizes  
-~ doctl k8s options versions
-~ doctl k8s cluster create -h
+
+For the `Starter Kit` tutorial, you will need a `DOKS` cluster with `3 worker nodes` . Use `--wait false`, if you do not want the command to wait until cluster is ready.
+
+The below example is using `4cpu/8gb` basic nodes (`$40/month`), `2` default, and auto-scale to `4`. So, your cluster cost is between `$80-$160/month`, with `hourly` billing. To choose a different `node type`, pick from the following command `doctl compute size list`.
+
+```shell
+doctl k8s cluster create starterkit-cluster-2 \
+  --auto-upgrade=false \
+  --maintenance-window "saturday=21:00" \
+  --node-pool "name=basicnp;size=s-4vcpu-8gb;count=3;tag=cluster2;label=type=basic;auto-scale=true;min-nodes=2;max-nodes=4" \
+  --region nyc1 \
+  --tag k8s:ha 
 ```
 
-Let us create a `DOKS` cluster with `3 worker nodes`. Use `--wait false`, if you do not want the command to wait until cluster is ready.
+**Note:**
 
-In the example below, we create 4cpu/8gb basic nodes ($40/month), 2 default, and auto-scale to 4. So your cluster cost would between $80-$160/month, with hourly billing. To choose a different node type, pick from the following command `doctl compute size list`.
+The above command enables `High Availability` for your cluster, via the `k8s:ha` tag.
 
-```
-~ doctl kubernetes cluster create bg-cluster-2 \
---auto-upgrade=false \
---maintenance-window "saturday=21:00" \
---node-pool "name=basicnp;size=s-4vcpu-8gb;count=3;tag=cluster2;label=type=basic;auto-scale=true;min-nodes=2;max-nodes=4" \
---region nyc1 \
---tag k8s:ha 
+The output looks similar to:
 
+```text
 Notice: Cluster is provisioning, waiting for cluster to be running
 ..................................................................
 Notice: Cluster created, fetching credentials
 Notice: Adding cluster credentials to kubeconfig file found in "/Users/bgupta/.kube/config"
 Notice: Setting current-context to do-sfo3-bg-cluster-1
-ID                                      Name            Region    Version        Auto Upgrade    Status     Node Pools
-0922a629-7f2e-4bda-940c-4d42a3f987ad    bg-cluster-1    sfo3      1.20.7-do.0    false           running    basicnp
-~ 
-
-~ curl -X GET \-H "Content-Type: application/json" \-H "Authorization: Bearer <DigitalOcean accesstoken>" \https://api.digitalocean.com/v2/kubernetes/clusters/<cluster_id>
-
-<Get cluster info. You can verify if HA control plane is enabled. That will be the LAST entry in JSON output.>
-
+ID                                      Name                  Region    Version        Auto Upgrade    Status     Node Pools
+0922a629-7f2e-4bda-940c-4d42a3f987ad    starterkit-cluster-2  nyc1      1.21.3-do.0    false           running    basicnp
 ```
 
-Now, let us set up `kubectl`, if the context is not set.
+Next, you can verify if the `High Availability` control plane is enabled. First, fetch your `DOKS` cluster `ID`:
 
+```shell
+doctl k8s cluster list
 ```
-~ kubectl config current-context 
-do-sfo3-bg-cluster-1
-~ 
-~ doctl k8s cluster list
-ID                                      Name            Region    Version        Auto Upgrade    Status          Node Pools
-0922a629-7f2e-4bda-940c-4d42a3f987ad    bg-cluster-1    sfo3      1.20.7-do.0    false           provisioning    basicnp
-# YOU MAY NOT NEED THIS COMMAND, IF CONTEXT IS ALREADY SET.
-~ doctl kubernetes cluster kubeconfig save 0922a629-7f2e-4bda-940c-4d42a3f987ad
-Notice: Adding cluster credentials to kubeconfig file found in "/Users/bgupta/.kube/config"
-Notice: Setting current-context to do-sfo3-bg-cluster-1
-~ 
-~ kubectl get nodes
+
+The output looks similar to (notice the `ID` column value):
+
+```text
+ID                                      Name                  Region    Version        Auto Upgrade    Status     Node Pools
+b4ddaa2e-8c0c-4fd8-b249-cbf99eda0808    starterkit-cluster-2  nyc1      1.21.3-do.0    false           running    basicnp
+```
+
+Now, query the DigitalOcean `API`, using [curl](https://curl.se/download.html) (please make sure to replace the `<>` placeholders accordingly)
+
+```shell
+curl -X GET \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <your_do_api_token>" \
+  https://api.digitalocean.com/v2/kubernetes/clusters/<cluster_id>
+```
+
+Please look at the last line from the `JSON` output, and search for the `ha` key - the value should be set to `true`. Alternatively, you can use [jq](https://stedolan.github.io/jq/) to ease your search:
+
+```shell
+curl -s -X GET \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <your_do_api_token>" \
+  https://api.digitalocean.com/v2/kubernetes/clusters/<cluster_id> | jq '.kubernetes_cluster.ha'
+```
+
+Finally, check if the `kubectl` context was set to point to your `DOKS` cluster. The `doctl` utility does it automatically for you in general, but it's good to know if something goes bad.
+
+```shell
+kubectl config current-context
+```
+
+The output looks similar to:
+
+```text
+starterkit-cluster-2
+```
+
+If the above command output is empty or different, you can use the `kubeconfig` sub-command of `doctl k8s cluster`.
+
+First, list the available `DOKS` clusters:
+
+```shell
+doctl k8s cluster list
+```
+
+The output looks similar to:
+
+```text
+ID                                      Name                  Region    Version        Auto Upgrade    Status     Node Pools
+b4ddaa2e-8c0c-4fd8-b249-cbf99eda0808    starterkit-cluster-2  nyc1      1.21.3-do.0    false           running    basicnp
+```
+
+Next, set `kubectl` context to point to your cluster, via `doctl`:
+
+```shell
+doctl kubernetes cluster kubeconfig save <your_cluster_name>
+```
+
+The output looks similar to:
+
+```text
+Notice: Adding cluster credentials to kubeconfig file found in "/Users/starterkit/.kube/config"
+Notice: Setting current-context to starterkit-cluster-2
+```
+
+Finally, list `DOKS` cluster nodes:
+
+```shell
+kubectl get nodes
+```
+
+The output looks similar to:
+
+```text
 NAME            STATUS   ROLES    AGE     VERSION
 basicnp-865x3   Ready    <none>   2m55s   v1.20.7
 basicnp-865x8   Ready    <none>   2m21s   v1.20.7
 basicnp-865xu   Ready    <none>   2m56s   v1.20.7
-~ 
 ```
 
-**Next steps**
+If everything was set correctly, you should get a list of all the `DOKS` cluster worker `nodes`. The `STATUS` column should print `Ready`, if all the nodes are `healthy`.
 
-This concludes the `DOKS` cluster setup. In the next section, you will learn how to set up a private `Docker` registry by using the `DigitalOcean Container Registry` (DOCR).
+**Hint:**
+
+If the worker node(s) `STATUS` is different from `Ready`, you can inspect the affected node(s), via (please replace the `<>` placeholders accordingly):
+
+```shell
+kubectl describe node <worker_node_name>
+```
+
+After running the above command, please look at the `Events` section (last line from command output), to see what went wrong. There are many other useful sections to look at, like `Conditions`, `System Info`, `Allocated resources`, to help you troubleshoot worker nodes issues in the future.
+
+## Conclusion
+
+In this tutorial you learned how to use the `doctl` utility, inspect the available `options`, as well as how to get `help` for a specific `command` or `sub-command`. Then, you learned how to create a `DOKS` cluster, and `inspect` worker nodes `state`.
+
+In the next section, you will learn how to use the `DigitalOcean Container Registry` (DOCR), to easily `store` and manage `private` container `images` for your `Kubernetes` cluster.
 
 Go to [Section 2 - Setting up DOCR](../2-setup-DOCR)
