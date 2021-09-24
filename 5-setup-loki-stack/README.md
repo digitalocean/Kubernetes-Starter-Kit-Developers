@@ -49,7 +49,7 @@ To complete this tutorial, you will need:
 3. A [Git](https://git-scm.com/downloads) client, for cloning the `Starter Kit` repository.
 4. [Helm](https://www.helm.sh), for installing the `Loki` stack chart.
 5. [Kubectl](https://kubernetes.io/docs/tasks/tools), for `Kubernetes` interaction.
-6. A text editor with `YAML` lint support - [Visual Studio Code](https://code.visualstudio.com) is a great choice.
+6. A text editor with `YAML` lint support, for example: [Visual Studio Code](https://code.visualstudio.com).
 
 ## Step 1 - Installing LOKI
 
@@ -93,32 +93,15 @@ Next, fetch and inspect the values file provided in the `Grafana` repository for
 helm show values grafana/loki-stack --version 2.4.1 > values.yaml
 ```
 
-For your convenience, there's a ready to use sample values file provided in the `Starter Kit` Git repository (`loki-stack-values-v2.4.1.yaml`). Please use your favorite text editor (preferably with `YAML` lint support), for inspection (below example is using [Visual Studio Code](https://code.visualstudio.com)):
+For your convenience, there's a ready to use sample values file provided in the `Starter Kit` Git repository (`loki-stack-values-v2.4.1.yaml`). Please use your favorite text editor (preferably with `YAML` lint support), for inspection (below example is using `Visual Studio Code`):
 
 ```shell
 code 5-setup-loki-stack/res/manifests/loki-stack-values-v2.4.1.yaml
 ```
 
-To complete this tutorial, you will need `Loki` and `Promtail`. `Prometheus` and `Grafana` installation is disabled, because [Section 4 - Set up Prometheus Stack](../4-setup-prometheus-stack) took care of it already. `Fluent Bit` is not used, so it is disabled by default as well.
+**Note:**
 
-The below sample from `loki-stack-values-v2.4.1.yaml` values file, reflects the `Loki` stack components configuration:
-
-```yaml
-loki:
-  enabled: true
-
-promtail:
-  enabled: true
-
-fluent-bit:
-  enabled: false
-
-grafana:
-  enabled: false
-
-prometheus:
-  enabled: false
-```
+The above values file, enables `Loki` and `Promtail` for you, so no other input is required. `Prometheus` and `Grafana` installation is disabled, because [Section 4 - Set up Prometheus Stack](../4-setup-prometheus-stack) took care of it already. `Fluent Bit` is not used, so it is disabled by default as well.
 
 Next, install the stack using `Helm`. The following command installs version `2.4.1` of `grafana/loki-stack` in your cluster, using the `Starter Kit` repository `values` file:
 
@@ -338,9 +321,13 @@ First, change directory where the `Starter Kit` repository was cloned:
 cd Kubernetes-Starter-Kit-Developers
 ```
 
-Next, edit the `loki-stack-values-v2.4.1.yaml` file provided in the `Starter Kit` repository, located under the `5-setup-loki-stack/res/manifests` directory, using a text editor of your choice (preferably with `YAML` lint support). Please remove the comments surrounding the `schema_config` and `storage_config` keys.
+Next, open the `loki-stack-values-v2.4.1.yaml` file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support). Please remove the comments surrounding the `schema_config` and `storage_config` keys:
 
-Then, replace the `<>` placeholders to reflect your `DO Spaces` configuration. `Loki` storage setup configuration looks similar to:
+```shell
+code 5-setup-loki-stack/res/manifests/loki-stack-values-v2.4.1.yaml
+```
+
+The final `Loki` storage setup configuration looks similar to (please replace the `<>` placeholders accordingly):
 
 ```yaml
 loki:
