@@ -12,10 +12,9 @@ After completing this tutorial, you will be able to:
 ## Table of contents
 
 - [Introduction](#introduction)
-- [Table of contents](#table-of-contents)
 - [Prerequisites](#prerequisites)
 - [Step 1 - Doctl CLI Introduction](#step-1---doctl-cli-introduction)
-- [Step 2 - Authenticating to DigitalOcean API with Doctl](#step-2---authenticating-to-digitalocean-api-with-doctl)
+- [Step 2 - Authenticating to DigitalOcean API](#step-2---authenticating-to-digitalocean-api)
 - [Step 3 - Creating the DOKS Cluster](#step-3---creating-the-doks-cluster)
 - [Conclusion](#conclusion)
 
@@ -30,11 +29,9 @@ To complete this tutorial, you will need:
 
 ## Step 1 - Doctl CLI Introduction
 
-In this step, you will learn how to use the `doctl` utility, and explore the available options for the `DigitalOcean` platform. The way `Doctl` works, is by using `commands` to create and manage `DigitalOcean` resources. Each `command` in turn, may have a `sub-command` as well. You can get `help` for each command and sub-command via the `--help` flag.
+In this step, you will learn how to use the `doctl` utility, and explore the available options for the `DigitalOcean` platform. The way `Doctl` works, is by using `commands` and `sub-commands`, to create and manage `DigitalOcean` resources. You can get `help` for each via the `--help` flag.
 
-**Note:**
-
-`Doctl` needs to authenticate with DigitalOcean `API` to perform `queries` and `create` resources on your behalf, hence an `access token` is needed (`Step #2` from [Prerequisites](#prerequisites)).
+Next, you're going to explore the doctl `auth` command and `sub-commands`.
 
 Please open a terminal, and type the following command to list all the available options for `doctl`:
 
@@ -77,7 +74,7 @@ Next, inspect the `auth` command help page:
 doctl auth --help
 ```
 
-The output looks similar to (some parts were hidden for simplicity):
+The output looks similar to (some parts are hidden for simplicity):
 
 ```text
 The `doctl auth` commands allow you to authenticate doctl for use with your DigitalOcean account using tokens that you generate in the control panel at https://cloud.digitalocean.com/account/api/tokens.
@@ -116,7 +113,9 @@ Usage:
 
 In the next step, you're going to learn how to `authenticate` to DigitalOcean `API` with `doctl`, to `create` and `manage` resources on the `DigitalOcean` platform.
 
-## Step 2 - Authenticating to DigitalOcean API with Doctl
+## Step 2 - Authenticating to DigitalOcean API
+
+`Doctl` needs to authenticate with DigitalOcean `API` to perform `queries`, and `create` resources on your behalf, hence an `access token` is needed (`Step #2` from [Prerequisites](#prerequisites)). For each `command` or `sub-command` that you run, `doctl` performs an `API` call to `DigitalOcean`.
 
 To authenticate `doctl` with DigitalOcean `API`, you can use the `auth` command of `doctl`.
 
@@ -175,7 +174,7 @@ Next, you're going to learn how to spin up a `DOKS` cluster, and explore the ava
 
 In this step, you will learn how to use the `doctl k8s` command to create a `DOKS` cluster.
 
-First, explore the available `doctl` commands for use with `DOKS` clusters:
+First, explore the available `doctl` commands for managing `DOKS` clusters:
 
 - `Manage` a `DOKS` cluster:
 
@@ -234,7 +233,7 @@ doctl k8s cluster create starterkit-cluster-2 \
 
 **Note:**
 
-The above command enables `High Availability` for your cluster, via the `k8s:ha` tag.
+The above command enables `High Availability` for your cluster as well, via the `k8s:ha` tag.
 
 The output looks similar to:
 
@@ -242,8 +241,8 @@ The output looks similar to:
 Notice: Cluster is provisioning, waiting for cluster to be running
 ..................................................................
 Notice: Cluster created, fetching credentials
-Notice: Adding cluster credentials to kubeconfig file found in "/Users/bgupta/.kube/config"
-Notice: Setting current-context to do-sfo3-bg-cluster-1
+Notice: Adding cluster credentials to kubeconfig file found in "/Users/starterkit/.kube/config"
+Notice: Setting current-context to starterkit-cluster-2
 ID                                      Name                  Region    Version        Auto Upgrade    Status     Node Pools
 0922a629-7f2e-4bda-940c-4d42a3f987ad    starterkit-cluster-2  nyc1      1.21.3-do.0    false           running    basicnp
 ```
@@ -276,7 +275,7 @@ Please look at the last line from the `JSON` output, and search for the `ha` key
 curl -s -X GET \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <your_do_api_token>" \
-  https://api.digitalocean.com/v2/kubernetes/clusters/<cluster_id> | jq '.kubernetes_cluster.ha'
+  "https://api.digitalocean.com/v2/kubernetes/clusters/<your_cluster_id>" | jq '.kubernetes_cluster.ha'
 ```
 
 Finally, check if the `kubectl` context was set to point to your `DOKS` cluster. The `doctl` utility does it automatically for you in general, but it's good to know if something goes bad.
@@ -291,7 +290,7 @@ The output looks similar to:
 starterkit-cluster-2
 ```
 
-If the above command output is empty or different, you can use the `kubeconfig` sub-command of `doctl k8s cluster`.
+If the above command output is empty or different, you can use the `kubeconfig` sub-command of `doctl k8s cluster` to set `kubectl` context.
 
 First, list the available `DOKS` clusters:
 
@@ -306,7 +305,7 @@ ID                                      Name                  Region    Version 
 b4ddaa2e-8c0c-4fd8-b249-cbf99eda0808    starterkit-cluster-2  nyc1      1.21.3-do.0    false           running    basicnp
 ```
 
-Next, set `kubectl` context to point to your cluster, via `doctl`:
+Next, set `kubectl` context to point to your cluster:
 
 ```shell
 doctl kubernetes cluster kubeconfig save <your_cluster_name>
@@ -344,7 +343,7 @@ If the worker node(s) `STATUS` is different from `Ready`, you can inspect the af
 kubectl describe node <worker_node_name>
 ```
 
-After running the above command, please look at the `Events` section (last line from command output), to see what went wrong. There are many other useful sections to look at, like `Conditions`, `System Info`, `Allocated resources`, to help you troubleshoot worker nodes issues in the future.
+After running the above command, please look at the `Events` section (last line from command output), to check if something went wrong. There are many other useful sections to look at, like `Conditions`, `System Info`, `Allocated resources`, to help you troubleshoot worker nodes issues in the future.
 
 ## Conclusion
 
