@@ -24,9 +24,9 @@ In the steps to follow, you will learn to:
 
 After finishing all the steps, you will have a production ready `Loki` setup, that will help you troubleshoot any issues you might have with running applications. Just log in to `Grafana`, and make use of `LogQL` syntax to search, filter, and perform all kind of queries on application logs, to fetch useful information.
 
-### Tutorial Setup Overview
+### Starter Kit Loki Setup Overview
 
-![Loki Setup](res/img/arch_aes_prom_loki_grafana.jpg)
+![Starter Kit Loki Setup Overview](res/img/arch_aes_prom_loki_grafana.png)
 
 ## Table of contents
 
@@ -103,7 +103,7 @@ code 5-setup-loki-stack/res/manifests/loki-stack-values-v2.4.1.yaml
 
 The above values file, enables `Loki` and `Promtail` for you, so no other input is required. `Prometheus` and `Grafana` installation is disabled, because [Section 4 - Set up Prometheus Stack](../4-setup-prometheus-stack) took care of it already. `Fluent Bit` is not used, so it is disabled by default as well.
 
-Next, install the stack using `Helm`. The following command installs version `2.4.1` of `grafana/loki-stack` in your cluster, using the `Starter Kit` repository `values` file:
+Next, install the stack using `Helm`. The following command installs version `2.4.1` of `grafana/loki-stack` in your cluster, using the `Starter Kit` repository `values` file (also creates the `monitoring` namespace, if it doesn't exist):
 
 ```shell
 HELM_CHART_VERSION="2.4.1"
@@ -114,21 +114,13 @@ helm install loki grafana/loki-stack --version "${HELM_CHART_VERSION}" \
   -f "5-setup-loki-stack/res/manifests/loki-stack-values-v${HELM_CHART_VERSION}.yaml"
 ```
 
-Explanation for the above command arguments:
-
-- `loki` - Helm release name.
-- `grafana/loki-stack` - Helm chart name.
-- `--version` - tells Helm what version of the `Loki` stack chart to deploy.
-- `--namespace` - tells Helm what namespace to use for the `Loki` release.
-- `--create-namespace` - tells Helm to create the namespace for you, if it doesn't exist.
-
-Check `Helm` release status:
+Finally, check `Helm` release status:
 
 ```shell
 helm ls -n monitoring
 ```
 
-The output looks similar to:
+The output looks similar to (`STATUS` column should display 'deployed'):
 
 ```text
 NAME    NAMESPACE       REVISION        UPDATED                                 STATUS          CHART                   APP VERSION
@@ -141,7 +133,7 @@ Next, inspect all the `Kubernetes` resources created for `Loki`:
 kubectl get all -n monitoring
 ```
 
-The output looks similar to:
+You should have resources deployed for `Loki` itself (`loki-0`) and Promtail (`loki-promtail`). The output looks similar to:
 
 ```text
 NAME                      READY   STATUS    RESTARTS   AGE
@@ -161,13 +153,11 @@ NAME                    READY   AGE
 statefulset.apps/loki   1/1     44m
 ```
 
-The most relevant resources to look for, is the Promtail DaemonSet - `daemonset.apps/loki-promtail`, and the Loki StatefulSet - `statefulset.apps/loki`.
-
 In the next step, you will configure `Grafana` to use the `Loki` datasource, and view application logs.
 
 ## Step 2 - Configure Grafana with Loki
 
-In this step, you will add the `Loki` data source to `Grafana`. First, you need to expose the `Grafana` web console on your local machine (default credentials: `admin/prom-operator`):
+In this step, you will add the `Loki` data source to `Grafana`. First, you need to expose the `Grafana` web interface on your local machine (default credentials: `admin/prom-operator`):
 
 ```shell
 kubectl --namespace monitoring port-forward svc/kube-prom-stack-grafana 3000:80
@@ -176,7 +166,7 @@ kubectl --namespace monitoring port-forward svc/kube-prom-stack-grafana 3000:80
 **Note:**
 You should **NOT** expose `Grafana` to `public` network (eg. create an ingress mapping or `LB` service) with `default` login/password.
 
-Next, please follow below steps:
+Next, open a web browser on [localhost:3000](http://localhost:3000), and follow below steps:
 
 1. Click the `Settings` gear from the left panel.
 2. Select `Data sources`.
@@ -220,7 +210,7 @@ kube-prom-stack-prometheus-node-exporter   2         2         2       2        
 loki-promtail                              2         2         2       2            2           <none>          5h6m
 ```
 
-This is great! But how does it discover `Kubernetes` pods and assigns labels? Let's have a look at the associated `ConfigMap`:
+This is great! But how does it discover `Kubernetes` pods and assigns labels? Please take a look at the associated `ConfigMap`:
 
 ```shell
 kubectl get cm loki-promtail -n monitoring -o yaml
@@ -249,19 +239,19 @@ As seen above in the `scrape_configs` section, there's a `kubernetes-pods-name` 
 
 For more features and in depth explanations, please visit the [Promtail](https://grafana.com/docs/loki/latest/clients/promtail) official documentation page.
 
-In the next section, you'll be introduced to `LogQL` which is the `PromQL` brother, but for logs. Some basic features of `LogQL` will be presented as well.
+In the next section, you'll be introduced to `LogQL`, which is the `PromQL` brother, but for logs. Some basic features of `LogQL` will be presented as well.
 
 ## Step 4 - Using LogQL
 
 In this step, you will learn how to use `LogQL` for querying application logs, and make use of the available `features` to ease your work.
 
-`Loki` comes with its very own language for querying the logs called `LogQL`. `LogQL` can be considered a `distributed grep` with `labels` for filtering.
+`Loki` comes with its very own language for querying logs, called `LogQL`. `LogQL` can be considered a `distributed grep` with `labels` for filtering.
 
 A basic `LogQL` query consists of two parts: the `log stream selector` and a `filter` expression. Due to Loki’s design, all `LogQL` queries are required to contain a `log stream selector`.
 
 The `log stream selector` will reduce the number of log streams to a manageable volume. Depending on how many labels you use to filter down the log streams, it will affect the relative performance of the query’s execution. The filter expression is then used to do a distributed grep over the retrieved log streams.
 
-Next, a practical example is presented for querying the `Ambassador Edge Stack` logs.
+Next, a practical example is presented, for querying the `Ambassador Edge Stack` logs.
 
 First, you need to expose the `Grafana` web console on your local machine (default credentials: `admin/prom-operator`):
 
@@ -269,7 +259,7 @@ First, you need to expose the `Grafana` web console on your local machine (defau
 kubectl --namespace monitoring port-forward svc/kube-prom-stack-grafana 3000:80
 ```
 
-Next, open the Grafana [web console](http://localhost:3000), and navigate to the `Explore` tab from the left panel. Select `Loki` from the data source menu, and run this query:
+Next, point your web browser to [localhost:3000](http://localhost:3000), and navigate to the `Explore` tab from the left panel. Select `Loki` from the data source menu, and run this query:
 
   ```json
   {container="ambassador", namespace="ambassador"}
@@ -321,13 +311,13 @@ First, change directory where the `Starter Kit` repository was cloned:
 cd Kubernetes-Starter-Kit-Developers
 ```
 
-Next, open the `loki-stack-values-v2.4.1.yaml` file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support). Please remove the comments surrounding the `schema_config` and `storage_config` keys:
+Next, open the `loki-stack-values-v2.4.1.yaml` file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support):
 
 ```shell
 code 5-setup-loki-stack/res/manifests/loki-stack-values-v2.4.1.yaml
 ```
 
-The final `Loki` storage setup configuration looks similar to (please replace the `<>` placeholders accordingly):
+Then, please remove the comments surrounding the `schema_config` and `storage_config` keys. The final `Loki` storage setup configuration looks similar to (please replace the `<>` placeholders accordingly):
 
 ```yaml
 loki:
@@ -362,7 +352,7 @@ Explanation for the above configuration:
 - `schema_config` - defines a storage `type` and a schema `version` to facilitate migrations (schemas can `differ` between `Loki` installations, so `consistency` is they key here). In this case, `BoltDB Shipper` is specified as the storage implementation and a `v11` schema version. The `24h` period for the index is the default and preferred value, so please don't change it. Please visit [Schema Configs](https://grafana.com/docs/loki/latest/storage/#schema-configs) for more details.
 - `storage_config` - tells `Loki` about `storage configuration` details, like setting `BoltDB Shipper` parameters. It also informs `Loki` about the `aws` compatible `S3` storage parameters (`bucket` name, `credentials`, `region`, etc).
 
-Apply the new settings, via a `Helm` chart upgrade:
+Apply settings, using `Helm`:
 
   ```shell
   HELM_CHART_VERSION="2.4.1"
@@ -409,7 +399,7 @@ Next, you will learn how to set storage retention policies for `Loki`.
 
 ## Step 6 - Setting Loki Storage Retention
 
-In this step, you will learn how to set `DO Spaces` retention policies. Because you configured `DO Spaces` as the default storage backend for `Loki`, the same rules apply as for every `S3` compatible storage type.
+In this step, you will learn how to set `DO Spaces` retention policies. Because you configured `DO Spaces` as the default storage backend for `Loki`, the same rules apply, as for every `S3` compatible storage type.
 
 `Retention` is a very important aspect when configuring storage backends in general, because `storage is finite`. While `S3` storage is not expensive, and is somewhat `infinte` (it makes you think like that), it is good practice to have a retention policy set.
 
@@ -423,7 +413,7 @@ Although `S3` is very scalable, and you don't have to worry about `disk space` i
 
 Setting the lifecycle for `Loki` storage bucket is achieved via the `s3cmd` utility.
 
-Next, you're going to use the sample provided below, to configure retention for the `fake/` and `index/` paths:
+Next, you're going to use the `loki_do_spaces_lifecycle.xml` configuration file provided in the `Starter Kit` Git repository, to configure retention for `Loki` bucket. The policy file contents look similar to:
 
 ```xml
 <LifecycleConfiguration xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
@@ -449,16 +439,16 @@ Next, you're going to use the sample provided below, to configure retention for 
 
 The above `lifecycle` configuration, will automatically `delete` after `10 days`, all the objects from the `fake/` and `index/` paths in the `Loki` storage bucket. A `10 days` lifespan is chosen in this example, because it's usually enough for development purposes. For `production` or other critical systems, a period of `30 days` and even more is recommended.
 
-How to configure the `S3` bucket lifecycle:
+How to configure the `Loki` bucket lifecycle, using `s3cmd`:
 
-1. Change directory where the `Starter Kit` repository was cloned.
+1. First, change directory where the `Starter Kit` repository was cloned.
 
     ```shell
     cd Kubernetes-Starter-Kit-Developers
     ```
 
-2. Please open the [loki_do_spaces_lifecycle.xml](res/manifests/loki_do_spaces_lifecycle.xml) file from the `Starter Kit` repository, using a text editor of your choice, and adjust according to your needs.
-3. Next, set the `lifecycle` policy (please replace the `<>` placeholders accordingly):
+2. Next, open and inspect the `5-setup-loki-stack/res/manifests/loki_do_spaces_lifecycle.xml` file from the `Starter Kit` repository, using a text editor of your choice (preferably with `XML` lint support), and adjust according to your needs.
+3. Then, set the `lifecycle` policy (please replace the `<>` placeholders accordingly):
 
     ```shell
     s3cmd setlifecycle 5-setup-loki-stack/res/manifests/loki_do_spaces_lifecycle.xml s3://<LOKI_STORAGE_BUCKET_NAME>
@@ -476,13 +466,13 @@ After finishing the above steps, you can `inspect` the bucket `size`, and `numbe
 s3cmd du -H s3://<LOKI_DO_SPACES_BUCKET_NAME>
 ```
 
-The output looks similar to the following:
+The output looks similar to the following (notice that it prints the bucket size - `19M`, and number of objects present - `2799`):
 
 ```text
 19M    2799 objects s3://loki-storage-test/
 ```
 
-`DO Spaces` backend implementation will take care of the rest, and `clean` the `old` objects from the bucket for you `automatically`. You can always go back and edit the policy if needed later on, by uploading a new one.
+Next, the `DO Spaces` backend implementation will clean the objects for you `automatically`, based on the expiration date. You can always go back and edit the policy if needed later on, by uploading a new one.
 
 ## Conclusion
 
@@ -490,6 +480,6 @@ In this tutorial, you learned how to install `Loki` for logs monitoring in your 
 
 For more details about `Loki` and other available features, please visit the [Loki](https://grafana.com/docs/loki/latest) official documentation page.
 
-In the next section, you will learn how to perform a backup and restore of your cluster and applications, using `Velero`.
+In the next section, you will learn how to perform backup and restore of your cluster and applications, using `Velero`.
 
 Go to [Section 6 - Backup Using Velero](../6-setup-velero)
