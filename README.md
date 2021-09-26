@@ -2,11 +2,13 @@
 
 In this tutorial, we provide developers a hands-on introduction on how to get started with an operations-ready Kubernetes cluster on DigitalOcean Kubernetes (DOKS). Kubernetes is easy to set up and developers can use identical tooling and configurations across any cloud. Making Kubernetes operationally ready requires a few more tools to be set up, which are described in this tutorial.
 
+Resources used by the starter kit include the following.
+- DigitalOcean droplets (for DOKS cluster)
+- DigitalOcean load balancer
+- DigitalOcean Block storage for persistent storage
+- DigitalOcean Spaces for object storage
 
-
-**TBD 
-- Adjust the replicas and requests/limits for different namespaces.
-- Automation using terraform/flux. 
+Remember to verify and delete the resources at the end of the tutorial, if you no longer need those.
 
 
 ## Operations-ready Setup Overview
@@ -49,6 +51,8 @@ This tutorial will use manifest files from this repo. It is recomended to clone 
     git clone https://github.com/digitalocean/Kubernetes-Starter-Kit-Developers.git
    ```
 If you want to automate installation for all the components, refer to [section 15 - Automate with terraform & flux](15-automate-with-terraform-flux).
+
+Finally, there are multiple places where you will change a manifest file to include a secret token for your cluster. **Please be mindful of handling the secrets, and do not commit to public git repositories.**
 
 Go to [Section 1 - Set up DigitalOcean Kubernetes](1-setup-DOKS).
 

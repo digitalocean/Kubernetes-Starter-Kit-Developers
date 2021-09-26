@@ -9,6 +9,11 @@ After completing this tutorial, you will be able to:
 - Use the [doctl](https://docs.digitalocean.com/reference/doctl) command, to create and manage `DOKS` clusters.
 - Inspect `DOKS` clusters state.
 
+
+**Note:**
+As an alternative to this chapter, you can use the DOKS UI to create a cluster. UI is easy to understand and very convenient as well.
+
+
 ## Table of contents
 
 - [Introduction](#introduction)
@@ -220,20 +225,15 @@ doctl k8s cluster create -h
 
 For the `Starter Kit` tutorial, you will need a `DOKS` cluster with `3 worker nodes` . Use `--wait false`, if you do not want the command to wait until cluster is ready.
 
-The below example is using `4cpu/8gb` basic nodes (`$40/month`), `2` default, and auto-scale to `4`. So, your cluster cost is between `$80-$160/month`, with `hourly` billing. To choose a different `node type`, pick from the following command `doctl compute size list`.
+The below example is using `4cpu/8gb` AMD nodes (`$48/month`), `3` default, and auto-scale to `2-4`. So, your cluster cost is between `$96-$192/month`, with `hourly` billing. To choose a different `node type`, pick from the following command `doctl compute size list`.
 
 ```shell
 doctl k8s cluster create starterkit-cluster-2 \
   --auto-upgrade=false \
   --maintenance-window "saturday=21:00" \
-  --node-pool "name=basicnp;size=s-4vcpu-8gb;count=3;tag=cluster2;label=type=basic;auto-scale=true;min-nodes=2;max-nodes=4" \
-  --region nyc1 \
-  --tag k8s:ha 
+  --node-pool "name=basicnp;size=s-4vcpu-8gb-amd;count=3;tag=cluster2;label=type=basic;auto-scale=true;min-nodes=2;max-nodes=4" \
+  --region nyc1
 ```
-
-**Note:**
-
-The above command enables `High Availability` for your cluster as well, via the `k8s:ha` tag.
 
 The output looks similar to:
 
@@ -247,7 +247,7 @@ ID                                      Name                  Region    Version 
 0922a629-7f2e-4bda-940c-4d42a3f987ad    starterkit-cluster-2  nyc1      1.21.3-do.0    false           running    basicnp
 ```
 
-Next, you can verify if the `High Availability` control plane is enabled. First, fetch your `DOKS` cluster `ID`:
+Next, you can verify the cluster details. First, fetch your `DOKS` cluster `ID`:
 
 ```shell
 doctl k8s cluster list
@@ -267,15 +267,6 @@ curl -X GET \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <your_do_api_token>" \
   https://api.digitalocean.com/v2/kubernetes/clusters/<cluster_id>
-```
-
-Please look at the last line from the `JSON` output, and search for the `ha` key - the value should be set to `true`. Alternatively, you can use [jq](https://stedolan.github.io/jq/) to ease your search:
-
-```shell
-curl -s -X GET \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <your_do_api_token>" \
-  "https://api.digitalocean.com/v2/kubernetes/clusters/<your_cluster_id>" | jq '.kubernetes_cluster.ha'
 ```
 
 Finally, check if the `kubectl` context was set to point to your `DOKS` cluster. The `doctl` utility does it automatically for you in general, but it's good to know if something goes bad.
@@ -336,7 +327,6 @@ basicnp-865xu   Ready    <none>   2m56s   v1.20.7
 If everything was set correctly, you should get a list of all the `DOKS` cluster worker `nodes`. The `STATUS` column should print `Ready`, if all the nodes are `healthy`.
 
 **Hint:**
-
 If the worker node(s) `STATUS` is different from `Ready`, you can inspect the affected node(s), via (please replace the `<>` placeholders accordingly):
 
 ```shell

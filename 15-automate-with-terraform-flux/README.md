@@ -252,7 +252,7 @@ Please use the following steps, to create the `Ambassador` Helm release:
     ```shell
     AMBASSADOR_CHART_VERSION="6.7.13"
 
-    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/3-setup-ingress-ambassador/res/manifests/ambassador-values-v${AMBASSADOR_CHART_VERSION}.yaml" > "ambassador-values-v${AMBASSADOR_CHART_VERSION}.yaml"
+    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/03-setup-ingress-ambassador/res/manifests/ambassador-values-v${AMBASSADOR_CHART_VERSION}.yaml" > "ambassador-values-v${AMBASSADOR_CHART_VERSION}.yaml"
 
     flux create helmrelease "ambassador-stack" \
       --source="HelmRepository/ambassador" \
@@ -314,7 +314,7 @@ Look for the `READY` column value - it should say `True`. Then, the reconciliati
 
 - Please bear in mind that some releases take longer to complete (like `Prometheus` stack, for example), so please be patient.
 
-Please refer to the [3-setup-ingress-ambassador](../3-setup-ingress-ambassador/README.md)  tutorial, for checking the `Ambassador Edge Stack` deployment status and functionality.
+Please refer to the [03-setup-ingress-ambassador](../03-setup-ingress-ambassador/README.md)  tutorial, for checking the `Ambassador Edge Stack` deployment status and functionality.
 
 Next, you're going to perform similar steps to define `Helm` releases for the remaining components of the `Starter Kit`. Please make sure that you stay in the same directory where your personal `Git` repository was cloned, and that the `HELM_MANIFESTS_PATH` environment variable is set (defined at [Creating the Ambassador Helm Release - Step 4.](#creating-the-ambassador-helm-release) above).
 
@@ -344,7 +344,7 @@ Steps to follow:
     ```shell
     PROMETHEUS_CHART_VERSION="17.1.3"
 
-    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/4-setup-prometheus-stack/res/manifests/prom-stack-values-v${PROMETHEUS_CHART_VERSION}.yaml" > "prom-stack-values-v${PROMETHEUS_CHART_VERSION}.yaml"
+    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/04-setup-prometheus-stack/res/manifests/prom-stack-values-v${PROMETHEUS_CHART_VERSION}.yaml" > "prom-stack-values-v${PROMETHEUS_CHART_VERSION}.yaml"
 
     flux create helmrelease "kube-prometheus-stack" \
       --source="HelmRepository/prometheus-community" \
@@ -400,7 +400,7 @@ Look for the `READY` column value - it should say `True`. Then, the reconciliati
 
 - Please bear in mind that some releases take longer to complete (like `Prometheus` stack, for example), so please be patient.
 
-Please refer to the [4-setup-prometheus-stack](../4-setup-prometheus-stack/README.md) tutorial, for checking the `Prometheus Stack` deployment status and functionality.
+Please refer to the [04-setup-prometheus-stack](../04-setup-prometheus-stack/README.md) tutorial, for checking the `Prometheus Stack` deployment status and functionality.
 
 Next, you're going to create the manifests and let `Flux CD` handle the `Loki Stack` Helm release automatically.
 
@@ -430,7 +430,7 @@ Steps to follow:
     ```shell
     LOKI_CHART_VERSION="2.4.1"
 
-    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/5-setup-loki-stack/res/manifests/loki-stack-values-v${LOKI_CHART_VERSION}.yaml" > "loki-stack-values-v${LOKI_CHART_VERSION}.yaml"
+    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/05-setup-loki-stack/res/manifests/loki-stack-values-v${LOKI_CHART_VERSION}.yaml" > "loki-stack-values-v${LOKI_CHART_VERSION}.yaml"
 
     flux create helmrelease "loki-stack" \
       --source="HelmRepository/grafana" \
@@ -486,7 +486,7 @@ Look for the `READY` column value - it should say `True`. Then, the reconciliati
 
 - Please bear in mind that some releases take longer to complete (like `Prometheus` stack, for example), so please be patient.
 
-Please refer to the [5-setup-loki-stack](../5-setup-loki-stack/README.md) tutorial, for checking the `Loki Stack` deployment status and functionality.
+Please refer to the [05-setup-loki-stack](../05-setup-loki-stack/README.md) tutorial, for checking the `Loki Stack` deployment status and functionality.
 
 Next, you're going to create the manifests and let `Flux CD` handle the `Velero` Helm release automatically.
 
@@ -516,7 +516,7 @@ Steps to follow:
     ```shell
     VELERO_CHART_VERSION="2.23.6"
 
-    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/6-setup-velero/res/manifests/velero-values-v${VELERO_CHART_VERSION}.yaml" > "velero-values-v${VELERO_CHART_VERSION}.yaml"
+    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/06-setup-velero/res/manifests/velero-values-v${VELERO_CHART_VERSION}.yaml" > "velero-values-v${VELERO_CHART_VERSION}.yaml"
 
     flux create helmrelease "velero-stack" \
       --source="HelmRepository/vmware-tanzu" \
@@ -572,7 +572,7 @@ Look for the `READY` column value - it should say `True`. Then, the reconciliati
 
 - Please bear in mind that some releases take longer to complete (like `Prometheus` stack, for example), so please be patient.
 
-Please refer to the [6-setup-velero](../6-setup-velero/README.md) tutorial, for checking the `Velero` deployment status and functionality.
+Please refer to the [06-setup-velero](../06-setup-velero/README.md) tutorial, for checking the `Velero` deployment status and functionality.
 
 ## Conclusion
 
