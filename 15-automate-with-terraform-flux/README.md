@@ -82,10 +82,11 @@ Steps to follow:
     ```shell
     git clone https://github.com/digitalocean/Kubernetes-Starter-Kit-Developers.git
 
-    cd Kubernetes-Starter-Kit-Developers/assets/terraform
+    cd Kubernetes-Starter-Kit-Developers/15-automate-with-terraform-flux/assets/terraform
     ```
 
 2. Rename the provided [backend.tf.sample](assets/terraform/backend.tf.sample) file from this repository to `backend.tf`. Then, open it using a text editor of your choice, and replace the `<>` placeholders accordingly (explanations for each can be found inside).
+
 3. Initialize the `Terraform` backend. You're going to use the previously created `DO Spaces` access and secret keys:
 
     ```shell
@@ -119,6 +120,21 @@ Steps to follow:
     ```
 
 2. Edit the [main.tf](assets/terraform/main.tf) file using an editor of your choice (preferrably with `Terraform` linting support) and replace the `<>` placehholders accordingly (explanations for each can be found inside).
+
+
+**Note:**
+
+Explore options for creating the cluster
+
+```
+~ doctl k8s -h
+~ doctl k8s options -h
+~ doctl k8s options regions
+~ doctl k8s options sizes
+~ doctl k8s options versions
+~ doctl k8s cluster create -h
+```
+
 3. Next, inspect the infrastructure changes:
 
     ```shell
