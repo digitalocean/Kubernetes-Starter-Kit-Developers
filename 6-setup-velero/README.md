@@ -1,49 +1,74 @@
-## Backup Using Velero
+# How to Perform Backup and Restore Using Velero
 
+## Introduction
 
-### Table of contents
-
-- [Overview](#overview)
-- [How Velero Works](#how-velero-works)
-- [Prerequisites](#prerequisites)
-- [Velero Installation](#velero-installation)
-- [Namespace Backup and Restore](#namespace-backup-and-restore)
-- [Backup and Restore Whole Cluster](#backup-and-restore-whole-cluster)
-- [Scheduled Backup and Restore](#scheduled-backup-and-restore)
-- [Deleting Backups](#deleting-backups)
-- [Final Notes](#final-notes)
-- [Learn More](#learn-more)
-
-
-### Overview
-
-This guide will show you how to `deploy Velero` to your `Kubernetes cluster`, create `backups`, and `recover` from a backup after something goes wrong in the cluster.
+In this tutorial, you will learn how to `deploy Velero` to your `Kubernetes` cluster, create `backups`, and `recover` from a backup if something goes wrong.
 
 You can back up your `entire` cluster, or optionally choose a `namespace` or `label` selector to back up.
 
-`Backups` can be run `one off` or `scheduled`. It’s a good idea to have `scheduled` backups so you are certain you have a recent backup to easily fall back to. You can also create backup [hooks](https://velero.io/docs/v1.6/backup-hooks/) if you want to execute actions before or after a backup is made.
+`Backups` can be run `one off` or `scheduled`. It’s a good idea to have `scheduled` backups so you are certain you have a `recent` backup to easily fall back to. You can also create [backup hooks](https://velero.io/docs/v1.6/backup-hooks/), if you want to execute actions `before` or `after` a backup is made.
 
-Why `Velero`?
+Why choose `Velero` ?
 
-`Velero` gives you tools to `back up` and `restore` your `Kubernetes cluster resources` and `persistent volumes`. You can run `Velero` with a `cloud provider` or `on-premises`. 
+`Velero` gives you tools to `back up` and `restore` your `Kubernetes cluster resources` and `persistent volumes`. You can run `Velero` with a `cloud provider` or `on-premises`.
 
 Advantages of using `Velero`:
 
-* Take `backups` of your cluster and `restore` in case of loss.
-* `Migrate` cluster resources to other clusters.
-* `Replicate` your `production` cluster to `development` and `testing` clusters.
+- Take `backups` of your cluster and `restore` in case of loss.
+- `Migrate` cluster resources to other clusters.
+- `Replicate` your `production` cluster to `development` and `testing` clusters.
 
+After finishing this tutorial, you will be able to:
 
-### How Velero Works
+- `Backup` and `restore` your `applications`, or your entire `DOKS` cluster.
+- Create `scheduled` backups for your applications.
+- Configure `DO Spaces` storage for `Velero` to use.
+
+## Table of contents
+
+- [Introduction](#introduction)
+- [Prerequisites](#prerequisites)
+- [Step 1 - How Velero Works](#step-1---how-velero-works)
+- [Step 2 - Installing Velero](#step-2---installing-velero)
+- [Step 3 - Namespace Backup and Restore Example](#step-3---namespace-backup-and-restore-example)
+  - [Creating the Ambassador Namespace Backup](#creating-the-ambassador-namespace-backup)
+  - [Deleting the Ambassador Namespace and Resources](#deleting-the-ambassador-namespace-and-resources)
+  - [Restoring the Ambassador Namespace Backup](#restoring-the-ambassador-namespace-backup)
+  - [Checking the Ambassador Namespace Restore Status](#checking-the-ambassador-namespace-restore-status)
+- [Step 4 - Backup and Restore Whole Cluster Example](#step-4---backup-and-restore-whole-cluster-example)
+  - [Creating the DOKS Cluster Backup](#creating-the-doks-cluster-backup)
+  - [Deleting the DOKS Cluster](#deleting-the-doks-cluster)
+  - [Checking DOKS Cluster State](#checking-doks-cluster-state)
+- [Step 5 - Scheduled Backup and Restore](#step-5---scheduled-backup-and-restore)
+  - [Verifying the Scheduled Backup state](#verifying-the-scheduled-backup-state)
+  - [Restoring the Scheduled Backup](#restoring-the-scheduled-backup)
+- [Step 6 - Deleting Backups](#step-6---deleting-backups)
+  - [Manually Deleting a Backup](#manually-deleting-a-backup)
+  - [Automatic Backup Deletion via TTL](#automatic-backup-deletion-via-ttl)
+- [Conclusion](#conclusion)
+
+## Prerequisites
+
+To complete this tutorial, you need the following:
+
+1. A DO spaces [bucket](https://docs.digitalocean.com/products/spaces/how-to/create/) bucket and `access` keys. Save the `access` and `secret` keys in a safe place for later use.
+2. A DigitalOcean [API token](https://docs.digitalocean.com/reference/api/create-personal-access-token/) for `Velero` to use.
+3. A [Git](https://git-scm.com/downloads) client, to clone the `Starter Kit` repository.
+4. [Helm](https://www.helms.sh), for managing `Velero` releases and upgrades.
+5. [Doctl](https://github.com/digitalocean/doctl/releases), for `DigitalOcean` API interaction.
+6. [Kubectl](https://kubernetes.io/docs/tasks/tools), for `Kubernetes` interaction.
+7. [Velero](https://velero.io/docs/v1.6/basic-install/#install-the-cli) client, to manage `Velero` backups.
+
+## Step 1 - How Velero Works
 
 `Velero` consists of two parts:
 
-* A `server` that runs on your cluster
-* A `command-line` client that runs locally
+- A `server` that runs on your cluster
+- A `command-line` client that runs locally
 
 Each `Velero` operation – `on-demand backup`, `scheduled backup`, `restore` – is a `custom resource`, defined with a `Kubernetes Custom Resource Definition` (CRD) and stored in `etcd`. `Velero` also includes `controllers` that process the custom resources to perform backups, restores, and all related operations.
 
-**Backup and Restore workflow**
+### Backup and Restore workflow
 
 Whenever you execute a `backup command`, the `Velero CLI` makes a call to the `Kubernetes API` server to create a `Backup` object. The `Backup Controller` then validates the backup object i.e. whether it is `cluster` backup, `namespace` backup, etc. and then it makes a call to the `API` server to query the data to be backed up. Finally it starts the backup process once it collects the data to be backed up. `Backup Controller` then makes a call to `DigitalOcean Spaces` to store the backup file. The backup file is stored as a `tarball` file (`.tar.gz`).
 
@@ -51,41 +76,22 @@ Similarly whenever you execute a `restore command`, the `Velero CLI` makes a cal
 
 Below is a diagram that shows the `Backup/Restore` workflow:
 
-![Velero Backup Workflow](res/img/velero_bk_res_wf.jpg)
+![Velero Backup Workflow](res/img/velero_bk_res_wf.png)
 
 `Velero` is `ideal` for the `disaster` recovery use case, as well as for snapshotting your application state, prior to performing system operations on your cluster, like upgrades. For more details on this topic, please visit the [How Velero Works](https://velero.io/docs/v1.6/how-velero-works/) official page.
 
+In the next step, you will learn how to install `Velero`, using `Helm`.
 
-### Prerequisites
+## Step 2 - Installing Velero
 
-Before you get started, you will need to do the following:
-
-* Create a [Spaces](https://docs.digitalocean.com/products/spaces/how-to/create/) bucket and access keys. Save the `access` key and `secret` in a safe place for later use. 
-* You should have an DigitalOcean `API token`. If not, [create one](https://docs.digitalocean.com/reference/api/create-personal-access-token/) for `Velero` from the cloud console.
-
-
-### Velero Installation
-
-There are three parts involved:
-
-1. A `client` (used to interact with the `Velero Server` and perform Backup/Restore operations)
-2. A `server` (runs on the `DOKS Cluster` as a `Kubernetes` resource)
-3. A `storage` provider for `Velero` to store your `resources` and `volumes`. In case of DigitalOcean this is `Spaces` (`S3` like objects storage) - already covered in the [Prerequisites](#prerequisites) section.
-
-**Installing the Velero CLI**
-
-Just follow the [CLI installation](https://velero.io/docs/v1.6/basic-install/#install-the-cli) steps for your OS distribution, as detailed on the official page (in this tutorial `v1.6` is used).
-
-**Installing the Velero Server and Storage Provider Plugins**
-
-In the next part, you will deploy `Velero` and all the required components so that it will be able to perform backups for `Kubernetes` resources and `PV's`. The backup data will be stored in the DO `Spaces` bucket created earlier in the [Prerequisites](#prerequisites) section.
+In this step, you will deploy `Velero` and all the required components, so that it will be able to perform backups for your `Kubernetes` cluster resources (`PV's` as well). The backup data will be stored in the DO `Spaces` bucket created earlier in the [Prerequisites](#prerequisites) section.
 
 Steps to follow:
 
-1. Clone the `Starter Kit` Git repository and change directory to your local copy.
-2. Add the `Helm` repo and list the available charts:
+1. First, clone the `Starter Kit` Git repository and change directory to your local copy.
+2. Next, add the `Helm` repository and list the available charts:
 
-    ```
+    ```shell
     helm repo add vmware-tanzu https://vmware-tanzu.github.io/helm-charts
 
     helm search repo vmware-tanzu
@@ -93,7 +99,7 @@ Steps to follow:
 
     The output looks similar to the following:
 
-    ```
+    ```text
     NAME                    CHART VERSION   APP VERSION     DESCRIPTION            
     vmware-tanzu/velero     2.23.6          1.6.3           A Helm chart for velero
     ```
@@ -101,13 +107,9 @@ Steps to follow:
     **Note:**
 
     The chart of interest is `vmware-tanzu/velero`, which will install `Velero` on the cluster. Please visit the [velero-chart](https://github.com/vmware-tanzu/helm-charts/tree/main/charts/velero) page for more details about this chart.
-3. Edit the `6-setup-velero/res/manifests/velero-values.yaml` file provided in the `Starter kit` repository, using an editor of your choice (preferably with `YAML` lint support), and replace the `<>` placeholders accordingly.
-
-    **Hints:**
-     - To quickly find all the `<>` placeholders that need to be replaced in the `YAML` file, please perform a quick search using this pattern: `YOUR_DO`.
-     - Explanations for each configuration, is available inside the values file.
-
-4. Deploy `Velero` using `Helm` (make sure to replace the `<>` placeholders accordingly):
+3. Then, open and inspect the `6-setup-velero/res/manifests/velero-values.yaml` file provided in the `Starter kit` repository, using an editor of your choice (preferably with `YAML` lint support).
+4. Next, please replace the `<>` placeholders accordingly for your DO Spaces `Velero` bucket (like: name, region and secrets). Make sure that you provide your DigitalOcean `API` token as well (`DIGITALOCEAN_TOKEN` key).
+5. Finally, install `Velero` using `Helm`:
 
     ```shell
     HELM_CHART_VERSION="2.23.6"
@@ -120,446 +122,528 @@ Steps to follow:
 
     **Note:**
 
-    A `specific` version for the `Helm` chart is used. In this case `2.23.6` was picked, which maps to the `1.6.3` release of `Velero` (see the output from `Step 1.`). It's good practice in general to lock on a specific version or range (e.g. `^2.23.6`). This helps to have predictable results, and avoid future issues caused by breaking changes introduced in major version releases. On the other hand, it doesn't mean that a future major version ugrade is not an option. You need to make sure that the new version is tested first. Having a good strategy in place for backups and snapshots becomes handy here.
-5. Check the `Velero` deployment:
+    A `specific` version for the `Helm` chart is used. In this case `2.23.6` is picked, which maps to the `1.6.3` version of the application (see the output from `Step 2.`). It’s good practice in general, to lock on a specific version. This helps to have predictable results, and allows versioning control via `Git`.
 
-    ```shell
-    helm ls -n velero
-    ```
+Now, please check your `Velero` deployment:
 
-    The output looks similar to the following:
+ ```shell
+ helm ls -n velero
+ ```
 
-    ```
-    NAME    NAMESPACE       REVISION        UPDATED                                 STATUS          CHART           APP VERSION
-    velero  velero          1               2021-08-25 13:16:24.383446 +0300 EEST   deployed        velero-2.23.6   1.6.3 
-    ```
-6. Check that `Velero` is up and running:
+The output looks similar to the following (`STATUS` column should display `deployed`):
 
-    ```shell
-    kubectl get deployment velero -n velero
-    ```
+ ```text
+ NAME    NAMESPACE       REVISION        UPDATED                                 STATUS          CHART           APP VERSION
+ velero  velero          1               2021-08-25 13:16:24.383446 +0300 EEST   deployed        velero-2.23.6   1.6.3 
+ ```
 
-    The output looks similar to the following:
-
-    ```
-    NAME     READY   UP-TO-DATE   AVAILABLE   AGE
-    velero   1/1     1            1           67s
-    ```
-    
-    **Note:**
-    If you’re interested in looking further, you can view Velero’s server-side components by running (replace the `<>` placeholders accordingly):
-
-    ```shell
-    kubectl -n velero get all
-    ```
-
-`Velero` uses a number of `CRD`'s (Custom Resource Definitions) to represents its own resources like backups, backups schedules, etc. You'll discover each in the next topics of the tutorial, along with some basic examples.
-
-
-### Namespace Backup and Restore
-
-In this scenario you'll backup an entire namespace from the cluster and restore it afterwards making sure that all the resources are re-created. The namespace in question is `ambassador`. For each backup and restore operation a new `Backup` and `Restore` Kubernetes object is created.
-
-Ensure that the `Ambassador` deployment is running and there is a `Service` with an `EXTERNAL-IP` (`kubectl get service --namespace ambassador`). Browse the `IP` a few times to write some log entries to the persistent volume. Then create a `backup` with `Velero`:
-
-Steps to follow:
-
-1. Initiate the backup:
-
-    ```shell
-    velero backup create ambassador-backup --include-namespaces ambassador
-    ```
-2. Check that the backup was created:
-
-    ```shell
-    velero backup get
-    ```
-
-    The output lools similar to:
-
-    ```
-    NAME                                       STATUS      ERRORS   WARNINGS   CREATED                          EXPIRES   STORAGE LOCATION   SELECTOR
-    ambassador-backup                          Completed   0        0          2021-08-25 19:33:03 +0300 EEST   29d       default            <none>
-    ```
-3. After a few moments, you can inspect it:
-
-    ```shell
-    velero backup describe ambassador-backup --details
-    ```
-
-    The output looks similar to:
-
-    ```
-    Name:         ambassador-backup
-    Namespace:    velero
-    Labels:       velero.io/storage-location=default
-    Annotations:  velero.io/source-cluster-k8s-gitversion=v1.21.2
-                  velero.io/source-cluster-k8s-major-version=1
-                  velero.io/source-cluster-k8s-minor-version=21
-
-    Phase:  Completed
-
-    Errors:    0
-    Warnings:  0
-
-    Namespaces:
-      Included:  ambassador
-      Excluded:  <none>
-      ...
-    ```
-
-    **Hints:**
-    
-    * Look for the `Phase` line. It should say `Completed`. 
-    * Check that no `Errors` are reported as well.
-    * A new Kubernetes `Backup` object is created, as seen below:
-
-      ```
-      ~ kubectl get backup/ambassador-backup -n velero -o yaml
-
-      apiVersion: velero.io/v1
-      kind: Backup
-      metadata:
-      annotations:
-        velero.io/source-cluster-k8s-gitversion: v1.21.2
-        velero.io/source-cluster-k8s-major-version: "1"
-        velero.io/source-cluster-k8s-minor-version: "21"
-      ...
-      ``` 
-4. Take a look at the `DO Spaces` bucket, there's a new folder named `backups`. The folder listing reveals the assets that were created for the `ambassador-backup`:
-
-    ![Dashboard location for backup image](res/img/velero-backup-space-2.png)
-5. Simulate a disaster by deleting the  `ambassador` namespace:
-
-    ```shell
-    kubectl delete namespace ambassador
-    ```
-6. Restore the `ambassador-backup`:
-
-    ```shell
-    velero restore create --from-backup ambassador-backup
-    ```
-
-*Important: When you delete the ambassador namespace, the load balancer resource associated will the ambassador service will be deleted as well. So when you restore the ambassador service, the LB will be recreated by DigitalOcean. The issue is that you will get a NEW ip address for your LB. And so you will need to adjust the A records for getting traffic into your domains hosted on the cluster.*
-
-**Results and Observations:**
-
-* Check the `Phase` line from the `velero restore describe ambassador-backup` command output. It should say `Completed`.
-* Take a note of the `Warnings` section from the above command as well - it tells if something went bad or not.
-* Check that all the resources were restored for the `ambassador` namespace:
-
-  ```shell
-  kubectl get all --namespace ambassador
-  ```
-
-
-### Backup and Restore Whole Cluster
-
-In this section you will simulate a `disaster recovery` scenario. The whole `DOKS` cluster will be deleted and then restored from a previous backup.
-
-Steps to follow:
-
-1. Inspect cluster resources first (save the output to a file for later comparison):
-
-    ```shell
-    kubectl get all --all-namespaces
-    ```
-2. Create a backup for the whole `DOKS` cluster:
-   
-    ```
-    velero backup create all-cluster-backup
-    ```
-
-    **Hints:**
-
-    * Check that the backup was created and it's not reporting any errors before moving to the next step. 
-    
-        The following command lists all the available backups:
-
-        ```shell
-        velero backup get
-        ```
-
-        The output looks similar to:
-
-        ```
-        NAME                                       STATUS      ERRORS   WARNINGS   CREATED                          EXPIRES   STORAGE LOCATION   SELECTOR
-        all-cluster-backup                         Completed   0        0          2021-08-25 19:43:03 +0300 EEST   29d       default            <none>
-        ```
-    * For both curiosity and debugging, it’s useful to do a describe and logs on your backups:
-
-        ```shell
-        velero backup describe all-cluster-backup
-        velero backup logs all-cluster-backup
-        ```
-3. Delete the whole `DOKS` cluster (make sure to replace the `<>` placeholders accordingly):
-   
-    ```
-    doctl kubernetes cluster delete <DOKS_CLUSTER_NAME>
-    ```
-4. Re-create the cluster as described in [Section 1 - Set up DigitalOcean Kubernetes](1-setup-DOKS). Make sure the new `DOKS` cluster nodes is `equal or greater` with to the original one - this is important!
-5. Install `Velero Server` and `CLI` as described in [Velero Installation](#velero-installation). Make sure to use the `same Helm Chart version` - this is important!
-6. Restore everything by using the below command:
-
-    ```
-    velero restore create --from-backup all-cluster-backup
-    ```
-
-**Results and Observations:**
-
-* Check the `Phase` line from the `velero restore describe all-cluster-backup` command output. It should say `Completed`.
-* Take a note of the `Warnings` section from the above command as well - it tells if something went bad or not.
-* An important aspect to keep in mind is that whenever you destroy a `DOKS` cluster, the associated `Load Balancer` is destroyed as well. This means that each time the `DOKS` cluster is re-created the `Load Balancer` is re-created as well with a different `IP` address. You have to make sure that `DNS` records will be `updated` as well to reflect the change.
-
-After the restore process finishes you should be able to see all resources re-created. Take a look at the `kubectl get all --all-namespaces` output and compare with the saved results before destroying the cluster. Also, the `backend applications` should respond to `HTTP` requests as well.
-
-
-### Scheduled Backup and Restore
-
-Taking backups automatically based on a schedule is a really useful feature to have. It allows to `rewind back time` and restore the system to a previous working state if something goes wrong.
-
-Creating a scheduled backup is a very straightforward process. An example is provided below for a `1 minute` interval (the `kube-system` namespace was picked):
-
-Steps to follow:
-
-1. Create the schedule:
-
-    ```shell
-    velero schedule create kube-system-minute-backup --schedule="@every 1m" --include-namespaces kube-system
-    ```
-
-    **Hint:**
-
-    Linux cronjob format is supported also:
-
-    ```
-    schedule="*/1 * * * *"
-    ```
-2. Verify that the schedule was created:
-
-    ```shell
-    velero schedule get
-    ```
-
-    The output looks similar to:
-
-    ```
-    NAME                        STATUS    CREATED                          SCHEDULE    BACKUP TTL   LAST BACKUP   SELECTOR
-    kube-system-minute-backup   Enabled   2021-08-26 12:37:44 +0300 EEST   @every 1m   720h0m0s     32s ago       <none>
-    ```
-3. Inspect all the backups after a minute or so:
-
-    ```shell
-    velero backup get
-    ```
-
-    The output looks similar to:
-
-    ```
-    NAME                                       STATUS      ERRORS   WARNINGS   CREATED                          EXPIRES   STORAGE LOCATION   SELECTOR
-    kube-system-minute-backup-20210826093916   Completed   0        0          2021-08-26 12:39:20 +0300 EEST   29d       default            <none>
-    kube-system-minute-backup-20210826093744   Completed   0        0          2021-08-26 12:37:44 +0300 EEST   29d       default            <none>
-    ```
-
-**Results and Observations:**
-
-* Check the `Phase` line from one of the backups: `velero backup describe kube-system-minute-backup-20210826093916`. It should say `Completed`.
-* Take a note of the `Erros` and `Warnings` sections from the above command as well - it tells if something went bad or not.
-  
-To restore one of the `minute` backups please follow the same steps as you learned in the previous parts of this tutorial. This is a good way to exercise and test your experience accumulated so far.
-
-
-### Deleting Backups
-
-When you decide that some older backups are not needed anymore, you can free up some resources both on the `Kubernetes` cluster as well as on the `DO Spaces` bucket.
-
-There are two options available in this case:
-
-1. `Manually` deleting backups by hand via the `CLI`
-2. `Automatically` by setting backups `TTL` (Time To Live)
-
-**Manually deleting a specific backup via the CLI**
-
-Deleting a specific backup:
+Next, verify that `Velero` is up and running:
 
 ```shell
-velero backup delete kube-system-minute-backup-20210826094116
+kubectl get deployment velero -n velero
 ```
 
-After a few moments, check that it's gone from the `velero backup get` command output. It should be deleted from the `DO Spaces` bucket as well.
+The output looks similar to the following (all pods must be in `Ready` state):
 
-**Manually deleting multiple backups via the CLI**
+```text
+NAME     READY   UP-TO-DATE   AVAILABLE   AGE
+velero   1/1     1            1           67s
+```
 
-The `velero backup delete` subcommand provides another useful flag called `--selector`. It allows you to delete multiple backups at once based on `Kubernetes Labels`. The same rules apply as for [Kubernetes Label Selectors](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#label-selectors).
+**Notes:**
 
-Steps to follow:
+- If you’re interested in looking further, you can view Velero’s server-side components:
 
-1. List the available backups:
+```shell
+kubectl -n velero get all
+```
 
-    ```shell
-    velero backup get
-    ```
+- Explore `Velero` CLI help pages, to see what `comands` and `sub-commands` are available. You can get help for each, by using the `--help` flag:
 
-    The output looks similar to:
-
-    ```
-    NAME                                       STATUS      ERRORS   WARNINGS   CREATED                          EXPIRES   STORAGE LOCATION   SELECTOR
-    ambassador-backup                          Completed   0        0          2021-08-25 19:33:03 +0300 EEST   23d       default            <none>
-    backend-minute-backup-20210826094116       Completed   0        0          2021-08-26 12:41:16 +0300 EEST   24d       default            <none>
-    backend-minute-backup-20210826094016       Completed   0        0          2021-08-26 12:40:16 +0300 EEST   24d       default            <none>
-    backend-minute-backup-20210826093916       Completed   0        0          2021-08-26 12:39:16 +0300 EEST   24d       default            <none>
-    backend-minute-backup-20210826093816       Completed   0        0          2021-08-26 12:38:16 +0300 EEST   24d       default            <none>
-    backend-minute-backup-20210826093716       Completed   0        0          2021-08-26 12:37:16 +0300 EEST   24d       default            <none>
-    backend-minute-backup-20210826093616       Completed   0        0          2021-08-26 12:36:16 +0300 EEST   24d       default            <none>
-    backend-minute-backup-20210826093509       Completed   0        0          2021-08-26 12:35:09 +0300 EEST   24d       default            <none>
-    ```
-2. Say that you want to delete all the `backend-minute-backup-*` assets:
-
-    Pick a backup from the list and inspect the `Labels`:
+    List all the available commands for `Velero`:
 
     ```shell
-    velero describe backup backend-minute-backup-20210826094116
+    velero --help
     ```
 
-    The output looks similar to:
-
-    ```
-    Name:         backend-minute-backup-20210826094116
-    Namespace:    velero
-    Labels:       velero.io/schedule-name=backend-minute-backup
-                  velero.io/storage-location=default
-    Annotations:  velero.io/source-cluster-k8s-gitversion=v1.21.2
-                  velero.io/source-cluster-k8s-major-version=1
-                  velero.io/source-cluster-k8s-minor-version=21
-
-    Phase:  Completed
-
-    Errors:    0
-    Warnings:  0
-
-    Namespaces:
-    Included:  backend
-    Excluded:  <none>
-    ...
-    ```
-
-    Looking at the above, the `velero.io/schedule-name` label is a perfect match:
+    List `backup` command options for `Velero`:
 
     ```shell
-    velero backup delete --selector velero.io/schedule-name=backend-minute-backup
+    velero backup --help
     ```
 
-Expected results:
+`Velero` uses a number of `CRD`'s (Custom Resource Definitions) to represent its own resources like `backups`, `backup schedules`, etc. You'll discover each in the next steps of the tutorial, along with some basic examples.
 
-All the `backend-minute-backup-*` assets should dissapear from the `velero backup get` command output, as well as from the `DO Spaces` bucket.
+## Step 3 - Namespace Backup and Restore Example
 
-**Automatic backup deletion via TTL**
+In this step, you will learn how to `backup` an entire `namespace` of your `DOKS` cluster, and `restore` it afterwards making sure that all the resources are re-created. The namespace in question is `ambassador`.
 
-When you create a backup, you can specify a `TTL` (Time To Live) by adding the flag --ttl <DURATION>. If `Velero` sees that an existing backup resource is expired, it removes:
+Next, you will perform the following tasks:
 
-* The `Backup` resource
-* The backup `file` from cloud object `storage`
-* All `PersistentVolume` snapshots
-* All associated `Restores`
+- `Creating` the `ambassador` namespace `backup`, using `Velero` CLI.
+- `Deleting` the `ambassador` namespace.
+- `Restoring` the `ambassador` namespace, using `Velero` CLI.
+- `Checking` the `ambassador` namespace `restore` status, using `Velero` CLI.
+
+### Creating the Ambassador Namespace Backup
+
+First, initiate the backup:
+
+```shell
+velero backup create ambassador-backup --include-namespaces ambassador
+```
+
+Next, check that the backup was created:
+
+```shell
+velero backup get
+```
+
+The output looks similar to:
+
+```text
+NAME                                       STATUS      ERRORS   WARNINGS   CREATED                          EXPIRES   STORAGE LOCATION   SELECTOR
+ambassador-backup                          Completed   0        0          2021-08-25 19:33:03 +0300 EEST   29d       default            <none>
+```
+
+Then, after a few moments, you can inspect it:
+
+```shell
+velero backup describe ambassador-backup --details
+```
+
+The output looks similar to:
+
+```text
+Name:         ambassador-backup
+Namespace:    velero
+Labels:       velero.io/storage-location=default
+Annotations:  velero.io/source-cluster-k8s-gitversion=v1.21.2
+              velero.io/source-cluster-k8s-major-version=1
+              velero.io/source-cluster-k8s-minor-version=21
+
+Phase:  Completed
+
+Errors:    0
+Warnings:  0
+
+Namespaces:
+  Included:  ambassador
+  Excluded:  <none>
+  ...
+```
+
+**Hints:**
+
+- Look for the `Phase` line. It should say `Completed`.
+- Check that no `Errors` are reported as well.
+- A new Kubernetes `Backup` object is created:
+
+  ```text
+  ~ kubectl get backup/ambassador-backup -n velero -o yaml
+
+  apiVersion: velero.io/v1
+  kind: Backup
+  metadata:
+  annotations:
+    velero.io/source-cluster-k8s-gitversion: v1.21.2
+    velero.io/source-cluster-k8s-major-version: "1"
+    velero.io/source-cluster-k8s-minor-version: "21"
+  ...
+  ```
+
+Finally, take a look at the `DO Spaces` bucket - there's a new folder named `backups`, which contains the assets created for your `ambassador-backup`:
+
+![DO Spaces Velero Backups](res/img/velero-backup-space-2.png)
+
+### Deleting the Ambassador Namespace and Resources
+
+First, simulate a disaster, by intentionally deleting the `ambassador` namespace:
+
+```shell
+kubectl delete namespace ambassador
+```
+
+Next, check that the namespace was deleted (namespaces listing should not print `ambassador`):
+
+```shell
+kubectl get namespaces
+```
+
+Finally, verify that the `echo` and `quote` backend services `endpoint` is `DOWN` (please refer to [Creating the Ambassador Edge Stack Backend Services](../3-setup-ingress-ambassador/README.md#step-5---creating-the-ambassador-edge-stack-backend-services), regarding the `backend applications` used in the `Starter Kit` tutorial). You can use `curl` to test (or you can use your web browser):
+
+```shell
+curl -Li http://quote.starterkits.online/quote/
+
+curl -Li http://quote.starterkits.online/echo/
+```
+
+### Restoring the Ambassador Namespace Backup
+
+First, restore the `ambassador-backup`:
+
+```shell
+velero restore create --from-backup ambassador-backup
+```
+
+**Important note:**
+
+When you delete the `ambassador` namespace, the load balancer resource associated with the ambassador service will be deleted as well. So, when you restore the `ambassador` service, the `LB` will be recreated by `DigitalOcean`. The issue is that you will get a `NEW IP` address for your `LB`, so you will need to `adjust` the `A records` for getting `traffic` into your domains hosted on the cluster.
+
+### Checking the Ambassador Namespace Restore Status
+
+First, check the `Phase` line from the `ambassador-backup` restore command output. It should say `Completed` (also, please take a note of the `Warnings` section - it tells if something went bad or not):
+
+```shell
+velero restore describe ambassador-backup
+```
+
+Next, verify that all the resources were restored for the `ambassador` namespace (look for the `ambassador` pods, `services` and `deployments`):
+
+```shell
+kubectl get all --namespace ambassador
+```
+
+The output looks similar to:
+
+```text
+NAME                                    READY   STATUS    RESTARTS   AGE
+pod/ambassador-5bdc64f9f6-9qnz6         1/1     Running   0          18h
+pod/ambassador-5bdc64f9f6-twgxb         1/1     Running   0          18h
+pod/ambassador-agent-bcdd8ccc8-8pcwg    1/1     Running   0          18h
+pod/ambassador-redis-64b7c668b9-jzxb5   1/1     Running   0          18h
+
+NAME                       TYPE           CLUSTER-IP       EXTERNAL-IP      PORT(S)                      AGE
+service/ambassador         LoadBalancer   10.245.74.214    159.89.215.200   80:32091/TCP,443:31423/TCP   18h
+service/ambassador-admin   ClusterIP      10.245.204.189   <none>           8877/TCP,8005/TCP            18h
+service/ambassador-redis   ClusterIP      10.245.180.25    <none>           6379/TCP                     18h
+
+NAME                               READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/ambassador         2/2     2            2           18h
+deployment.apps/ambassador-agent   1/1     1            1           18h
+deployment.apps/ambassador-redis   1/1     1            1           18h
+
+NAME                                          DESIRED   CURRENT   READY   AGE
+replicaset.apps/ambassador-5bdc64f9f6         2         2         2       18h
+replicaset.apps/ambassador-agent-bcdd8ccc8    1         1         1       18h
+replicaset.apps/ambassador-redis-64b7c668b9   1         1         1       18h
+```
+
+Finally, after reconfiguring your `LoadBalancer` and DigitalOcean `domain` settings, please verify that the `echo` and `quote` backend services `endpoint` is `UP` (please refer to [Creating the Ambassador Edge Stack Backend Services](../3-setup-ingress-ambassador/README.md#step-5---creating-the-ambassador-edge-stack-backend-services), regarding the `backend applications` used in the `Starter Kit` tutorial). You can use `curl` to test (or you can use your web browser):
+
+```shell
+curl -Li http://quote.starterkits.online/quote/
+
+curl -Li http://quote.starterkits.online/echo/
+```
+
+In the next step, you will simulate a disaster by intentionally deleting your `DOKS` cluster (the `Starter Kit` DOKS cluster).
+
+## Step 4 - Backup and Restore Whole Cluster Example
+
+In this step, you will simulate a `disaster recovery` scenario. The whole `DOKS` cluster will be deleted, and then restored from a previous backup.
+
+Next, you will perform the following tasks:
+
+- `Creating` the `DOKS` cluster `backup`, using `Velero` CLI.
+- `Deleting` the `DOKS` cluster, using `doctl`.
+- `Restoring` the `DOKS` cluster, using `Velero` CLI.
+- `Checking` the `DOKS` cluster state.
+
+### Creating the DOKS Cluster Backup
+
+First, create a backup for the whole `DOKS` cluster:
+
+```shell
+velero backup create all-cluster-backup
+```
+
+Next, check that the backup was created and it's not reporting any errors. The following command lists all the available backups:
+
+```shell
+velero backup get
+```
+
+The output looks similar to:
+
+```text
+NAME                                       STATUS      ERRORS   WARNINGS   CREATED                          EXPIRES   STORAGE LOCATION   SELECTOR
+all-cluster-backup                         Completed   0        0          2021-08-25 19:43:03 +0300 EEST   29d       default            <none>
+```
+
+Finally, inspect the backup state and logs (check that no errors are reported):
+
+```shell
+velero backup describe all-cluster-backup
+
+velero backup logs all-cluster-backup
+```
+
+### Deleting the DOKS Cluster
+
+First, delete the whole `DOKS` cluster (make sure to replace the `<>` placeholders accordingly):
+
+```shell
+doctl kubernetes cluster delete <DOKS_CLUSTER_NAME>
+```
+
+Next, re-create the cluster, as described in [Section 1 - Set up DigitalOcean Kubernetes](1-setup-DOKS). Please make sure the new `DOKS` cluster node count is `equal or greater` with to the original one - this is important!
+
+Then, install Velero `CLI` and `Server`, as described in the [Prerequisites](#prerequisites) section, and [Step 2 - Installing Velero](step-2---installing-velero) respectively. Please make sure to use the `same Helm Chart version` - this is important!
+
+Finally, `restore` everything, by using the below command:
+
+```shell
+velero restore create --from-backup all-cluster-backup
+```
+
+### Checking DOKS Cluster State
+
+First, check the `Phase` line from the `all-cluster-backup` restore describe command output. It should say `Completed` (also, please take a note of the `Warnings` section - it tells if something went bad or not):
+
+```shell
+velero restore describe all-cluster-backup
+```
+
+Next, an important aspect to keep in mind is that whenever you destroy a `DOKS` cluster, the associated `Load Balancer` is destroyed as well. It means that each time the `DOKS` cluster is re-created, the `Load Balancer` is re-created as well with a different `IP` address. You have to make sure that `DNS` records will be `updated` as well, to reflect the change.
+
+Now, verify all cluster `Kubernetes` resources (you should have everything in place):
+
+```shell
+kubectl get all --all-namespaces
+```
+
+Finally, the `backend applications` should respond to `HTTP` requests as well (please refer to [Creating the Ambassador Edge Stack Backend Services](../3-setup-ingress-ambassador/README.md#step-5---creating-the-ambassador-edge-stack-backend-services), regarding the `backend applications` used in the `Starter Kit` tutorial):
+
+```shell
+curl -Li http://quote.starterkits.online/quote/
+
+curl -Li http://quote.starterkits.online/echo/
+```
+
+In the next step, you will learn how to perform scheduled backup and restore for your `DOKS` cluster applications.
+
+## Step 5 - Scheduled Backup and Restore
+
+Taking backups automatically based on a schedule, is a really useful feature to have. It allows you to `rewind back time`, and restore the system to a previous working state if something goes wrong.
+
+Creating a scheduled backup is a very straightforward process. An example is provided below for a `1 minute` interval (the `kube-system` namespace was picked).
+
+First, create the schedule:
+
+```shell
+velero schedule create kube-system-minute-backup --schedule="@every 1m" --include-namespaces kube-system
+```
+
+**Hint:**
+
+Linux cronjob format is supported also:
+
+```text
+schedule="*/1 * * * *"
+```
+
+Next, verify that the schedule was created:
+
+```shell
+velero schedule get
+```
+
+The output looks similar to:
+
+```text
+NAME                        STATUS    CREATED                          SCHEDULE    BACKUP TTL   LAST BACKUP   SELECTOR
+kube-system-minute-backup   Enabled   2021-08-26 12:37:44 +0300 EEST   @every 1m   720h0m0s     32s ago       <none>
+```
+
+Then, inspect all the backups, after one minute or so:
+
+```shell
+velero backup get
+```
+
+The output looks similar to:
+
+```text
+NAME                                       STATUS      ERRORS   WARNINGS   CREATED                          EXPIRES   STORAGE LOCATION   SELECTOR
+kube-system-minute-backup-20210826093916   Completed   0        0          2021-08-26 12:39:20 +0300 EEST   29d       default            <none>
+kube-system-minute-backup-20210826093744   Completed   0        0          2021-08-26 12:37:44 +0300 EEST   29d       default            <none>
+```
+
+### Verifying the Scheduled Backup state
+
+First, check the `Phase` line from one of the backups (please replace the `<>` placeholders accordingly) - it should say `Completed`:
+
+```shell
+velero backup describe kube-system-minute-backup-<timestamp>
+```
+
+Finally, take a note of possible `Erros` and `Warnings` from the above command output as well - it tells if something went bad or not.
+
+### Restoring the Scheduled Backup
+
+To restore one of the `minute` backups, please follow the same steps as you learned in the previous steps of this tutorial. This is a good way to exercise and test your experience accumulated so far.
+
+In the next step, you will learn how to manually or automatically delete specific backups you created over time.
+
+## Step 6 - Deleting Backups
+
+When you decide that some older backups are not needed anymore, you can free up some resources both on the `Kubernetes` cluster, as well as on the Velero `DO Spaces` bucket.
+
+In this step, you will learn how to use one of the following methods to delete `Velero` backups:
+
+1. `Manually` (or by hand), using `Velero` CLI.
+2. `Automatically`, by setting backups `TTL` (Time To Live), via `Velero` CLI.
+
+### Manually Deleting a Backup
+
+First, pick a one minute backup for example, and issue the following command (please replace the `<>` placeholders accordingly):
+
+```shell
+velero backup delete kube-system-minute-backup-<timestamp>
+```
+
+Now, check that it's gone from the `velero backup get` command output. It should be deleted from the `DO Spaces` bucket as well.
+
+Next, you will learn how to delete `multiple` backups at once, by using a `selector`. The `velero backup delete` subcommand provides a flag called `--selector`. It allows you to delete `multiple` backups at once based on `Kubernetes Labels`. The same rules apply as for [Kubernetes Label Selectors](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#label-selectors).
+
+First, list the available backups:
+
+```shell
+velero backup get
+```
+
+The output looks similar to:
+
+```text
+NAME                                       STATUS      ERRORS   WARNINGS   CREATED                          EXPIRES   STORAGE LOCATION   SELECTOR
+ambassador-backup                          Completed   0        0          2021-08-25 19:33:03 +0300 EEST   23d       default            <none>
+backend-minute-backup-20210826094116       Completed   0        0          2021-08-26 12:41:16 +0300 EEST   24d       default            <none>
+backend-minute-backup-20210826094016       Completed   0        0          2021-08-26 12:40:16 +0300 EEST   24d       default            <none>
+backend-minute-backup-20210826093916       Completed   0        0          2021-08-26 12:39:16 +0300 EEST   24d       default            <none>
+backend-minute-backup-20210826093816       Completed   0        0          2021-08-26 12:38:16 +0300 EEST   24d       default            <none>
+backend-minute-backup-20210826093716       Completed   0        0          2021-08-26 12:37:16 +0300 EEST   24d       default            <none>
+backend-minute-backup-20210826093616       Completed   0        0          2021-08-26 12:36:16 +0300 EEST   24d       default            <none>
+backend-minute-backup-20210826093509       Completed   0        0          2021-08-26 12:35:09 +0300 EEST   24d       default            <none>
+```
+
+Next, say that you want to delete all the `backend-minute-backup-*` assets. Pick a backup from the list, and inspect the `Labels`:
+
+```shell
+velero describe backup backend-minute-backup-20210826094116
+```
+
+The output looks similar to (notice the `velero.io/schedule-name` label value):
+
+```text
+Name:         backend-minute-backup-20210826094116
+Namespace:    velero
+Labels:       velero.io/schedule-name=backend-minute-backup
+              velero.io/storage-location=default
+Annotations:  velero.io/source-cluster-k8s-gitversion=v1.21.2
+              velero.io/source-cluster-k8s-major-version=1
+              velero.io/source-cluster-k8s-minor-version=21
+
+Phase:  Completed
+
+Errors:    0
+Warnings:  0
+
+Namespaces:
+Included:  backend
+Excluded:  <none>
+...
+```
+
+Next, you can delete `all` the backups that `match` the `backend-minute-backup` value of the `velero.io/schedule-name` label:
+
+```shell
+velero backup delete --selector velero.io/schedule-name=backend-minute-backup
+```
+
+Finally, check that all the `backend-minute-backup-*` assets disappeared from the `velero backup get` command output, as well as from the `DO Spaces` bucket.
+
+### Automatic Backup Deletion via TTL
+
+When you create a backup, you can specify a `TTL` (Time To Live), by using the `--ttl` flag. If `Velero` sees that an existing backup resource is expired, it removes:
+
+- The `Backup` resource
+- The backup `file` from cloud object `storage`
+- All `PersistentVolume` snapshots
+- All associated `Restores`
 
 The `TTL` flag allows the user to specify the backup retention period with the value specified in hours, minutes and seconds in the form `--ttl 24h0m0s`. If not specified, a default `TTL` value of `30 days` will be applied.
 
-In the next steps you will create a short lived backup with a `TTL` value set to `3 minutes` in order to quickly see the results.
+Next, you will create a short lived backup for the `ambassador` namespace, with a `TTL` value set to `3 minutes`.
 
-Steps to follow:
-
-1. Create a backup using a `TTL` value of `3 minutes`:
-   
-    ```shell
-    velero backup create ambassador-backup-3min-ttl --ttl 0h3m0s
-    ```
-2. Inspect the backup:
-
-    ```shell
-    velero backup describe ambassador-backup-3min-ttl
-    ```
-
-    The output looks similar to:
-
-    ```
-    Name:         ambassador-backup-3min-ttl
-    Namespace:    velero
-    Labels:       velero.io/storage-location=default
-    Annotations:  velero.io/source-cluster-k8s-gitversion=v1.21.2
-                velero.io/source-cluster-k8s-major-version=1
-                velero.io/source-cluster-k8s-minor-version=21
-
-    Phase:  Completed
-
-    Errors:    0
-    Warnings:  0
-
-    Namespaces:
-    Included:  *
-    Excluded:  <none>
-
-    Resources:
-    Included:        *
-    Excluded:        <none>
-    Cluster-scoped:  auto
-
-    Label selector:  <none>
-
-    Storage Location:  default
-
-    Velero-Native Snapshot PVs:  auto
-
-    TTL:  3m0s
-    ...
-    ```
-
-Expected results:
-
-* A new Velero `Backup` object is created with the `TTL` field set to `3ms0`
-* A new folder is created in the `DO Spaces` bucket as well, named `ambassador-backup-3min-ttl`
-
-After three minutes or so, the backup and associated resources should be automatically deleted. You can verify that the backup object was destroyed via: `velero backup describe ambassador-backup-3min-ttl`. It should fail with an error stating that the backup doesn't exist anymore. The corresponding `DO Spaces` bucket folder should be gone as well.
-
-Going further, you can explore the other available options via:
+First, create the `ambassador` backup, using a `TTL` value of `3 minutes`:
 
 ```shell
-velero backup delete -h
+velero backup create ambassador-backup-3min-ttl --ttl 0h3m0s --include-namespaces ambassador
 ```
 
-### Final Notes
-
-In this part of the tutorial you learned how to perform `one time` as well as `scheduled` backups and how to restore everything back. Having a scheduled backups mechanism in place is very important as it allows you to revert to a previous snapshot in time if something goes wrong along the way. You walked through a disaster recovery scenario as well.
-
-It's always a good idea to see all what you can do with backups by inspecting the available `Velero` options of the `CLI` executable:
+Next, inspect the `ambassador` backup:
 
 ```shell
-velero -h
+velero backup describe ambassador-backup-3min-ttl
 ```
 
-And for each command/subcommand:
+The output looks similar to (notice the `Namespaces -> Included` section - it should display `ambassador`, and `TTL` field is set to `3ms0`):
+
+```text
+Name:         ambassador-backup-3min-ttl
+Namespace:    velero
+Labels:       velero.io/storage-location=default
+Annotations:  velero.io/source-cluster-k8s-gitversion=v1.21.2
+              velero.io/source-cluster-k8s-major-version=1
+              velero.io/source-cluster-k8s-minor-version=21
+
+Phase:  Completed
+
+Errors:    0
+Warnings:  0
+
+Namespaces:
+Included:  ambassador
+Excluded:  <none>
+
+Resources:
+Included:        *
+Excluded:        <none>
+Cluster-scoped:  auto
+
+Label selector:  <none>
+
+Storage Location:  default
+
+Velero-Native Snapshot PVs:  auto
+
+TTL:  3m0s
+...
+```
+
+A new folder should be created in the `DO Spaces` Velero bucket as well, named `ambassador-backup-3min-ttl`.
+
+Finally, after three minutes or so, the backup and associated resources should be automatically deleted. You can verify that the backup object was destroyed, using: `velero backup describe ambassador-backup-3min-ttl`. It should fail with an error, stating that the backup doesn't exist anymore. The corresponding `ambassador-backup-3min-ttl` folder from the `DO Spaces` Velero bucket, should be gone as well.
+
+Going further, you can explore all the available `velero backup delete` options, via:
 
 ```shell
-velero <command> -h
+velero backup delete --help
 ```
 
-Some other useful resources:
+## Conclusion
 
-* [Backup Command Reference](https://velero.io/docs/v1.6/backup-reference)
-* [Restore Command Reference](https://velero.io/docs/v1.6/restore-reference/)
-* [Backup Hooks](https://velero.io/docs/v1.6/backup-hooks/)
-* [Cluster Migration](https://velero.io/docs/v1.6/migration-case/)
-* [Velero Troubleshooting](https://velero.io/docs/v1.6/troubleshooting)
+In this tutorial, you learned how to perform `one time`, as well as `scheduled` backups, and to restore everything back. Having `scheduled` backups in place, is very important as it allows you to revert to a previous snapshot in time, if something goes wrong along the way. You walked through a disaster recovery scenario, as well.
 
-### Learn More
+You can learn more about `Velero`, by following below topics:
 
-Hopefully you found this guide helpful. Here are some other resources to help you learn more:
+- [Backup Command Reference](https://velero.io/docs/v1.6/backup-reference)
+- [Restore Command Reference](https://velero.io/docs/v1.6/restore-reference/)
+- [Backup Hooks](https://velero.io/docs/v1.6/backup-hooks/)
+- [Cluster Migration](https://velero.io/docs/v1.6/migration-case/)
+- [Velero Troubleshooting](https://velero.io/docs/v1.6/troubleshooting)
 
-* [Velero](https://velero.io/)
-* [Velero Documentation](https://velero.io/docs/latest/)
-* [Velero GitHub](https://github.com/vmware-tanzu/velero)
+Next, you will learn how to set up `Alerts` and `Notifications` using `AlertManager`, to give you real time notifications (e.g. `Slack`), if something bad happens in your `DOKS` cluster.
 
-**Next steps**
-
-This concludes the `Velero` setup. The next section will give you some insights about `DOKS` cluster resources usage.
-
-Go to [Section 14 - Estimate Resource Usage for Startup Kit](../14-starter-kit-resource-usage)
+Go to [Section 7 - Alerts and Notifications](../7-alerting-and-notification/README.md)
