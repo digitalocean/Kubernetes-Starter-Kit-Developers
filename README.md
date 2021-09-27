@@ -52,6 +52,7 @@ This tutorial will use manifest files from this repo. It is recomended to clone 
 <br><br>
 
 **Notes**
+- Use specific branch corresponding to DOKS version (eg. 1.21), when available.
 - For this starter kit, we recommend to start with a nodepool of higher capacity nodes (say, 4cpu/8gb RAM) and have 2 nodes. Otherwise, review and allocate node capacity if you run into pods in PENDING state.
 - We customize the value files for helm installs of individual components. To get the original value file, use "helm show values". For example: `helm show values prometheus-community/kube-prometheus-stack  --version 17.1.3`.
 - There are multiple places where you will change a manifest file to include a secret token for your cluster. Please be mindful of handling the secrets, and do not commit to public git repositories. We've done the due diligence of adding those to .gitignore files.
