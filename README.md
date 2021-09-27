@@ -52,12 +52,11 @@ git checkout <BRANCH>   # Use the branch version similar to DOKS, eg. 1.21
 **Notes:**
 
 - Use specific branch corresponding to DOKS version (eg. 1.21), when available.
-- For this `Starter Kit`, we recommend to start with a node pool of higher capacity nodes (say, `4cpu/8gb RAM`) and have `2` nodes. Otherwise, review and allocate node capacity if you run into pods in `PENDING` state.
+- For this `Starter Kit`, we recommend to start with a node pool of higher capacity nodes (say, `4cpu/8gb RAM`) and have at least `2` nodes. Otherwise, review and allocate node capacity if you run into pods in `PENDING` state.
 - We customize the value files for `Helm` installs of individual components. To get the original value file, use `helm show values`. For example: `helm show values prometheus-community/kube-prometheus-stack  --version 17.1.3`.
 - There are multiple places where you will change a manifest file to include a secret token for your cluster. Please be mindful of `handling` the `secrets`, and do not `commit` to `public Git` repositories. We've done the due diligence of adding those to `.gitignore` files.
 
 If you want to automate installation for all the components, refer to [Section 15 - Automate with Terraform & Flux CD](15-automate-with-terraform-flux/README.md).
 
-Finally, there are multiple places where you will change a manifest file to include a secret token for your cluster. **Please be mindful of handling the secrets, and do not commit to public git repositories.**
 
 Go to [Section 1 - Set up DigitalOcean Kubernetes](01-setup-DOKS/README.md).
