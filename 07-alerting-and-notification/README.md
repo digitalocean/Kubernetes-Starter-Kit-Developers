@@ -66,7 +66,7 @@ additionalPrometheusRules:
 
 Often we need to be notified immediately about any critical issue in our cluster. That is where `AlertManager` comes into the picture. `Alertmanager` helps in aggregating the `alerts`, and sending notifications as shown in the diagram below.
 
-![AlertManager Filtering](res/img/Prometheus-Notification-via-Slack.png)
+![AlertManager Filtering](assets/images/Prometheus-Notification-via-Slack.png)
 
 ### Prerequisites
 
@@ -114,3 +114,5 @@ helm upgrade kube-prom-stack prometheus-community/kube-prometheus-stack --versio
 ```
 
 At this point, you should see the slack `notifications` for firing alerts.
+
+Go to [Section 14 - Starter Kit Resource Usage](../14-starter-kit-resource-usage/README.md).
