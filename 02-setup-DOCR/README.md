@@ -20,7 +20,7 @@ After finishing this tutorial, you will be able to:
 
 ## Step 1 - Creating a DOCR Repository
 
-In this step, you will learn how to create a basic `DOCR` repository for your `DOKS` cluster, using the `doctl` utility. You need to have `doctl` and `kubectl` context configured - please refer to [Step 2 - Authenticating to DigitalOcean API](../1-setup-DOKS/README.md#step-2---authenticating-to-digitalocean-api) and [Step 3 - Creating the DOKS Cluster](../1-setup-DOKS/README.md#step-3---creating-the-doks-cluster) from the `DOKS` setup tutorial.
+In this step, you will learn how to create a basic `DOCR` repository for your `DOKS` cluster, using the `doctl` utility. You need to have `doctl` and `kubectl` context configured - please refer to [Step 2 - Authenticating to DigitalOcean API](../01-setup-DOKS/README.md#step-2---authenticating-to-digitalocean-api) and [Step 3 - Creating the DOKS Cluster](../01-setup-DOKS/README.md#step-3---creating-the-doks-cluster) from the `DOKS` setup tutorial.
 
 First, explore the available `options` for working with `DOCR` repositories, via `doctl`:
 
@@ -162,4 +162,4 @@ In this tutorial, you learned how to create a private `DOCR` registry for your `
 
 Next, you will learn how to set up the `Ambassador Edge Stack` to act as an `Ingress` controller, as well as some example `backend` applications to test the setup.
 
-Go to [Section 3 - Ingress using Ambassador](../3-setup-ingress-ambassador)
+Go to [Section 3 - Ingress using Ambassador](../03-setup-ingress-ambassador/README.md)
