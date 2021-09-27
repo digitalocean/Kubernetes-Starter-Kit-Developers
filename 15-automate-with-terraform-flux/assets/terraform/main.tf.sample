@@ -2,12 +2,12 @@ module "doks_flux_cd" {
   source = "github.com/digitalocean/container-blueprints/create-doks-with-terraform-flux"
 
   # DOKS 
-  do_api_token                 = "<YOUR_DO_API_TOKEN_HERE>"                 # DO API TOKEN
-  doks_cluster_name            = "<YOUR_DOKS_CLUSTER_NAME_HERE>"            # Name of this `DOKS` cluster ?
-  doks_cluster_region          = "<YOUR_DOKS_CLUSTER_REGION_HERE>"          # What region should this `DOKS` cluster be provisioned in?
-  doks_cluster_version         = "<YOUR_DOKS_CLUSTER_VERSION_HERE>"         # What Kubernetes version should this `DOKS` cluster use ?
-  doks_cluster_pool_size       = "<YOUR_DOKS_CLUSTER_POOL_SIZE_HERE>"       # What machine type to use for this `DOKS` cluster ?
-  doks_cluster_pool_node_count = "<YOUR_DOKS_CLUSTER_POOL_NODE_COUNT_HERE>"   # How many worker nodes this `DOKS` cluster should have ?
+  do_api_token                 = "<YOUR_DO_API_TOKEN_HERE>"               # DO API TOKEN (string value)
+  doks_cluster_name            = "<YOUR_DOKS_CLUSTER_NAME_HERE>"          # Name of this `DOKS` cluster ? (string value)
+  doks_cluster_region          = "<YOUR_DOKS_CLUSTER_REGION_HERE>"        # What region should this `DOKS` cluster be provisioned in ? (string value)
+  doks_cluster_version         = "1.21.3-do.0"                            # What Kubernetes version should this `DOKS` cluster use ? (string value)
+  doks_cluster_pool_size       = "<YOUR_DOKS_CLUSTER_POOL_SIZE_HERE>"     # What machine type to use for this `DOKS` cluster ? (string value)
+  doks_cluster_pool_node_count = <YOUR_DOKS_CLUSTER_POOL_NODE_COUNT_HERE> # How many worker nodes this `DOKS` cluster should have ? (integer value)
   
   # GitHub
   # Important notes:
