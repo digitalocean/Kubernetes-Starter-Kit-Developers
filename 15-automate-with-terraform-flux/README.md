@@ -1,4 +1,4 @@
-# Automate everything using Terraform and Flux
+# Automate Everything using Terraform and Flux
 
 ## Introduction
 
@@ -247,7 +247,7 @@ Please use the following steps, to create the `Ambassador` Helm release:
     ```shell
     AMBASSADOR_CHART_VERSION="6.7.13"
 
-    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/1.21/03-setup-ingress-ambassador/res/manifests/ambassador-values-v${AMBASSADOR_CHART_VERSION}.yaml" > "ambassador-values-v${AMBASSADOR_CHART_VERSION}.yaml"
+    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/1.21/03-setup-ingress-ambassador/assets/manifests/ambassador-values-v${AMBASSADOR_CHART_VERSION}.yaml" > "ambassador-values-v${AMBASSADOR_CHART_VERSION}.yaml"
     ```
 
 7. Now, create the `Ambassador` HelmRelease for `Flux`:
@@ -349,7 +349,7 @@ Steps to follow:
     ```shell
     PROMETHEUS_CHART_VERSION="17.1.3"
 
-    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/1.21/04-setup-prometheus-stack/res/manifests/prom-stack-values-v${PROMETHEUS_CHART_VERSION}.yaml" > "prom-stack-values-v${PROMETHEUS_CHART_VERSION}.yaml"
+    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/1.21/04-setup-prometheus-stack/assets/manifests/prom-stack-values-v${PROMETHEUS_CHART_VERSION}.yaml" > "prom-stack-values-v${PROMETHEUS_CHART_VERSION}.yaml"
     ```
 
 3. Now, create the `Prometheus` HelmRelease for `Flux`:
@@ -445,7 +445,7 @@ Steps to follow:
     ```shell
     LOKI_CHART_VERSION="2.4.1"
 
-    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/1.21/05-setup-loki-stack/res/manifests/loki-stack-values-v${LOKI_CHART_VERSION}.yaml" > "loki-stack-values-v${LOKI_CHART_VERSION}.yaml"
+    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/1.21/05-setup-loki-stack/assets/manifests/loki-stack-values-v${LOKI_CHART_VERSION}.yaml" > "loki-stack-values-v${LOKI_CHART_VERSION}.yaml"
     ```
 
 3. Now, create the `Loki` HelmRelease for `Flux`:
@@ -541,7 +541,7 @@ Steps to follow:
     ```shell
     VELERO_CHART_VERSION="2.23.6"
 
-    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/1.21/06-setup-velero/res/manifests/velero-values-v${VELERO_CHART_VERSION}.yaml" > "velero-values-v${VELERO_CHART_VERSION}.yaml"
+    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/1.21/06-setup-velero/assets/manifests/velero-values-v${VELERO_CHART_VERSION}.yaml" > "velero-values-v${VELERO_CHART_VERSION}.yaml"
     ```
 
 3. Now, create the `Velero` HelmRelease for `Flux`:

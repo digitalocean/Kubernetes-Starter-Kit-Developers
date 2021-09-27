@@ -69,7 +69,7 @@ For more details, please visit: [The Ambassador Edge Stack Architecture](https:/
 
 ### Starter Kit AES Setup Overview
 
-![Starter Kit AES Setup Overview](res/img/starter_kit_aes_setup_overview.png)
+![Starter Kit AES Setup Overview](assets/images/starter_kit_aes_setup_overview.png)
 
 In the next step, you will learn how to deploy the `Ambassador Edge Stack`, using the `Helm` package manager for `Kubernetes`.
 
@@ -107,10 +107,10 @@ Steps to follow:
     **Note:**
 
     The chart of interest is `datawire/ambassador`, which will install `Ambassador Edge Stack` on the cluster. Please visit the [ambassador-chart](https://github.com/datawire/ambassador-chart) page, for more details about this chart.
-3. Then, open and inspect the `03-setup-ingress-ambassador/res/manifests/ambassador-values-v6.7.13.yaml` file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://code.visualstudio.com):
+3. Then, open and inspect the `03-setup-ingress-ambassador/assets/manifests/ambassador-values-v6.7.13.yaml` file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://code.visualstudio.com):
 
    ```shell
-   code 03-setup-ingress-ambassador/res/manifests/ambassador-values-v6.7.13.yaml
+   code 03-setup-ingress-ambassador/assets/manifests/ambassador-values-v6.7.13.yaml
    ```
 
    **Note:**
@@ -124,7 +124,7 @@ Steps to follow:
     helm install ambassador datawire/ambassador --version "$HELM_CHART_VERSION" \
         --namespace ambassador \
         --create-namespace \
-        -f "03-setup-ingress-ambassador/res/manifests/ambassador-values-v${HELM_CHART_VERSION}.yaml"
+        -f "03-setup-ingress-ambassador/assets/manifests/ambassador-values-v${HELM_CHART_VERSION}.yaml"
     ```
 
     **Note:**
@@ -149,7 +149,7 @@ Notes on `ACME` support:
 - In general the `registrant email address` is mandatory when using `ACME`, and it should be a valid one in order to receive notifications when the certificates are going to expire.
 - `ACME` stores certificates using `Kubernetes Secrets`. The name of the secret can be set using the `tlsSecret` element.
 
-The following example configures the `TLS` enabled `hosts` for this tutorial: [echo_host](res/manifests/echo_host.yaml) and [quote_host](res/manifests/quote_host.yaml).
+The following example configures the `TLS` enabled `hosts` for this tutorial: [echo_host](assets/manifests/echo_host.yaml) and [quote_host](assets/manifests/quote_host.yaml).
 
 Steps to follow:
 
@@ -162,9 +162,9 @@ Steps to follow:
 2. Then, apply the manifests:
 
     ```shell
-    kubectl apply -f 03-setup-ingress-ambassador/res/manifests/echo_host.yaml
+    kubectl apply -f 03-setup-ingress-ambassador/assets/manifests/echo_host.yaml
 
-    kubectl apply -f 03-setup-ingress-ambassador/res/manifests/quote_host.yaml
+    kubectl apply -f 03-setup-ingress-ambassador/assets/manifests/quote_host.yaml
     ```
 
 3. Finally, inspect the `AES` hosts:
@@ -326,20 +326,20 @@ Steps to follow:
     kubectl create ns backend
     ```
 
-3. Then, create the [echo](res/manifests/echo_deployment.yaml) and [quote](res/manifests/quote_deployment.yaml) deployments:
+3. Then, create the [echo](assets/manifests/echo_deployment.yaml) and [quote](assets/manifests/quote_deployment.yaml) deployments:
 
     ```shell
-    kubectl apply -f 03-setup-ingress-ambassador/res/manifests/echo_deployment.yaml
+    kubectl apply -f 03-setup-ingress-ambassador/assets/manifests/echo_deployment.yaml
 
-    kubectl apply -f 03-setup-ingress-ambassador/res/manifests/quote_deployment.yaml
+    kubectl apply -f 03-setup-ingress-ambassador/assets/manifests/quote_deployment.yaml
     ```
 
 4. Finally, create the corresponding `services`:
 
     ```shell
-    kubectl apply -f 03-setup-ingress-ambassador/res/manifests/echo_service.yaml
+    kubectl apply -f 03-setup-ingress-ambassador/assets/manifests/echo_service.yaml
 
-    kubectl apply -f 03-setup-ingress-ambassador/res/manifests/quote_service.yaml
+    kubectl apply -f 03-setup-ingress-ambassador/assets/manifests/quote_service.yaml
     ```
 
 **Observation and results:**
@@ -388,12 +388,12 @@ First, change directory (if not already) where the `Starter Kit` repository was 
 cd Kubernetes-Starter-Kit-Developers
 ```
 
-Next, create a `Mapping` for [echo](res/manifests/echo_mapping.yaml) and [quote](res/manifests/quote_mapping.yaml) backend applications:
+Next, create a `Mapping` for [echo](assets/manifests/echo_mapping.yaml) and [quote](assets/manifests/quote_mapping.yaml) backend applications:
 
 ```shell
-kubectl apply -f 03-setup-ingress-ambassador/res/manifests/echo_mapping.yaml
+kubectl apply -f 03-setup-ingress-ambassador/assets/manifests/echo_mapping.yaml
 
-kubectl apply -f 03-setup-ingress-ambassador/res/manifests/quote_mapping.yaml
+kubectl apply -f 03-setup-ingress-ambassador/assets/manifests/quote_mapping.yaml
 ```
 
 **Observation and results:**
@@ -434,12 +434,12 @@ To enable proxy protocol for `AES`, you need to:
 
 For different `DigitalOcean` load balancer configurations, please refer to the examples from the official [DigitalOcean Cloud Controller Manager](https://github.com/digitalocean/digitalocean-cloud-controller-manager/tree/master/docs/controllers/services/examples) documentation. Proxy protocol on the `LoadBalancer` is enabled with the following `annotation` on `Ambassador` LB service: `service.beta.kubernetes.io/do-loadbalancer-enable-proxy-protocol: "true"`. You must **NOT** create a load balancer with `Proxy` support by using the `DigitalOcean` web console, as any setting done outside `DOKS` is automatically `overridden` by DOKS `reconciliation`.
 
-You can enable proxy support in the `Ambassador` stack via the [aes_proxy_module](res/manifests/aes_proxy_module.yaml) manifest.
+You can enable proxy support in the `Ambassador` stack via the [aes_proxy_module](assets/manifests/aes_proxy_module.yaml) manifest.
 
 Change directory where the `Starter Kit` repository was cloned and:
 
 ```shell
-kubectl apply -f 03-setup-ingress-ambassador/res/manifests/aes_proxy_module.yaml
+kubectl apply -f 03-setup-ingress-ambassador/assets/manifests/aes_proxy_module.yaml
 ```
 
 Please note that module configuration is a `global` option (enable/disable) for `AES`.
@@ -579,15 +579,15 @@ Going further, what you can do on the `Kubernetes` side, is to adjust deployment
 
 Based on our findings, a value of `2` should suffice in case of small `development` environments.
 
-Next, you're going to scale the `Ambassador Edge Stack` deployment, and adjust the `replicaCount` value, via the [ambassador-values.yaml](res/manifests/ambassador-values-v6.7.13.yaml) file provided in the `Starter Kit` Git repository.
+Next, you're going to scale the `Ambassador Edge Stack` deployment, and adjust the `replicaCount` value, via the [ambassador-values.yaml](assets/manifests/ambassador-values-v6.7.13.yaml) file provided in the `Starter Kit` Git repository.
 
 Steps to follow:
 
 1. First, change directory where the `Starter Kit` Git repository was cloned.
-2. Next, open and inspect the `replicaCount` section, from the `03-setup-ingress-ambassador/res/manifests/ambassador-values-v6.7.13.yaml` file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support). It has the required values already set for you to use. For example, you can use [VS Code](https://code.visualstudio.com):
+2. Next, open and inspect the `replicaCount` section, from the `03-setup-ingress-ambassador/assets/manifests/ambassador-values-v6.7.13.yaml` file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support). It has the required values already set for you to use. For example, you can use [VS Code](https://code.visualstudio.com):
 
    ```shell
-   code 03-setup-ingress-ambassador/res/manifests/ambassador-values-v6.7.13.yaml
+   code 03-setup-ingress-ambassador/assets/manifests/ambassador-values-v6.7.13.yaml
    ```
 
 3. Then, apply changes using a `Helm` upgrade:
@@ -597,7 +597,7 @@ Steps to follow:
 
     helm upgrade ambassador datawire/ambassador --version "$HELM_CHART_VERSION" \
         --namespace ambassador \
-        -f "03-setup-ingress-ambassador/res/manifests/ambassador-values-v${HELM_CHART_VERSION}.yaml"
+        -f "03-setup-ingress-ambassador/assets/manifests/ambassador-values-v${HELM_CHART_VERSION}.yaml"
     ```
 
 4. Finally, check the `ambassador` deployment `replica count` (it should scale to `2`):
@@ -617,17 +617,17 @@ Steps to follow:
 
 ### Adjusting Resource Requests
 
-In this section, you're going to adjust resource requests via `Helm`, and tune the `memory` requests value to a reasonable value, by using the [ambassador-values.yaml](res/manifests/ambassador-values-v6.7.13.yaml) file provided in the `Starter Kit` Git repository.
+In this section, you're going to adjust resource requests via `Helm`, and tune the `memory` requests value to a reasonable value, by using the [ambassador-values.yaml](assets/manifests/ambassador-values-v6.7.13.yaml) file provided in the `Starter Kit` Git repository.
 
 Based on our findings, the memory requests should be adjusted to a value of `200m`, which satisfies most development needs in general.
 
 Steps to follow:
 
 1. First, change directory where the `Starter Kit` Git repository was cloned.
-2. Next, open and inspect the `resources` section, from the `03-setup-ingress-ambassador/res/manifests/ambassador-values-v6.7.13.yaml` file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support). It has the required values already set for you to use. For example, you can use [VS Code](https://code.visualstudio.com):
+2. Next, open and inspect the `resources` section, from the `03-setup-ingress-ambassador/assets/manifests/ambassador-values-v6.7.13.yaml` file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support). It has the required values already set for you to use. For example, you can use [VS Code](https://code.visualstudio.com):
 
    ```shell
-   code 03-setup-ingress-ambassador/res/manifests/ambassador-values-v6.7.13.yaml
+   code 03-setup-ingress-ambassador/assets/manifests/ambassador-values-v6.7.13.yaml
    ```
 
 3. Then, run a `Helm` upgrade to apply changes:
@@ -637,7 +637,7 @@ Steps to follow:
 
     helm upgrade ambassador datawire/ambassador --version "$HELM_CHART_VERSION" \
         --namespace ambassador \
-        -f "03-setup-ingress-ambassador/res/manifests/ambassador-values-v${HELM_CHART_VERSION}.yaml"
+        -f "03-setup-ingress-ambassador/assets/manifests/ambassador-values-v${HELM_CHART_VERSION}.yaml"
     ```
 
 4. Finally, check the `memory requests` new `value` - it should say `200Mi` (look in the `Containers` section, from below command output):
@@ -674,4 +674,4 @@ In this tutorial, you learned how to set up an `Ingress` controller for your `DO
 
 Next, `monitoring` plays a key role in every `production ready` system. In [Section 4 - Set up Prometheus Stack](../04-setup-prometheus-stack), you will learn how to enable monitoring for your `DOKS` cluster, as well as for the `AES` stack, using `Prometheus`.
 
-Go to [Section 4 - Set up Prometheus Stack](../04-setup-prometheus-stack/README.md)
+Go to [Section 4 - Set up Prometheus Stack](../04-setup-prometheus-stack/README.md).
