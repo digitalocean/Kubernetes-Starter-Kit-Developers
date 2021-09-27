@@ -51,7 +51,7 @@ To complete this tutorial, you will need:
 4. [Kubectl](https://kubernetes.io/docs/tasks/tools), for `Kubernetes` interaction.
 5. [Curl](https://curl.se/download.html), for testing the examples (backend applications).
 
-Please make sure that `doctl` and `kubectl` context is configured to point to your `Kubernetes` cluster - refer to [Step 2 - Authenticating to DigitalOcean API](../1-setup-DOKS/README.md#step-2---authenticating-to-digitalocean-api) and [Step 3 - Creating the DOKS Cluster](../1-setup-DOKS/README.md#step-3---creating-the-doks-cluster) from the `DOKS` setup tutorial.
+Please make sure that `doctl` and `kubectl` context is configured to point to your `Kubernetes` cluster - refer to [Step 2 - Authenticating to DigitalOcean API](../01-setup-DOKS/README.md#step-2---authenticating-to-digitalocean-api) and [Step 3 - Creating the DOKS Cluster](../01-setup-DOKS/README.md#step-3---creating-the-doks-cluster) from the `DOKS` setup tutorial.
 
 ## Step 1 - Ambassador Edge Stack Overview
 
@@ -100,7 +100,15 @@ Steps to follow:
     **Note:**
 
     The chart of interest is `datawire/ambassador`, which will install `Ambassador Edge Stack` on the cluster. Please visit the [ambassador-chart](https://github.com/datawire/ambassador-chart) page for more details about this chart.
-3. Then, open and inspect the `3-setup-ingress-ambassador/res/manifests/ambassador-values-v6.7.13.yaml` file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support).
+3. Then, open and inspect the `03-setup-ingress-ambassador/res/manifests/ambassador-values-v6.7.13.yaml` file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://code.visualstudio.com):
+
+   ```shell
+   code 03-setup-ingress-ambassador/res/manifests/ambassador-values-v6.7.13.yaml
+   ```
+
+   **Note:**
+
+    There are times when you want to re-use the existing load-balancer. This is for preserving your `DNS` settings and other `LB` configurations. If so, make sure to modify the `ambassador-values-v6.7.13.yaml` file, and add the annotation for your existing `LB`. Likewise, you can enable `proxy protocol` as part of modules section in the `ambassador-values-v6.7.13.yaml` file. Please refer to the `DigitalOcean Kubernetes` guide - [How To Migrate Load Balancers](https://docs.digitalocean.com/products/kubernetes/how-to/migrate-load-balancers) for more details.
 4. Finally, finish the installation (a dedicated `ambassador` namespace will be created as well):
 
     ```shell
@@ -109,7 +117,7 @@ Steps to follow:
     helm install ambassador datawire/ambassador --version "$HELM_CHART_VERSION" \
         --namespace ambassador \
         --create-namespace \
-        -f "3-setup-ingress-ambassador/res/manifests/ambassador-values-v${HELM_CHART_VERSION}.yaml"
+        -f "03-setup-ingress-ambassador/res/manifests/ambassador-values-v${HELM_CHART_VERSION}.yaml"
     ```
 
     **Note:**
@@ -142,9 +150,9 @@ Steps to follow:
 2. Then, apply the manifests:
 
     ```shell
-    kubectl apply -f 3-setup-ingress-ambassador/res/manifests/echo_host.yaml
+    kubectl apply -f 03-setup-ingress-ambassador/res/manifests/echo_host.yaml
 
-    kubectl apply -f 3-setup-ingress-ambassador/res/manifests/quote_host.yaml
+    kubectl apply -f 03-setup-ingress-ambassador/res/manifests/quote_host.yaml
     ```
 
 3. Finally, inspect the `AES` hosts:
@@ -304,17 +312,17 @@ Steps to follow:
 3. Then, deploy [echo](res/manifests/echo_deployment.yaml) and [quote](res/manifests/quote_deployment.yaml) applications:
 
     ```shell
-    kubectl apply -f 3-setup-ingress-ambassador/res/manifests/echo_deployment.yaml
+    kubectl apply -f 03-setup-ingress-ambassador/res/manifests/echo_deployment.yaml
 
-    kubectl apply -f 3-setup-ingress-ambassador/res/manifests/quote_deployment.yaml
+    kubectl apply -f 03-setup-ingress-ambassador/res/manifests/quote_deployment.yaml
     ```
 
 4. Finally, create the corresponding `services`:
 
     ```shell
-    kubectl apply -f 3-setup-ingress-ambassador/res/manifests/echo_service.yaml
+    kubectl apply -f 03-setup-ingress-ambassador/res/manifests/echo_service.yaml
 
-    kubectl apply -f 3-setup-ingress-ambassador/res/manifests/quote_service.yaml
+    kubectl apply -f 03-setup-ingress-ambassador/res/manifests/quote_service.yaml
     ```
 
 **Observation and results:**
@@ -360,9 +368,9 @@ What a `Mapping` does, is to manage traffic routing for the `quote` and `echo` s
 First, change directory where the `Starter Kit` repository was cloned on your local machine. Next, create a `Mapping` for [echo](res/manifests/echo_mapping.yaml) and [quote](res/manifests/quote_mapping.yaml) backend applications:
 
 ```shell
-kubectl apply -f 3-setup-ingress-ambassador/res/manifests/echo_mapping.yaml
+kubectl apply -f 03-setup-ingress-ambassador/res/manifests/echo_mapping.yaml
 
-kubectl apply -f 3-setup-ingress-ambassador/res/manifests/quote_mapping.yaml
+kubectl apply -f 03-setup-ingress-ambassador/res/manifests/quote_mapping.yaml
 ```
 
 **Observation and results:**
@@ -408,7 +416,7 @@ You can enable proxy support in the `Ambassador` stack via the [aes_proxy_module
 Change directory where the `Starter Kit` repository was cloned and:
 
 ```shell
-kubectl apply -f 3-setup-ingress-ambassador/res/manifests/aes_proxy_module.yaml
+kubectl apply -f 03-setup-ingress-ambassador/res/manifests/aes_proxy_module.yaml
 ```
 
 Please note that module configuration is a `global` option (enable/disable) for `AES`.
@@ -553,7 +561,12 @@ Next, you're going to scale the `Ambassador Edge Stack` deployment, and adjust t
 Steps to follow:
 
 1. First, change directory where the `Starter Kit` Git repository was cloned.
-2. Next, open and inspect the `replicaCount` section, from the `3-setup-ingress-ambassador/res/manifests/ambassador-values-v6.7.13.yaml` file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support). It has the required values already set for you to use.
+2. Next, open and inspect the `replicaCount` section, from the `03-setup-ingress-ambassador/res/manifests/ambassador-values-v6.7.13.yaml` file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support). It has the required values already set for you to use. For example, you can use [VS Code](https://code.visualstudio.com):
+
+   ```shell
+   code 03-setup-ingress-ambassador/res/manifests/ambassador-values-v6.7.13.yaml
+   ```
+
 3. Then, apply changes using a `Helm` upgrade:
 
     ```shell
@@ -561,7 +574,7 @@ Steps to follow:
 
     helm upgrade ambassador datawire/ambassador --version "$HELM_CHART_VERSION" \
         --namespace ambassador \
-        -f "3-setup-ingress-ambassador/res/manifests/ambassador-values-v${HELM_CHART_VERSION}.yaml"
+        -f "03-setup-ingress-ambassador/res/manifests/ambassador-values-v${HELM_CHART_VERSION}.yaml"
     ```
 
 4. Finally, check the `ambassador` deployment `replica count` (it should scale to `2`):
@@ -588,7 +601,12 @@ Based on our findings, the memory requests should be adjusted to a value of `200
 Steps to follow:
 
 1. First, change directory where the `Starter Kit` Git repository was cloned.
-2. Next, open and inspect the `resources` section, from the `3-setup-ingress-ambassador/res/manifests/ambassador-values-v6.7.13.yaml` file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support). It has the required values already set for you to use.
+2. Next, open and inspect the `resources` section, from the `03-setup-ingress-ambassador/res/manifests/ambassador-values-v6.7.13.yaml` file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support). It has the required values already set for you to use. For example, you can use [VS Code](https://code.visualstudio.com):
+
+   ```shell
+   code 03-setup-ingress-ambassador/res/manifests/ambassador-values-v6.7.13.yaml
+   ```
+
 3. Then, run a `Helm` upgrade to apply changes:
 
     ```shell
@@ -596,7 +614,7 @@ Steps to follow:
 
     helm upgrade ambassador datawire/ambassador --version "$HELM_CHART_VERSION" \
         --namespace ambassador \
-        -f "3-setup-ingress-ambassador/res/manifests/ambassador-values-v${HELM_CHART_VERSION}.yaml"
+        -f "03-setup-ingress-ambassador/res/manifests/ambassador-values-v${HELM_CHART_VERSION}.yaml"
     ```
 
 4. Finally, check the `memory requests` new `value` - it should say `200Mi` (look in the `Containers` section, from below command output):
@@ -631,6 +649,6 @@ For more information about performance tuning` please visit the [AES Performance
 
 In this tutorial, you learned how to set up an `Ingress` controller for your `DOKS` cluster, using the `Ambassador Edge Stack`. Then, you discovered how `AES` simplifies some of the common tasks, like: handling `SSL` certificates for your applications, enabling `TLS` termination, `routing` traffic to `backend` services, and `adjusting` resource `requests` and `limits` for the stack.
 
-Next, `monitoring` plays a key role in every `production ready` system. In [Section 4 - Set up Prometheus Stack](../4-setup-prometheus-stack), you will learn how to enable monitoring for your `DOKS` cluster, as well as for the `AES` stack, using `Prometheus`.
+Next, `monitoring` plays a key role in every `production ready` system. In [Section 4 - Set up Prometheus Stack](../04-setup-prometheus-stack), you will learn how to enable monitoring for your `DOKS` cluster, as well as for the `AES` stack, using `Prometheus`.
 
-Go to [Section 4 - Set up Prometheus Stack](../4-setup-prometheus-stack)
+Go to [Section 4 - Set up Prometheus Stack](../04-setup-prometheus-stack)

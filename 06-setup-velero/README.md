@@ -101,7 +101,7 @@ Steps to follow:
     **Note:**
 
     The chart of interest is `vmware-tanzu/velero`, which will install `Velero` on the cluster. Please visit the [velero-chart](https://github.com/vmware-tanzu/helm-charts/tree/main/charts/velero) page for more details about this chart.
-3. Edit the `6-setup-velero/res/manifests/velero-values.yaml` file provided in the `Starter kit` repository, using an editor of your choice (preferably with `YAML` lint support), and replace the `<>` placeholders accordingly.
+3. Edit the `06-setup-velero/res/manifests/velero-values.yaml` file provided in the `Starter kit` repository, using an editor of your choice (preferably with `YAML` lint support), and replace the `<>` placeholders accordingly.
 
     **Hints:**
      - To quickly find all the `<>` placeholders that need to be replaced in the `YAML` file, please perform a quick search using this pattern: `YOUR_DO`.
@@ -115,7 +115,7 @@ Steps to follow:
     helm install velero vmware-tanzu/velero --version "${HELM_CHART_VERSION}" \
       --namespace velero \
       --create-namespace \
-      -f 6-setup-velero/res/manifests/velero-values-v${HELM_CHART_VERSION}.yaml
+      -f 06-setup-velero/res/manifests/velero-values-v${HELM_CHART_VERSION}.yaml
     ```
 
     **Note:**
