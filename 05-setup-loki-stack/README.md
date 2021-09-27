@@ -87,21 +87,15 @@ grafana/loki                                    2.4.1           v2.1.0          
 - The chart of interest is `grafana/loki`, which will install standalone `Loki` on the cluster. Please visit the [loki-stack](https://github.com/grafana/helm-charts/tree/main/charts/loki-stack) page for more details about this chart.
 - It's good practice in general, to use a specific version for the `Helm` chart. This way, you can `version` it using `Git`, and target if for a specific `release`. In this tutorial, the Helm chart version `2.4.1` is picked for `Loki`, which maps to application version `2.1.0`.
 
-Next, fetch and inspect the values file provided in the `Grafana` repository for the `Loki` chart, and see what options are available:
+For your convenience, there's a ready to use sample values file provided in the `Starter Kit` Git repository (`loki-stack-values-v2.4.1.yaml`). Please use your favorite text editor (preferably with `YAML` lint support), for inspection. You can use [VS Code](https://code.visualstudio.com), for example:
 
 ```shell
-helm show values grafana/loki-stack --version 2.4.1 > values.yaml
-```
-
-For your convenience, there's a ready to use sample values file provided in the `Starter Kit` Git repository (`loki-stack-values-v2.4.1.yaml`). Please use your favorite text editor (preferably with `YAML` lint support), for inspection (below example is using `Visual Studio Code`):
-
-```shell
-code 5-setup-loki-stack/res/manifests/loki-stack-values-v2.4.1.yaml
+code 05-setup-loki-stack/res/manifests/loki-stack-values-v2.4.1.yaml
 ```
 
 **Note:**
 
-The above values file, enables `Loki` and `Promtail` for you, so no other input is required. `Prometheus` and `Grafana` installation is disabled, because [Section 4 - Set up Prometheus Stack](../4-setup-prometheus-stack) took care of it already. `Fluent Bit` is not used, so it is disabled by default as well.
+The above values file, enables `Loki` and `Promtail` for you, so no other input is required. `Prometheus` and `Grafana` installation is disabled, because [Section 4 - Set up Prometheus Stack](../04-setup-prometheus-stack/README.md) took care of it already. `Fluent Bit` is not used, so it is disabled by default as well.
 
 Next, install the stack using `Helm`. The following command installs version `2.4.1` of `grafana/loki-stack` in your cluster, using the `Starter Kit` repository `values` file (also creates the `monitoring` namespace, if it doesn't exist):
 
@@ -111,7 +105,7 @@ HELM_CHART_VERSION="2.4.1"
 helm install loki grafana/loki-stack --version "${HELM_CHART_VERSION}" \
   --namespace=monitoring \
   --create-namespace \
-  -f "5-setup-loki-stack/res/manifests/loki-stack-values-v${HELM_CHART_VERSION}.yaml"
+  -f "05-setup-loki-stack/res/manifests/loki-stack-values-v${HELM_CHART_VERSION}.yaml"
 ```
 
 Finally, check `Helm` release status:
@@ -311,10 +305,10 @@ First, change directory where the `Starter Kit` repository was cloned:
 cd Kubernetes-Starter-Kit-Developers
 ```
 
-Next, open the `loki-stack-values-v2.4.1.yaml` file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support):
+Next, open the `loki-stack-values-v2.4.1.yaml` file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support). You can use [VS Code](https://code.visualstudio.com), for example:
 
 ```shell
-code 5-setup-loki-stack/res/manifests/loki-stack-values-v2.4.1.yaml
+code 05-setup-loki-stack/res/manifests/loki-stack-values-v2.4.1.yaml
 ```
 
 Then, please remove the comments surrounding the `schema_config` and `storage_config` keys. The final `Loki` storage setup configuration looks similar to (please replace the `<>` placeholders accordingly):
@@ -359,7 +353,7 @@ Apply settings, using `Helm`:
 
   helm upgrade loki grafana/loki-stack --version "${HELM_CHART_VERSION}" \
     --namespace=monitoring \
-    -f "5-setup-loki-stack/res/manifests/loki-stack-values-v${HELM_CHART_VERSION}.yaml"
+    -f "05-setup-loki-stack/res/manifests/loki-stack-values-v${HELM_CHART_VERSION}.yaml"
   ```
 
 Now, check if the main `Loki` application pod is up and running (it may take up to `1 minute` or so to start, so please be patient):
@@ -447,11 +441,11 @@ How to configure the `Loki` bucket lifecycle, using `s3cmd`:
     cd Kubernetes-Starter-Kit-Developers
     ```
 
-2. Next, open and inspect the `5-setup-loki-stack/res/manifests/loki_do_spaces_lifecycle.xml` file from the `Starter Kit` repository, using a text editor of your choice (preferably with `XML` lint support), and adjust according to your needs.
+2. Next, open and inspect the `05-setup-loki-stack/res/manifests/loki_do_spaces_lifecycle.xml` file from the `Starter Kit` repository, using a text editor of your choice (preferably with `XML` lint support), and adjust according to your needs.
 3. Then, set the `lifecycle` policy (please replace the `<>` placeholders accordingly):
 
     ```shell
-    s3cmd setlifecycle 5-setup-loki-stack/res/manifests/loki_do_spaces_lifecycle.xml s3://<LOKI_STORAGE_BUCKET_NAME>
+    s3cmd setlifecycle 05-setup-loki-stack/res/manifests/loki_do_spaces_lifecycle.xml s3://<LOKI_STORAGE_BUCKET_NAME>
     ```
 
 4. Finally, check that the `policy` was set (please replace the `<>` placeholders accordingly):
@@ -482,4 +476,4 @@ For more details about `Loki` and other available features, please visit the [Lo
 
 In the next section, you will learn how to perform backup and restore of your cluster and applications, using `Velero`.
 
-Go to [Section 6 - Backup Using Velero](../6-setup-velero)
+Go to [Section 6 - Backup Using Velero](../06-setup-velero/README.md)

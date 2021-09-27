@@ -7,7 +7,7 @@ module "doks_flux_cd" {
   doks_cluster_region          = "<YOUR_DOKS_CLUSTER_REGION_HERE>"          # What region should this `DOKS` cluster be provisioned in?
   doks_cluster_version         = "<YOUR_DOKS_CLUSTER_VERSION_HERE>"         # What Kubernetes version should this `DOKS` cluster use ?
   doks_cluster_pool_size       = "<YOUR_DOKS_CLUSTER_POOL_SIZE_HERE>"       # What machine type to use for this `DOKS` cluster ?
-  doks_cluster_pool_node_count = <YOUR_DOKS_CLUSTER_POOL_NODE_COUNT_HERE>   # How many worker nodes this `DOKS` cluster should have ?
+  doks_cluster_pool_node_count = "<YOUR_DOKS_CLUSTER_POOL_NODE_COUNT_HERE>"   # How many worker nodes this `DOKS` cluster should have ?
   
   # GitHub
   # Important notes:

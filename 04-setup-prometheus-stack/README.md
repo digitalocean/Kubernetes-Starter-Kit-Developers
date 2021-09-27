@@ -54,7 +54,7 @@ Steps to follow:
     **Note:**
 
     The chart of interest is `prometheus-community/kube-prometheus-stack`, which will install `Prometheus`, `Promtail`, `Alertmanager` and `Grafana` on the cluster. Please visit the [kube-prometheus-stack](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack) page for more details about this chart.
-3. Edit the `4-setup-prometheus-stack/res/manifests/prom-stack-values-v17.1.3.yaml` file provided in the `Starter Kit` repository, to disable metrics for `etcd` and `kubeScheduler` (set their corresponding values to `false`). Those components are managed by `DOKS` and are not accessible to `Prometheus`. Note that we're keeping the `storage` to be `emptyDir`. It means the **storage will be gone** if `Prometheus` pods restart.
+3. Edit the `04-setup-prometheus-stack/res/manifests/prom-stack-values-v17.1.3.yaml` file provided in the `Starter Kit` repository, to disable metrics for `etcd` and `kubeScheduler` (set their corresponding values to `false`). Those components are managed by `DOKS` and are not accessible to `Prometheus`. Note that we're keeping the `storage` to be `emptyDir`. It means the **storage will be gone** if `Prometheus` pods restart.
 4. Next, install the `kube-prometheus-stack`:
 
     ```shell
@@ -63,7 +63,7 @@ Steps to follow:
     helm install kube-prom-stack prometheus-community/kube-prometheus-stack --version "${HELM_CHART_VERSION}" \
       --namespace monitoring \
       --create-namespace \
-      -f "4-setup-prometheus-stack/res/manifests/prom-stack-values-v${HELM_CHART_VERSION}.yaml"
+      -f "04-setup-prometheus-stack/res/manifests/prom-stack-values-v${HELM_CHART_VERSION}.yaml"
     ```
 
     **Note:**
@@ -147,7 +147,7 @@ Let's configure it right now and see how it works. You're going to use the `prom
 There are only two steps needed, in order to add a new service for monitoring:
 
 1. Change directory where the `Starter Kit` Git repository was cloned.
-2. Edit the `4-setup-prometheus-stack/res/manifests/prom-stack-values-v17.1.3.yaml` file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support). Uncomment the following section (search for the `# Add the Ambassador Service for monitoring` comment):
+2. Edit the `04-setup-prometheus-stack/res/manifests/prom-stack-values-v17.1.3.yaml` file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support). Uncomment the following section (search for the `# Add the Ambassador Service for monitoring` comment):
 
     ```yaml
     additionalServiceMonitors:
@@ -178,7 +178,7 @@ There are only two steps needed, in order to add a new service for monitoring:
 
     helm upgrade kube-prom-stack prometheus-community/kube-prometheus-stack --version "${HELM_CHART_VERSION}" \
       --namespace monitoring \
-      -f "4-setup-prometheus-stack/res/manifests/prom-stack-values-v${HELM_CHART_VERSION}.yaml"
+      -f "04-setup-prometheus-stack/res/manifests/prom-stack-values-v${HELM_CHART_VERSION}.yaml"
     ```
 
 **Observation and Results:**
@@ -349,7 +349,7 @@ Steps to follow:
     ```
 
 2. Change directory where the `Starter Kit` Git repository was cloned.
-3. Edit the `4-setup-prometheus-stack/res/manifests/prom-stack-values-v17.1.3.yaml` file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support). Search for the `storageSpec` line, and uncomment the required section for `Prometheus`.
+3. Edit the `04-setup-prometheus-stack/res/manifests/prom-stack-values-v17.1.3.yaml` file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support). Search for the `storageSpec` line, and uncomment the required section for `Prometheus`.
 
     The `storageSpec` definition should look like:
 
@@ -377,7 +377,7 @@ Steps to follow:
 
     helm upgrade kube-prom-stack prometheus-community/kube-prometheus-stack --version "${HELM_CHART_VERSION}" \
       --namespace monitoring \
-      -f "4-setup-prometheus-stack/res/manifests/prom-stack-values-v${HELM_CHART_VERSION}.yaml"
+      -f "04-setup-prometheus-stack/res/manifests/prom-stack-values-v${HELM_CHART_VERSION}.yaml"
     ```
 
 After completing the steps, check the `PVC` status:
