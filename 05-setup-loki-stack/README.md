@@ -96,7 +96,7 @@ helm show values grafana/loki-stack --version 2.4.1 > values.yaml
 For your convenience, there's a ready to use sample values file provided in the `Starter Kit` Git repository (`loki-stack-values-v2.4.1.yaml`). Please use your favorite text editor (preferably with `YAML` lint support), for inspection (below example is using `Visual Studio Code`):
 
 ```shell
-code 5-setup-loki-stack/res/manifests/loki-stack-values-v2.4.1.yaml
+code 05-setup-loki-stack/res/manifests/loki-stack-values-v2.4.1.yaml
 ```
 
 **Note:**
@@ -111,7 +111,7 @@ HELM_CHART_VERSION="2.4.1"
 helm install loki grafana/loki-stack --version "${HELM_CHART_VERSION}" \
   --namespace=monitoring \
   --create-namespace \
-  -f "5-setup-loki-stack/res/manifests/loki-stack-values-v${HELM_CHART_VERSION}.yaml"
+  -f "05-setup-loki-stack/res/manifests/loki-stack-values-v${HELM_CHART_VERSION}.yaml"
 ```
 
 Explanation for the above command arguments:
@@ -324,7 +324,7 @@ cd Kubernetes-Starter-Kit-Developers
 Next, open the `loki-stack-values-v2.4.1.yaml` file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support). Please remove the comments surrounding the `schema_config` and `storage_config` keys:
 
 ```shell
-code 5-setup-loki-stack/res/manifests/loki-stack-values-v2.4.1.yaml
+code 05-setup-loki-stack/res/manifests/loki-stack-values-v2.4.1.yaml
 ```
 
 The final `Loki` storage setup configuration looks similar to (please replace the `<>` placeholders accordingly):
@@ -369,7 +369,7 @@ Apply the new settings, via a `Helm` chart upgrade:
 
   helm upgrade loki grafana/loki-stack --version "${HELM_CHART_VERSION}" \
     --namespace=monitoring \
-    -f "5-setup-loki-stack/res/manifests/loki-stack-values-v${HELM_CHART_VERSION}.yaml"
+    -f "05-setup-loki-stack/res/manifests/loki-stack-values-v${HELM_CHART_VERSION}.yaml"
   ```
 
 Now, check if the main `Loki` application pod is up and running (it may take up to `1 minute` or so to start, so please be patient):
@@ -461,7 +461,7 @@ How to configure the `S3` bucket lifecycle:
 3. Next, set the `lifecycle` policy (please replace the `<>` placeholders accordingly):
 
     ```shell
-    s3cmd setlifecycle 5-setup-loki-stack/res/manifests/loki_do_spaces_lifecycle.xml s3://<LOKI_STORAGE_BUCKET_NAME>
+    s3cmd setlifecycle 05-setup-loki-stack/res/manifests/loki_do_spaces_lifecycle.xml s3://<LOKI_STORAGE_BUCKET_NAME>
     ```
 
 4. Finally, check that the `policy` was set (please replace the `<>` placeholders accordingly):

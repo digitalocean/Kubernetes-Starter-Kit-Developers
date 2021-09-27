@@ -88,7 +88,14 @@ In this step, you will deploy `Velero` and all the required components, so that 
 
 Steps to follow:
 
-1. First, clone the `Starter Kit` Git repository and change directory to your local copy.
+1. First, clone the `Starter Kit` Git repository and change directory to your local copy:
+
+    ```shell
+    git clone https://github.com/digitalocean/Kubernetes-Starter-Kit-Developers.git
+
+    cd Kubernetes-Starter-Kit-Developers
+    ```
+
 2. Next, add the `Helm` repository and list the available charts:
 
     ```shell
@@ -107,7 +114,12 @@ Steps to follow:
     **Note:**
 
     The chart of interest is `vmware-tanzu/velero`, which will install `Velero` on the cluster. Please visit the [velero-chart](https://github.com/vmware-tanzu/helm-charts/tree/main/charts/velero) page for more details about this chart.
-3. Then, open and inspect the `6-setup-velero/res/manifests/velero-values.yaml` file provided in the `Starter kit` repository, using an editor of your choice (preferably with `YAML` lint support).
+3. Then, open and inspect the `06-setup-velero/res/manifests/velero-values.yaml` file provided in the `Starter kit` repository, using an editor of your choice (preferably with `YAML` lint support). You can use [VS Code](https://code.visualstudio.com), for example:
+
+    ```shell
+    code 06-setup-velero/res/manifests/velero-values.yaml
+    ```
+
 4. Next, please replace the `<>` placeholders accordingly for your DO Spaces `Velero` bucket (like: name, region and secrets). Make sure that you provide your DigitalOcean `API` token as well (`DIGITALOCEAN_TOKEN` key).
 5. Finally, install `Velero` using `Helm`:
 
@@ -117,7 +129,7 @@ Steps to follow:
     helm install velero vmware-tanzu/velero --version "${HELM_CHART_VERSION}" \
       --namespace velero \
       --create-namespace \
-      -f 6-setup-velero/res/manifests/velero-values-v${HELM_CHART_VERSION}.yaml
+      -f 06-setup-velero/res/manifests/velero-values-v${HELM_CHART_VERSION}.yaml
     ```
 
     **Note:**
@@ -270,7 +282,7 @@ Next, check that the namespace was deleted (namespaces listing should not print 
 kubectl get namespaces
 ```
 
-Finally, verify that the `echo` and `quote` backend services `endpoint` is `DOWN` (please refer to [Creating the Ambassador Edge Stack Backend Services](../3-setup-ingress-ambassador/README.md#step-5---creating-the-ambassador-edge-stack-backend-services), regarding the `backend applications` used in the `Starter Kit` tutorial). You can use `curl` to test (or you can use your web browser):
+Finally, verify that the `echo` and `quote` backend services `endpoint` is `DOWN` (please refer to [Creating the Ambassador Edge Stack Backend Services](../03-setup-ingress-ambassador/README.md#step-5---creating-the-ambassador-edge-stack-backend-services), regarding the `backend applications` used in the `Starter Kit` tutorial). You can use `curl` to test (or you can use your web browser):
 
 ```shell
 curl -Li http://quote.starterkits.online/quote/
@@ -329,7 +341,7 @@ replicaset.apps/ambassador-agent-bcdd8ccc8    1         1         1       18h
 replicaset.apps/ambassador-redis-64b7c668b9   1         1         1       18h
 ```
 
-Finally, after reconfiguring your `LoadBalancer` and DigitalOcean `domain` settings, please verify that the `echo` and `quote` backend services `endpoint` is `UP` (please refer to [Creating the Ambassador Edge Stack Backend Services](../3-setup-ingress-ambassador/README.md#step-5---creating-the-ambassador-edge-stack-backend-services), regarding the `backend applications` used in the `Starter Kit` tutorial). You can use `curl` to test (or you can use your web browser):
+Finally, after reconfiguring your `LoadBalancer` and DigitalOcean `domain` settings, please verify that the `echo` and `quote` backend services `endpoint` is `UP` (please refer to [Creating the Ambassador Edge Stack Backend Services](../03-setup-ingress-ambassador/README.md#step-5---creating-the-ambassador-edge-stack-backend-services), regarding the `backend applications` used in the `Starter Kit` tutorial). For example, you can use `curl` to test each endpoint:
 
 ```shell
 curl -Li http://quote.starterkits.online/quote/
@@ -387,7 +399,7 @@ First, delete the whole `DOKS` cluster (make sure to replace the `<>` placeholde
 doctl kubernetes cluster delete <DOKS_CLUSTER_NAME>
 ```
 
-Next, re-create the cluster, as described in [Section 1 - Set up DigitalOcean Kubernetes](1-setup-DOKS). Please make sure the new `DOKS` cluster node count is `equal or greater` with to the original one - this is important!
+Next, re-create the cluster, as described in [Section 1 - Set up DigitalOcean Kubernetes](../01-setup-DOKS/README.md). Please make sure the new `DOKS` cluster node count is `equal or greater` with to the original one - this is important!
 
 Then, install Velero `CLI` and `Server`, as described in the [Prerequisites](#prerequisites) section, and [Step 2 - Installing Velero](step-2---installing-velero) respectively. Please make sure to use the `same Helm Chart version` - this is important!
 
@@ -413,7 +425,7 @@ Now, verify all cluster `Kubernetes` resources (you should have everything in pl
 kubectl get all --all-namespaces
 ```
 
-Finally, the `backend applications` should respond to `HTTP` requests as well (please refer to [Creating the Ambassador Edge Stack Backend Services](../3-setup-ingress-ambassador/README.md#step-5---creating-the-ambassador-edge-stack-backend-services), regarding the `backend applications` used in the `Starter Kit` tutorial):
+Finally, the `backend applications` should respond to `HTTP` requests as well (please refer to [Creating the Ambassador Edge Stack Backend Services](../03-setup-ingress-ambassador/README.md#step-5---creating-the-ambassador-edge-stack-backend-services), regarding the `backend applications` used in the `Starter Kit` tutorial):
 
 ```shell
 curl -Li http://quote.starterkits.online/quote/
@@ -646,4 +658,4 @@ You can learn more about `Velero`, by following below topics:
 
 Next, you will learn how to set up `Alerts` and `Notifications` using `AlertManager`, to give you real time notifications (e.g. `Slack`), if something bad happens in your `DOKS` cluster.
 
-Go to [Section 7 - Alerts and Notifications](../7-alerting-and-notification/README.md)
+Go to [Section 7 - Alerts and Notifications](../07-alerting-and-notification/README.md)
