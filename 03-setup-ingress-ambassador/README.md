@@ -87,7 +87,7 @@ Steps to follow:
     **Note:**
 
     The chart of interes is `datawire/ambassador`, which will install `Ambassador Edge Stack` on the cluster. Please visit the [ambassador-chart](https://github.com/datawire/ambassador-chart) page for more details about this chart.
-3. Edit and adjust as needed the `3-setup-ingress-ambassador/res/manifests/ambassador-values-v6.7.13.yaml` file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support).
+3. Edit and adjust as needed the `03-setup-ingress-ambassador/res/manifests/ambassador-values-v6.7.13.yaml` file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support).
 4. Next, finish the installation (a dedicated `ambassador` namespace will be created as well):
 
     ```shell
@@ -96,8 +96,12 @@ Steps to follow:
     helm install ambassador datawire/ambassador --version "$HELM_CHART_VERSION" \
         --namespace ambassador \
         --create-namespace \
-        -f "3-setup-ingress-ambassador/res/manifests/ambassador-values-v${HELM_CHART_VERSION}.yaml"
+        -f "03-setup-ingress-ambassador/res/manifests/ambassador-values-v${HELM_CHART_VERSION}.yaml"
     ```
+***Note***<br>
+There are times when you want to re-use the existing load-balancer. This is for preserving your DNS settings and other LB configurations. If so, make sure to modify the values.yaml file, and add the annotation for your existing LB. Likewise, you can enable proxy protocol as part of modules section in the values.yaml file. <br>
+Reference: https://docs.digitalocean.com/products/kubernetes/how-to/migrate-load-balancers/
+
 
 ### Defining the Domain and Hosts
 
@@ -125,9 +129,9 @@ Steps to follow:
 2. Apply the manifests:
 
     ```shell
-    kubectl apply -f 3-setup-ingress-ambassador/res/manifests/echo_host.yaml
+    kubectl apply -f 03-setup-ingress-ambassador/res/manifests/echo_host.yaml
 
-    kubectl apply -f 3-setup-ingress-ambassador/res/manifests/quote_host.yaml
+    kubectl apply -f 03-setup-ingress-ambassador/res/manifests/quote_host.yaml
     ```
 3. Review the hosts that were created:
 
@@ -196,7 +200,7 @@ starterkits.online    0
 
 **Note:**
 
-**YOU NEED TO ENSURE THAT YOUR DOMAIN REGISTRAR IS CONFIGURED TO POINT TO DO NAMESERVERS**. More information on how to do that is available [here](https://www.digitalocean.com/community/tutorials/how-to-point-to-digitalocean-nameservers-from-common-domain-registrars).
+YOU NEED TO ENSURE THAT YOUR DOMAIN REGISTRAR IS CONFIGURED TO POINT TO DO NAMESERVERS. More information on how to do that is available [here](https://www.digitalocean.com/community/tutorials/how-to-point-to-digitalocean-nameservers-from-common-domain-registrars).
 
 Let's add some `A` records now for the hosts created earlier. First, you need to identify the `Load Balancer` IP that points to your `Kubernetes` cluster (one should be already available when the cluster was created). Pick the one that matches your configuration from the list:
 
@@ -287,16 +291,16 @@ Steps to follow:
 3. Deploy [echo](res/manifests/echo_deployment.yaml) and [quote](res/manifests/quote_deployment.yaml) applications:
 
     ```shell
-    kubectl apply -f 3-setup-ingress-ambassador/res/manifests/echo_deployment.yaml
+    kubectl apply -f 03-setup-ingress-ambassador/res/manifests/echo_deployment.yaml
 
-    kubectl apply -f 3-setup-ingress-ambassador/res/manifests/quote_deployment.yaml
+    kubectl apply -f 03-setup-ingress-ambassador/res/manifests/quote_deployment.yaml
     ```
 4. Define the corresponding `services`:
 
     ```shell
-    kubectl apply -f 3-setup-ingress-ambassador/res/manifests/echo_service.yaml
+    kubectl apply -f 03-setup-ingress-ambassador/res/manifests/echo_service.yaml
 
-    kubectl apply -f 3-setup-ingress-ambassador/res/manifests/quote_service.yaml
+    kubectl apply -f 03-setup-ingress-ambassador/res/manifests/quote_service.yaml
     ```
 
 **Observation and results:**
@@ -348,9 +352,9 @@ Steps to follow:
 2. Create a `Mapping` for [echo](res/manifests/echo_mapping.yaml) and [quote](res/manifests/quote_mapping.yaml) backend application:
 
     ```shell
-    kubectl apply -f 3-setup-ingress-ambassador/res/manifests/echo_mapping.yaml
+    kubectl apply -f 03-setup-ingress-ambassador/res/manifests/echo_mapping.yaml
 
-    kubectl apply -f 3-setup-ingress-ambassador/res/manifests/quote_mapping.yaml
+    kubectl apply -f 03-setup-ingress-ambassador/res/manifests/quote_mapping.yaml
     ```
 
 **Observation and results:**
@@ -396,7 +400,7 @@ You can enable proxy support in the `Ambassador` stack via the [aes_proxy_module
 Change directory where the `Starter Kit` repository was cloned and:
 
 ```shell
-kubectl apply -f 3-setup-ingress-ambassador/res/manifests/aes_proxy_module.yaml
+kubectl apply -f 03-setup-ingress-ambassador/res/manifests/aes_proxy_module.yaml
 ```
 
 Please note that module configuration is a `global` option (enable/disable) for `AES`.
@@ -540,7 +544,7 @@ Steps to follow:
 
     helm upgrade ambassador datawire/ambassador --version "$HELM_CHART_VERSION" \
         --namespace ambassador \
-        -f "3-setup-ingress-ambassador/res/manifests/ambassador-values-v${HELM_CHART_VERSION}.yaml"
+        -f "03-setup-ingress-ambassador/res/manifests/ambassador-values-v${HELM_CHART_VERSION}.yaml"
     ```
 4. After a while, check the `ambassador` deployment:
 
@@ -574,7 +578,7 @@ Steps to follow:
 
     helm upgrade ambassador datawire/ambassador --version "$HELM_CHART_VERSION" \
         --namespace ambassador \
-        -f "3-setup-ingress-ambassador/res/manifests/ambassador-values-v${HELM_CHART_VERSION}.yaml"
+        -f "03-setup-ingress-ambassador/res/manifests/ambassador-values-v${HELM_CHART_VERSION}.yaml"
     ```
 4. Check the memory requests new value - it should say `200Mi` (look in the `Containers` section from the command output):
 

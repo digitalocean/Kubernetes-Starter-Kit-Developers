@@ -42,7 +42,7 @@ To complete this tutorial, you will need:
 3. [Kubectl](https://kubernetes.io/docs/tasks/tools), for `Kubernetes` interaction.
 4. [Curl](https://curl.se/download.html), for testing the examples (backend applications).
 
-Please make sure that `kubectl` context is configured to point to your `Kubernetes` cluster - refer to [Step 3 - Creating the DOKS Cluster](../1-setup-DOKS/README.md#step-3---creating-the-doks-cluster) from the `DOKS` setup tutorial.
+Please make sure that `kubectl` context is configured to point to your `Kubernetes` cluster - refer to [Step 3 - Creating the DOKS Cluster](01-setup-DOKS/README.md#step-3---creating-the-doks-cluster) from the `DOKS` setup tutorial.
 
 ## Step 1 - Installing the Prometheus Stack
 
@@ -73,7 +73,7 @@ Steps to follow:
     **Note:**
 
     The chart of interest is `prometheus-community/kube-prometheus-stack`, which will install `Prometheus`, `Promtail`, `Alertmanager` and `Grafana` on the cluster. Please visit the [kube-prometheus-stack](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack) page for more details about this chart.
-3. Then, open and inspect the `4-setup-prometheus-stack/res/manifests/prom-stack-values-v17.1.3.yaml` file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). By default, `kubeSched` and `etcd` metrics are disabled - those components are managed by `DOKS` and are not accessible to `Prometheus`. Note that `storage` is set to `emptyDir`. It means the **storage will be gone** if `Prometheus` pods restart (you will fix this later on, in the [Configuring Persistent Storage for Prometheus](#configuring-persistent-storage-for-prometheus) section).
+3. Then, open and inspect the `04-setup-prometheus-stack/res/manifests/prom-stack-values-v17.1.3.yaml` file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). By default, `kubeSched` and `etcd` metrics are disabled - those components are managed by `DOKS` and are not accessible to `Prometheus`. Note that `storage` is set to `emptyDir`. It means the **storage will be gone** if `Prometheus` pods restart (you will fix this later on, in the [Configuring Persistent Storage for Prometheus](#configuring-persistent-storage-for-prometheus) section).
 4. Finally, install the `kube-prometheus-stack`, using `Helm`:
 
     ```shell
@@ -82,7 +82,7 @@ Steps to follow:
     helm install kube-prom-stack prometheus-community/kube-prometheus-stack --version "${HELM_CHART_VERSION}" \
       --namespace monitoring \
       --create-namespace \
-      -f "4-setup-prometheus-stack/res/manifests/prom-stack-values-v${HELM_CHART_VERSION}.yaml"
+      -f "04-setup-prometheus-stack/res/manifests/prom-stack-values-v${HELM_CHART_VERSION}.yaml"
     ```
 
     **Note:**
@@ -149,7 +149,7 @@ statefulset.apps/alertmanager-kube-prom-stack-kube-prome-alertmanager   1/1     
 statefulset.apps/prometheus-kube-prom-stack-kube-prome-prometheus       1/1     3m3s
 ```
 
-Then, you can connect to `Grafana` (using default credentials: `admin/prom-operator` - see [prom-stack-values-v17.1.3](res/manifests/prom-stack-values-v17.1.3.yaml#L55) file), by port forwarding to local machine:
+Then, you can connect to `Grafana` (using default credentials: `admin/prom-operator` - see [prom-stack-values-v17.1.3](res/manifests/prom-stack-values-v17.1.3.yaml#L58) file), by port forwarding to local machine:
 
 ```shell
 kubectl --namespace monitoring port-forward svc/kube-prom-stack-grafana 3000:80
@@ -167,7 +167,7 @@ In the next part, you will discover how to set up `Prometheus` to discover targe
 
 You already deployed `Prometheus` and `Grafana` into the cluster. In this step, you will learn how to use a `ServiceMonitor`. A `ServiceMonitor` is one of the preferred ways to tell `Prometheus` how to discover a new target for monitoring.
 
-The [Ambassador Edge Stack Deployment](../3-setup-ingress-ambassador/README.md#ambassador-edge-stack-deployment) created earlier in the tutorial, provides the `/metrics` endpoint by default on port `8877` via a `Kubernetes` service.
+The [Ambassador Edge Stack Deployment](../03-setup-ingress-ambassador/README.md#ambassador-edge-stack-deployment) created earlier in the tutorial, provides the `/metrics` endpoint by default on port `8877` via a `Kubernetes` service.
 
 Next, you will discover the `Ambassador` service responsible with exposing metrics data for `Prometheus` to consume. The service in question is called `ambassador-admin` (note that it's using the `ambassador` namespace):
 
@@ -221,7 +221,12 @@ Next, you will make use of the `ServiceMonitor` CRD exposed by the `Prometheus O
 
 Steps required to add the `Ambassador` service, for `Prometheus` to monitor:
 
-1. First, change directory where the `Starter Kit` Git repository was cloned.
+1. First, change directory (if not already) where the `Starter Kit` Git repository was cloned:
+
+    ```shell
+    cd Kubernetes-Starter-Kit-Developers
+    ```
+
 2. Next, open the `4-setup-prometheus-stack/res/manifests/prom-stack-values-v17.1.3.yaml` file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support). Please remove the comments surrounding the `additionalServiceMonitors` section. The output looks similar to:
 
     ```yaml
@@ -252,7 +257,7 @@ Steps required to add the `Ambassador` service, for `Prometheus` to monitor:
 
     helm upgrade kube-prom-stack prometheus-community/kube-prometheus-stack --version "${HELM_CHART_VERSION}" \
       --namespace monitoring \
-      -f "4-setup-prometheus-stack/res/manifests/prom-stack-values-v${HELM_CHART_VERSION}.yaml"
+      -f "04-setup-prometheus-stack/res/manifests/prom-stack-values-v${HELM_CHART_VERSION}.yaml"
     ```
 
 Next, please check if the `Ambassador` target is added to `Prometheus` for scraping. Create a port forward for `Prometheus` on port `9090`:
@@ -380,7 +385,7 @@ After clicking `Import`, it will create the following dashboard, as seen below:
 
 ![Grafana Ambassador Dashboard](res/img/amb_grafana_dashboard.jpg)
 
-In the next step, you're going to monitor the number of `API` calls for the `quote` backend service created using the [Ambassador Edge Stack Backend Services](../3-setup-ingress-ambassador/README.md##step-5---creating-the-ambassador-edge-stack-backend-services) step, from the Ambassador Edge Stack `Starter Kit` tutorial.
+In the next step, you're going to monitor the number of `API` calls for the `quote` backend service created using the [Ambassador Edge Stack Backend Services](../03-setup-ingress-ambassador/README.md##step-5---creating-the-ambassador-edge-stack-backend-services) step, from the Ambassador Edge Stack `Starter Kit` tutorial.
 
 The graph of interest is: `API Response Codes`.
 
@@ -425,8 +430,13 @@ Steps to follow:
     do-block-storage (default)   dobs.csi.digitalocean.com   Delete          Immediate           true                   4d2h
     ```
 
-2. Next, change directory where the `Starter Kit` Git repository was cloned.
-3. Then, open the `4-setup-prometheus-stack/res/manifests/prom-stack-values-v17.1.3.yaml` file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support). Search for the `storageSpec` line, and uncomment the required section for `Prometheus`. The `storageSpec` definition should look like:
+2. Next, change directory (if not already) where the `Starter Kit` Git repository was cloned:
+
+    ```shell
+    cd Kubernetes-Starter-Kit-Developers
+    ```
+
+3. Then, open the `04-setup-prometheus-stack/res/manifests/prom-stack-values-v17.1.3.yaml` file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support). Search for the `storageSpec` line, and uncomment the required section for `Prometheus`. The `storageSpec` definition should look like:
 
     ```yaml
     prometheusSpec:
@@ -453,7 +463,7 @@ Steps to follow:
 
     helm upgrade kube-prom-stack prometheus-community/kube-prometheus-stack --version "${HELM_CHART_VERSION}" \
       --namespace monitoring \
-      -f "4-setup-prometheus-stack/res/manifests/prom-stack-values-v${HELM_CHART_VERSION}.yaml"
+      -f "04-setup-prometheus-stack/res/manifests/prom-stack-values-v${HELM_CHART_VERSION}.yaml"
     ```
 
 After completing the above steps, check the `PVC` status:
@@ -493,4 +503,4 @@ In this tutorial, you learned how to `install` and `configure` the `Prometheus` 
 
 Next, you will learn about application `logs` collection and `aggregation` via `Loki`, to help you `troubleshoot` running `Kubernetes` cluster `applications` in case something goes wrong.
 
-Go to [Section 5 - Logs Aggregation via Loki Stack](../5-setup-loki-stack)
+Go to [Section 5 - Logs Aggregation via Loki Stack](../05-setup-loki-stack/README.md)

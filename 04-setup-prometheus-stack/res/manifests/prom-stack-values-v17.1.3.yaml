@@ -46,6 +46,7 @@ kubeEtcd:
 ## ref: https://prometheus.io/docs/alerting/alertmanager/
 ##
 alertmanager:
+
   ## Deploy alertmanager
   ##
   enabled: true
@@ -64,6 +65,7 @@ prometheusOperator:
 ## Deploy a Prometheus instance
 ##
 prometheus:
+
   enabled: true
 
   # Starter Kit setup for the Ambassador Service monitoring
