@@ -26,7 +26,7 @@ After finishing all the steps, you will have a production ready `Loki` setup, th
 
 ### Starter Kit Loki Setup Overview
 
-![Starter Kit Loki Setup Overview](res/img/arch_aes_prom_loki_grafana.png)
+![Starter Kit Loki Setup Overview](assets/images/arch_aes_prom_loki_grafana.png)
 
 ## Table of contents
 
@@ -90,7 +90,7 @@ grafana/loki                                    2.4.1           v2.1.0          
 For your convenience, there's a ready to use sample values file provided in the `Starter Kit` Git repository (`loki-stack-values-v2.4.1.yaml`). Please use your favorite text editor (preferably with `YAML` lint support), for inspection. You can use [VS Code](https://code.visualstudio.com), for example:
 
 ```shell
-code 05-setup-loki-stack/res/manifests/loki-stack-values-v2.4.1.yaml
+code 05-setup-loki-stack/assets/manifests/loki-stack-values-v2.4.1.yaml
 ```
 
 **Note:**
@@ -105,7 +105,7 @@ HELM_CHART_VERSION="2.4.1"
 helm install loki grafana/loki-stack --version "${HELM_CHART_VERSION}" \
   --namespace=monitoring \
   --create-namespace \
-  -f "05-setup-loki-stack/res/manifests/loki-stack-values-v${HELM_CHART_VERSION}.yaml"
+  -f "05-setup-loki-stack/assets/manifests/loki-stack-values-v${HELM_CHART_VERSION}.yaml"
 ```
 
 Finally, check `Helm` release status:
@@ -261,7 +261,7 @@ Next, point your web browser to [localhost:3000](http://localhost:3000), and nav
 
   The output looks similar to the following:
 
-  ![LogQL Query Example](res/img/lql_first_example.png)
+  ![LogQL Query Example](assets/images/lql_first_example.png)
 
 Perform another query, but this time filter the results to include only the `warning` message:
 
@@ -271,7 +271,7 @@ Perform another query, but this time filter the results to include only the `war
 
   The output looks similar to (notice how the `warning` word is being highlighted in the query results panel):
 
-  ![LogQL Query Example](res/img/lql_second_example.png)
+  ![LogQL Query Example](assets/images/lql_second_example.png)
 
 As you can see in the above examples, each query is composed of:
 
@@ -284,7 +284,7 @@ Another feature of `Loki` worth mentioning is [Labels](https://grafana.com/docs/
 
 `Loki` indexes data based on labels, allowing more efficient storage. Below picture highlights this feature, in the `Log labels` panel:
 
-![LogQL Labels Example](res/img/LQL.png)
+![LogQL Labels Example](assets/images/LQL.png)
 
 In the next step, you will learn how to set up `persistent` storage for `Loki`, using `DO Spaces`. By default, `Helm` deploys `Loki` with `ephemeral` storage, meaning all your indexed `log data` will be `lost` if it restarts, or if the `DOKS` cluster is recreated.
 
@@ -308,7 +308,7 @@ cd Kubernetes-Starter-Kit-Developers
 Next, open the `loki-stack-values-v2.4.1.yaml` file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support). You can use [VS Code](https://code.visualstudio.com), for example:
 
 ```shell
-code 05-setup-loki-stack/res/manifests/loki-stack-values-v2.4.1.yaml
+code 05-setup-loki-stack/assets/manifests/loki-stack-values-v2.4.1.yaml
 ```
 
 Then, please remove the comments surrounding the `schema_config` and `storage_config` keys. The final `Loki` storage setup configuration looks similar to (please replace the `<>` placeholders accordingly):
@@ -353,7 +353,7 @@ Apply settings, using `Helm`:
 
   helm upgrade loki grafana/loki-stack --version "${HELM_CHART_VERSION}" \
     --namespace=monitoring \
-    -f "05-setup-loki-stack/res/manifests/loki-stack-values-v${HELM_CHART_VERSION}.yaml"
+    -f "05-setup-loki-stack/assets/manifests/loki-stack-values-v${HELM_CHART_VERSION}.yaml"
   ```
 
 Now, check if the main `Loki` application pod is up and running (it may take up to `1 minute` or so to start, so please be patient):
@@ -385,7 +385,7 @@ The output looks similar to:
 
 If everything goes well, you should see the `DO Spaces` bucket containing the `index` and `chunks` folders (the `chunks` folder is called `fake`, which is a strange name - this is by design, when not running in `multi-tenant` mode).
 
-![Loki DO Spaces Storage](res/img/loki_storage_do_spaces.png)
+![Loki DO Spaces Storage](assets/images/loki_storage_do_spaces.png)
 
 For more advanced options, and fine tuning the `storage` for `Loki`, please visit the [Loki Storage](https://grafana.com/docs/loki/latest/operations/storage/) official documentation page.
 
@@ -441,11 +441,11 @@ How to configure the `Loki` bucket lifecycle, using `s3cmd`:
     cd Kubernetes-Starter-Kit-Developers
     ```
 
-2. Next, open and inspect the `05-setup-loki-stack/res/manifests/loki_do_spaces_lifecycle.xml` file from the `Starter Kit` repository, using a text editor of your choice (preferably with `XML` lint support), and adjust according to your needs.
+2. Next, open and inspect the `05-setup-loki-stack/assets/manifests/loki_do_spaces_lifecycle.xml` file from the `Starter Kit` repository, using a text editor of your choice (preferably with `XML` lint support), and adjust according to your needs.
 3. Then, set the `lifecycle` policy (please replace the `<>` placeholders accordingly):
 
     ```shell
-    s3cmd setlifecycle 05-setup-loki-stack/res/manifests/loki_do_spaces_lifecycle.xml s3://<LOKI_STORAGE_BUCKET_NAME>
+    s3cmd setlifecycle 05-setup-loki-stack/assets/manifests/loki_do_spaces_lifecycle.xml s3://<LOKI_STORAGE_BUCKET_NAME>
     ```
 
 4. Finally, check that the `policy` was set (please replace the `<>` placeholders accordingly):
@@ -476,4 +476,4 @@ For more details about `Loki` and other available features, please visit the [Lo
 
 In the next section, you will learn how to perform backup and restore of your cluster and applications, using `Velero`.
 
-Go to [Section 6 - Backup Using Velero](../06-setup-velero/README.md)
+Go to [Section 6 - Backup Using Velero](../06-setup-velero/README.md).

@@ -76,7 +76,7 @@ Similarly whenever you execute a `restore command`, the `Velero CLI` makes a cal
 
 Below is a diagram that shows the `Backup/Restore` workflow:
 
-![Velero Backup Workflow](res/img/velero_bk_res_wf.png)
+![Velero Backup Workflow](assets/images/velero_bk_res_wf.png)
 
 `Velero` is `ideal` for the `disaster` recovery use case, as well as for snapshotting your application state, prior to performing system operations on your cluster, like upgrades. For more details on this topic, please visit the [How Velero Works](https://velero.io/docs/v1.6/how-velero-works/) official page.
 
@@ -114,10 +114,10 @@ Steps to follow:
     **Note:**
 
     The chart of interest is `vmware-tanzu/velero`, which will install `Velero` on the cluster. Please visit the [velero-chart](https://github.com/vmware-tanzu/helm-charts/tree/main/charts/velero) page for more details about this chart.
-3. Then, open and inspect the `06-setup-velero/res/manifests/velero-values.yaml` file provided in the `Starter kit` repository, using an editor of your choice (preferably with `YAML` lint support). You can use [VS Code](https://code.visualstudio.com), for example:
+3. Then, open and inspect the `06-setup-velero/assets/manifests/velero-values.yaml` file provided in the `Starter kit` repository, using an editor of your choice (preferably with `YAML` lint support). You can use [VS Code](https://code.visualstudio.com), for example:
 
     ```shell
-    code 06-setup-velero/res/manifests/velero-values.yaml
+    code 06-setup-velero/assets/manifests/velero-values.yaml
     ```
 
 4. Next, please replace the `<>` placeholders accordingly for your DO Spaces `Velero` bucket (like: name, region and secrets). Make sure that you provide your DigitalOcean `API` token as well (`DIGITALOCEAN_TOKEN` key).
@@ -129,7 +129,7 @@ Steps to follow:
     helm install velero vmware-tanzu/velero --version "${HELM_CHART_VERSION}" \
       --namespace velero \
       --create-namespace \
-      -f 06-setup-velero/res/manifests/velero-values-v${HELM_CHART_VERSION}.yaml
+      -f 06-setup-velero/assets/manifests/velero-values-v${HELM_CHART_VERSION}.yaml
     ```
 
     **Note:**
@@ -266,7 +266,7 @@ Namespaces:
 
 Finally, take a look at the `DO Spaces` bucket - there's a new folder named `backups`, which contains the assets created for your `ambassador-backup`:
 
-![DO Spaces Velero Backups](res/img/velero-backup-space-2.png)
+![DO Spaces Velero Backups](assets/images/velero-backup-space-2.png)
 
 ### Deleting the Ambassador Namespace and Resources
 
@@ -658,4 +658,4 @@ You can learn more about `Velero`, by following below topics:
 
 Next, you will learn how to set up `Alerts` and `Notifications` using `AlertManager`, to give you real time notifications (e.g. `Slack`), if something bad happens in your `DOKS` cluster.
 
-Go to [Section 7 - Alerts and Notifications](../07-alerting-and-notification/README.md)
+Go to [Section 7 - Alerts and Notifications](../07-alerting-and-notification/README.md).
