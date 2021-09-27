@@ -2,10 +2,10 @@
 
 ### Table of contents
 
--[Alerting and Notification Overview](#Alerting-and-Notification-Overview)
--[List of Included Alerts](#List-of-Included-Alerts)
--[Creating a new Alert](#Creating-a-new-Alert)
--[Notification By Slack](#Notification-By-Slack)
+- [Alerting and Notification Overview](#Alerting-and-Notification-Overview)
+- [List of Included Alerts](#List-of-Included-Alerts)
+- [Creating a new Alert](#Creating-a-new-Alert)
+- [Notification By Slack](#Notification-By-Slack)
 
 ### Overview
 
