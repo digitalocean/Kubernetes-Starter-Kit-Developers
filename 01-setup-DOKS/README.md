@@ -341,4 +341,4 @@ In this tutorial you learned how to use the `doctl` utility, inspect the availab
 
 In the next section, you will learn how to use the `DigitalOcean Container Registry` (DOCR), to easily `store` and manage `private` container `images` for your `Kubernetes` cluster.
 
-Go to [Section 2 - Setting up DOCR](../2-setup-DOCR)
+Go to [Section 2 - Setting up DOCR](../02-setup-DOCR/README.md)
