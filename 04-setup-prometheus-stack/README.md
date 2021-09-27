@@ -227,7 +227,7 @@ Steps required to add the `Ambassador` service, for `Prometheus` to monitor:
     cd Kubernetes-Starter-Kit-Developers
     ```
 
-2. Next, open the `4-setup-prometheus-stack/res/manifests/prom-stack-values-v17.1.3.yaml` file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support). Please remove the comments surrounding the `additionalServiceMonitors` section. The output looks similar to:
+2. Next, open the `04-setup-prometheus-stack/res/manifests/prom-stack-values-v17.1.3.yaml` file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support). Please remove the comments surrounding the `additionalServiceMonitors` section. The output looks similar to:
 
     ```yaml
     additionalServiceMonitors:
