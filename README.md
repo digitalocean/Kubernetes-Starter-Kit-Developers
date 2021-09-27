@@ -43,16 +43,22 @@ We will use `brew` (on MacOS) to install the required command-line utilities on 
 
 For every service that gets deployed, we will enable metrics and logs. At the end, we will review the `overhead` from all these additional tools and services. That gives an idea of what it takes to be `operations-ready` after your first cluster install. 
 
-Note: For this starter kit, we recommend to start with a nodepool of higher capacity nodes (say, 4cpu/8gb RAM) and have 2 nodes. Otherwise, review and allocate node capacity if you run into pods in PENDING state.
-<br/><br/>
 This tutorial will use manifest files from this repo. It is recomended to clone this repository to your local environment. The below command can be used to clone this repository.
 
    ```shell
     git clone https://github.com/digitalocean/Kubernetes-Starter-Kit-Developers.git
+    git checkout <BRANCH>   # Use the branch version similar to DOKS, eg. 1.21
    ```
+<br><br>
+
+**Notes**
+- For this starter kit, we recommend to start with a nodepool of higher capacity nodes (say, 4cpu/8gb RAM) and have 2 nodes. Otherwise, review and allocate node capacity if you run into pods in PENDING state.
+- We customize the value files for helm installs of individual components. To get the original value file, use "helm show values". For example: `helm show values prometheus-community/kube-prometheus-stack  --version 17.1.3`.
+- There are multiple places where you will change a manifest file to include a secret token for your cluster. Please be mindful of handling the secrets, and do not commit to public git repositories. We've done the due diligence of adding those to .gitignore files.
+
+<br><br>
 If you want to automate installation for all the components, refer to [section 15 - Automate with terraform & flux](15-automate-with-terraform-flux).
 
-Finally, there are multiple places where you will change a manifest file to include a secret token for your cluster. **Please be mindful of handling the secrets, and do not commit to public git repositories.**
 
 Go to [Section 1 - Set up DigitalOcean Kubernetes](1-setup-DOKS).
 
