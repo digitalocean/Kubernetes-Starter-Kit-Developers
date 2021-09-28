@@ -37,6 +37,10 @@ After finishing all the steps from this tutorial, you should have a fully functi
 To complete this tutorial, you will need:
 
 1. A [GitHub](https://github.com) repository and `branch`, for `Flux CD` to store your cluster and sample application `manifests`.
+
+   **Important note:**
+
+   **The GitHub `repository` (and `branch`) must be created beforehand - the DigitalOcean Terraform module used in this tutorial doesn't provision one for you automatically. Please make sure that the Git `repository` is `private` as well.**
 2. A GitHub [personal access token](https://github.com/settings/tokens) that has the `repo` permissions set. The `Terraform` module used in this tutorial, needs it in order to create the `SSH` deploy key, as well as to commit the `Flux CD` manifests in your `Git` repository.
 3. A `DigitalOcean` access token, for creating/managing the `DOKS` cluster. Please follow the official `DigitalOcean` tutorial on how to [create a personal access token](https://docs.digitalocean.com/reference/api/create-personal-access-token). Copy the `token` value and save it somewhere safe.
 4. Access keys, for [DigitalOcean Spaces](https://cloud.digitalocean.com/spaces) (S3-compatible object storage). Please follow the official `DigitalOcean` tutorial on how to [manage access keys](https://docs.digitalocean.com/products/spaces/how-to/manage-access/). We use `Spaces` for storing the `Terraform` state file. Copy the `key` and `secret` value, and save each in a local `environment` variable for later use (make sure to replace the `<>` placeholders accordingly):
