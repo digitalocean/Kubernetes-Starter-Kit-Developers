@@ -250,17 +250,35 @@ Please use the following steps, to create the `Ambassador` Helm release:
     curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/1.21/03-setup-ingress-ambassador/assets/manifests/ambassador-values-v${AMBASSADOR_CHART_VERSION}.yaml" > "ambassador-values-v${AMBASSADOR_CHART_VERSION}.yaml"
     ```
 
-7. Now, create the `Ambassador` HelmRelease for `Flux`:
+    **Note:**
+
+    Please **do not commit** Ambassador Edge Stack `values` file in `Git`, because it may contain `sensitive` data. Instead, you will create a `Kubernetes Secret` to encrypt the values file data. Then, you will use it to configure the Ambassador Edge Stack `HelmRelease`.
+
+7. Next, create the Kubernetes `secret` for the Ambassador Edge Stack `HelmRelease` to consume:
 
     ```shell
     AMBASSADOR_CHART_VERSION="6.7.13"
+
+    kubectl create secret generic "ambassador-values-v${AMBASSADOR_CHART_VERSION}" \
+        --namespace flux-system \
+        --from-file=values.yaml="ambassador-values-v${AMBASSADOR_CHART_VERSION}.yaml"
+    ```
+
+    **Note:**
+
+    Flux will search for secrets in the default `flux-system` namespace. So, please remember to backup your custom secrets, if needed.
+8. Now, create the `Ambassador` HelmRelease for `Flux`:
+
+    ```shell
+    AMBASSADOR_CHART_VERSION="6.7.13"
+    AMBASSADOR_NAMESPACE="ambassador"
 
     flux create helmrelease "ambassador-stack" \
       --source="HelmRepository/ambassador" \
       --chart="ambassador" \
       --chart-version "$AMBASSADOR_CHART_VERSION" \
-      --values="ambassador-values-v${AMBASSADOR_CHART_VERSION}.yaml" \
-      --target-namespace="ambassador" \
+      --values-from="Secret/ambassador-values-v${AMBASSADOR_CHART_VERSION}" \
+      --target-namespace="$AMBASSADOR_NAMESPACE" \
       --create-target-namespace \
       --export > "${HELM_MANIFESTS_PATH}/ambassador-release-v${AMBASSADOR_CHART_VERSION}.yaml"
     ```
@@ -270,11 +288,11 @@ Please use the following steps, to create the `Ambassador` Helm release:
     - `<source>` - source that contains the chart in the format `<kind>/<name>.<namespace>`, where kind must be one of: (`HelmRepository`, `GitRepository`, `Bucket`).
     - `<chart>` - Helm chart name.
     - `<chart-version>` -  Helm chart version.
-    - `<values>` - local path to values file.
+    - `<values-from>` - Kubernetes `Secret/ConfigMap` reference that contains the `values.yaml` data key.
     - `<target-namespace>` - namespace to install this release.
     - `<create-target-namespace>` - create the target namespace if it does not exist.
     - `<export>` - export in `YAML` format to stdout.
-8. Finally, commit your changes and push to remote (please replace `<your_cluster_name>` placeholder first):
+9. Finally, commit your changes and push to remote (please replace `<your_cluster_name>` placeholder first):
 
     ```shell
     AMBASSADOR_CHART_VERSION="6.7.13"
@@ -352,17 +370,35 @@ Steps to follow:
     curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/1.21/04-setup-prometheus-stack/assets/manifests/prom-stack-values-v${PROMETHEUS_CHART_VERSION}.yaml" > "prom-stack-values-v${PROMETHEUS_CHART_VERSION}.yaml"
     ```
 
-3. Now, create the `Prometheus` HelmRelease for `Flux`:
+    **Note:**
+
+    Please **do not commit** Prometheus Stack `values` file in `Git`, because it may contain `sensitive` data. Instead, you will create a `Kubernetes Secret` to encrypt the values file data. Then, you will use it to configure the Prometheus Stack `HelmRelease`.
+
+3. Next, create the Kubernetes `secret` for the Prometheus `HelmRelease` to consume:
 
     ```shell
     PROMETHEUS_CHART_VERSION="17.1.3"
+
+    kubectl create secret generic "prom-stack-values-v${PROMETHEUS_CHART_VERSION}" \
+        --namespace flux-system \
+        --from-file=values.yaml="prom-stack-values-v${PROMETHEUS_CHART_VERSION}.yaml"
+    ```
+
+    **Note:**
+
+    Flux will search for secrets in the default `flux-system` namespace. So, please remember to backup your custom secrets, if needed.
+4. Now, create the `Prometheus` HelmRelease for `Flux`:
+
+    ```shell
+    PROMETHEUS_CHART_VERSION="17.1.3"
+    PROMETHEUS_NAMESPACE="monitoring"
 
     flux create helmrelease "kube-prometheus-stack" \
       --source="HelmRepository/prometheus-community" \
       --chart="kube-prometheus-stack"  \
       --chart-version "$PROMETHEUS_CHART_VERSION" \
-      --values="prom-stack-values-v${PROMETHEUS_CHART_VERSION}.yaml" \
-      --target-namespace="monitoring" \
+      --values-from="Secret/prom-stack-values-v${PROMETHEUS_CHART_VERSION}" \
+      --target-namespace="$PROMETHEUS_NAMESPACE" \
       --create-target-namespace \
       --export > "${HELM_MANIFESTS_PATH}/kube-prometheus-stack-release-v${PROMETHEUS_CHART_VERSION}.yaml"
     ```
@@ -372,11 +408,11 @@ Steps to follow:
     - `<source>` - source that contains the chart in the format `<kind>/<name>.<namespace>`, where kind must be one of: (`HelmRepository`, `GitRepository`, `Bucket`).
     - `<chart>` - Helm chart name.
     - `<chart-version>` -  Helm chart version.
-    - `<values>` - local path to values file.
+    - `<values-from>` - Kubernetes `Secret/ConfigMap` reference that contains the `values.yaml` data key.
     - `<target-namespace>` - namespace to install this release.
     - `<create-target-namespace>` - create the target namespace if it does not exist.
     - `<export>` - export in `YAML` format to stdout.
-4. Finally, commit your changes and push to remote (please replace the `<>` placeholders accordingly):
+5. Finally, commit your changes and push to remote (please replace the `<>` placeholders accordingly):
 
     ```shell
     PROMETHEUS_CHART_VERSION="17.1.3"
@@ -448,17 +484,36 @@ Steps to follow:
     curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/1.21/05-setup-loki-stack/assets/manifests/loki-stack-values-v${LOKI_CHART_VERSION}.yaml" > "loki-stack-values-v${LOKI_CHART_VERSION}.yaml"
     ```
 
-3. Now, create the `Loki` HelmRelease for `Flux`:
+    **Note:**
+
+    Please **do not commit** Loki Stack `values` file in `Git`, because it may contain `sensitive` data. Instead, you will create a `Kubernetes Secret` to encrypt the values file data. Then, you will use it to configure the Loki Stack `HelmRelease`.
+
+3. Next, create the Kubernetes `secret` for the Loki `HelmRelease` to consume:
 
     ```shell
     LOKI_CHART_VERSION="2.4.1"
+
+    kubectl create secret generic "loki-stack-values-v${LOKI_CHART_VERSION}" \
+        --namespace flux-system \
+        --from-file=values.yaml="loki-stack-values-v${LOKI_CHART_VERSION}.yaml"
+    ```
+
+    **Note:**
+
+    Flux will search for secrets in the default `flux-system` namespace. So, please remember to backup your custom secrets, if needed.
+
+4. Now, create the `Loki` HelmRelease for `Flux`:
+
+    ```shell
+    LOKI_CHART_VERSION="2.4.1"
+    LOKI_NAMESPACE="monitoring"
 
     flux create helmrelease "loki-stack" \
       --source="HelmRepository/grafana" \
       --chart="loki-stack"  \
       --chart-version "$LOKI_CHART_VERSION" \
-      --values="loki-stack-values-v${LOKI_CHART_VERSION}.yaml" \
-      --target-namespace="monitoring" \
+      --values-from="Secret/loki-stack-values-v${LOKI_CHART_VERSION}" \
+      --target-namespace="$LOKI_NAMESPACE" \
       --create-target-namespace \
       --export > "${HELM_MANIFESTS_PATH}/loki-stack-release-v${LOKI_CHART_VERSION}.yaml"
     ```
@@ -468,11 +523,11 @@ Steps to follow:
     - `<source>` - source that contains the chart in the format `<kind>/<name>.<namespace>`, where kind must be one of: (`HelmRepository`, `GitRepository`, `Bucket`).
     - `<chart>` - Helm chart name.
     - `<chart-version>` -  Helm chart version.
-    - `<values>` - local path to values file.
+    - `<values-from>` - Kubernetes `Secret/ConfigMap` reference that contains the `values.yaml` data key.
     - `<target-namespace>` - namespace to install this release.
     - `<create-target-namespace>` - create the target namespace if it does not exist.
     - `<export>` - export in `YAML` format to stdout.
-4. Finally, commit your changes and push to remote (please replace the `<>` placeholders accordingly):
+5. Finally, commit your changes and push to remote (please replace the `<>` placeholders accordingly):
 
     ```shell
     LOKI_CHART_VERSION="2.4.1"
@@ -544,17 +599,35 @@ Steps to follow:
     curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/1.21/06-setup-velero/assets/manifests/velero-values-v${VELERO_CHART_VERSION}.yaml" > "velero-values-v${VELERO_CHART_VERSION}.yaml"
     ```
 
-3. Now, create the `Velero` HelmRelease for `Flux`:
+    **Note:**
+
+    Please **do not commit** Velero `values` file in `Git`, because it may contain `sensitive` data. Instead, you will create a `Kubernetes Secret` to encrypt the values file data. Then, you will use it to configure the Velero `HelmRelease`.
+
+3. Next, create the Kubernetes `secret` for the Velero `HelmRelease` to consume:
 
     ```shell
     VELERO_CHART_VERSION="2.23.6"
+
+    kubectl create secret generic "velero-values-v${VELERO_CHART_VERSION}" \
+        --namespace flux-system \
+        --from-file=values.yaml="velero-values-v${VELERO_CHART_VERSION}.yaml"
+    ```
+
+    **Note:**
+
+    Flux will search for secrets in the default `flux-system` namespace. So, please remember to backup your custom secrets, if needed.
+4. Now, create the `Velero` HelmRelease for `Flux`:
+
+    ```shell
+    VELERO_CHART_VERSION="2.23.6"
+    VELERO_NAMESPACE="velero"
 
     flux create helmrelease "velero-stack" \
       --source="HelmRepository/vmware-tanzu" \
       --chart="velero"  \
       --chart-version "$VELERO_CHART_VERSION" \
-      --values="velero-values-v${VELERO_CHART_VERSION}.yaml" \
-      --target-namespace="velero" \
+      --values-from="Secret/velero-values-v${VELERO_CHART_VERSION}" \
+      --target-namespace="$VELERO_NAMESPACE" \
       --create-target-namespace \
       --export > "${HELM_MANIFESTS_PATH}/velero-stack-release-v${VELERO_CHART_VERSION}.yaml"
     ```
@@ -564,11 +637,11 @@ Steps to follow:
     - `<source>` - source that contains the chart in the format `<kind>/<name>.<namespace>`, where kind must be one of: (`HelmRepository`, `GitRepository`, `Bucket`).
     - `<chart>` - Helm chart name.
     - `<chart-version>` -  Helm chart version.
-    - `<values>` - local path to values file.
+    - `<values-from>` - Kubernetes `Secret/ConfigMap` reference that contains the `values.yaml` data key.
     - `<target-namespace>` - namespace to install this release.
     - `<create-target-namespace>` - create the target namespace if it does not exist.
     - `<export>` - export in `YAML` format to stdout.
-4. Finally, commit your changes and push to remote (please replace `<your_cluster_name>` placeholder first):
+5. Finally, commit your changes and push to remote (please replace `<your_cluster_name>` placeholder first):
 
     ```shell
     VELERO_CHART_VERSION="2.23.6"
