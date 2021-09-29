@@ -1,5 +1,7 @@
 # Day-2 Operations-ready DigitalOcean Kubernetes (DOKS) for Developers
 
+[Webinar video from 9/28/2021](https://www.youtube.com/watch?v=C48gUklH1DU&t=5s)
+
 In this tutorial, we provide developers a hands-on introduction on how to get started with an operations-ready Kubernetes cluster on DigitalOcean Kubernetes (DOKS). Kubernetes is easy to set up and developers can use identical tooling and configurations across any cloud. Making Kubernetes operationally ready requires a few more tools to be set up, which are described in this tutorial.
 
 Resources used by the starter kit include the following:
