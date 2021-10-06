@@ -28,8 +28,10 @@ Below is a diagram that gives a high-level overview of the `Starter Kit` setup, 
 5. [Prometheus Monitoring Stack](04-setup-prometheus-stack/README.md)
 6. [Logs Aggregation via Loki Stack](05-setup-loki-stack/README.md)
 7. [Backup Using Velero](06-setup-velero/README.md)
-8. [Estimate resource usage of starter kit](14-starter-kit-resource-usage/README.md)
-9. [Automate Everything Using Terraform and Flux](15-automate-with-terraform-flux/README.md)
+8. [Alerts and Notifications](07-alerting-and-notification/README.md)
+9. [Kubernetes Sealed Secrets](08-kubernetes-sealed-secrets/README.md)
+10. [Estimate resource usage of starter kit](14-starter-kit-resource-usage/README.md)
+11. [Automate Everything Using Terraform and Flux](15-automate-with-terraform-flux/README.md)
 
 ## Scope
 
