@@ -31,6 +31,7 @@ After finishing all the steps from this tutorial, you should have a fully functi
 - [Step 5 - Creating Flux CD Helm Releases](#step-5---creating-flux-cd-helm-releases)
   - [Cloning the Flux CD Git Repository and Preparing the Layout](#cloning-the-flux-cd-git-repository-and-preparing-the-layout)
   - [Creating the Sealed Secrets Helm Release](#creating-the-sealed-secrets-helm-release)
+  - [Exporting Sealed Secrets Controller Public Key](#exporting-sealed-secrets-controller-public-key)
   - [Creating the Ambassador Helm Release](#creating-the-ambassador-helm-release)
   - [Creating the Prometheus Stack Helm Release](#creating-the-prometheus-stack-helm-release)
   - [Creating the Loki Stack Helm Release](#creating-the-loki-stack-helm-release)
