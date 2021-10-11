@@ -477,8 +477,8 @@ After finishing all the steps from this tutorial, you should have a `Git` reposi
 │       └── helm
 │           ├── releases
 │           │   ├── ambassador-stack-v6.7.13.yaml
-│           │   ├── prometheus-stack-v17.1.3.yaml
 │           │   ├── loki-stack-v2.4.1.yaml
+│           │   ├── prometheus-stack-v17.1.3.yaml
 │           │   ├── sealed-secrets-v1.16.1.yaml
 │           │   └── velero-v2.23.6.yaml
 │           ├── repositories
@@ -488,10 +488,10 @@ After finishing all the steps from this tutorial, you should have a `Git` reposi
 │           │   ├── sealed-secrets.yaml
 │           │   └── vmware-tanzu.yaml
 │           └── secrets
+│               ├── do-api-credentials-sealed.yaml
 │               ├── do-spaces-credentials-sealed.yaml
-│               ├── prometheus-stack-credentials-sealed.yaml
-│               └── do-api-credentials-sealed.yaml
-└── pub-sealed-secrets-flux-test-cluster.pem
+│               └── prometheus-stack-credentials-sealed.yaml
+└── pub-sealed-secrets-dev-cluster.pem
 ```
 
 Next, you're going to provision the required `Flux CD` manifests for each component of the `Starter Kit`. Then, you will inspect and commit each manifest to your `Git` repository used by `Flux CD` to reconcile your `DOKS` cluster. For sensitive data, a `Kubernetes Secrets` will be created and `encrypted` using `Sealed Secrets`, and then stored in your `Git` repository as well.
