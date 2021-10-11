@@ -28,8 +28,10 @@ Below is a diagram that gives a high-level overview of the `Starter Kit` setup, 
 5. [Prometheus Monitoring Stack](04-setup-prometheus-stack/README.md)
 6. [Logs Aggregation via Loki Stack](05-setup-loki-stack/README.md)
 7. [Backup Using Velero](06-setup-velero/README.md)
-8. [Estimate resource usage of starter kit](14-starter-kit-resource-usage/README.md)
-9. [Automate Everything Using Terraform and Flux](15-automate-with-terraform-flux/README.md)
+8. [Alerts and Notifications](07-alerting-and-notification/README.md)
+9. [Kubernetes Sealed Secrets](08-kubernetes-sealed-secrets/README.md)
+10. [Estimate resource usage of starter kit](14-starter-kit-resource-usage/README.md)
+11. [Automate Everything Using Terraform and Flux](15-automate-with-terraform-flux/README.md)
 
 ## Scope
 
@@ -56,8 +58,8 @@ git checkout <BRANCH>   # Use the branch version similar to DOKS, eg. 1.21
 - Use specific branch corresponding to DOKS version (eg. 1.21), when available.
 - For this `Starter Kit`, we recommend to start with a node pool of higher capacity nodes (say, `4cpu/8gb RAM`) and have at least `2` nodes. Otherwise, review and allocate node capacity if you run into pods in `PENDING` state.
 - We customize the value files for `Helm` installs of individual components. To get the original value file, use `helm show values`. For example: `helm show values prometheus-community/kube-prometheus-stack  --version 17.1.3`.
-- There are multiple places where you will change a manifest file to include a secret token for your cluster. Please be mindful of `handling` the `secrets`, and do not `commit` to `public Git` repositories. We've done the due diligence of adding those to `.gitignore` files.
-- **For the final automation, the GitHub `repository` (and `branch`) must be created beforehand - the DigitalOcean Terraform module used in this tutorial doesn't provision one for you automatically. Please make sure that the Git `repository` is `private` as well.**
+- There are multiple places where you will change a manifest file to include a secret token for your cluster. Please be mindful of `handling` the `secrets`, and do not `commit` to `public Git` repositories. A safer method to use is `Sealed Secrets`, explained in [Kubernetes Sealed Secrets](08-kubernetes-sealed-secrets/README.md). The sample manifests provided in the [Automate Everything Using Terraform and Flux](15-automate-with-terraform-flux/README.md) section, shows you how to use `Sealed Secrets` in combination with `Flux CD`, and reference `sensitive` data in each manifest that require secrets.
+- **For the final automation, the GitHub `repository` (and `branch`) must be created beforehand - the DigitalOcean Terraform module used in this tutorial doesn't provision one for you automatically.**
 
 If you want to automate installation for all the components, refer to [Section 15 - Automate with Terraform & Flux CD](15-automate-with-terraform-flux/README.md).
 

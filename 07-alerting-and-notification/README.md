@@ -115,4 +115,4 @@ helm upgrade kube-prom-stack prometheus-community/kube-prometheus-stack --versio
 
 At this point, you should see the slack `notifications` for firing alerts.
 
-Go to [Section 14 - Starter Kit Resource Usage](../14-starter-kit-resource-usage/README.md).
+Go to [Section 08 - Encrypt Kubernetes Secrets Using Sealed Secrets](../08-kubernetes-sealed-secrets/README.md).

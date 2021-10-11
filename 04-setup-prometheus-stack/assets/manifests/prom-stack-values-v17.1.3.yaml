@@ -1,7 +1,10 @@
-# Starter Kit default values for kube-prometheus-stack.
-#
-## Create default rules for monitoring the cluster
 ##
+## Starter Kit configuration for Prometheus stack
+##
+
+## Create default rules for monitoring the cluster
+#
+# Disable `etcd` and `kubeScheduler` rules (managed by DOKS, so metrics are not accesible)
 defaultRules:
   create: true
   rules:

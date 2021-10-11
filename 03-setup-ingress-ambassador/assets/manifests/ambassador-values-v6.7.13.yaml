@@ -1,5 +1,7 @@
-# Custom values used by the Starter Kit
-#
+##
+## Starter Kit configuration for Ambassador stack
+##
+
 # Deployment replica count
 #
 replicaCount: 2
