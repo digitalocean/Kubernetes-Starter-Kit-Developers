@@ -1,6 +1,35 @@
 ##
-## Configuration settings that directly affect the Velero deployment YAML.
+## Starter Kit configuration for Velero
 ##
+configuration:
+  # provider is the name for the backup storage location provider.
+  provider: aws
+  # Parameters for the `default` BackupStorageLocation. See
+  # https://velero.io/docs/v1.6/api-types/backupstoragelocation/
+  backupStorageLocation:
+    # bucket is the name of the bucket to store backups in. Required.
+    bucket: <YOUR_DO_SPACES_BUCKET_NAME_HERE>
+    config:
+      region: <YOUR_DO_SPACES_BUCKET_REGION_HERE> # e.g. nyc1
+      s3Url: https://<YOUR_DO_SPACES_BUCKET_REGION_HERE>.digitaloceanspaces.com  # e.g.: https://nyc1.digitaloceanspaces.com 
+
+  # Parameters for the `default` VolumeSnapshotLocation. See
+  # https://velero.io/docs/v1.6/api-types/volumesnapshotlocation/
+  volumeSnapshotLocation:
+    provider: digitalocean.com/velero
+
+  # Additional key/value pairs to be used as environment variables
+  extraEnvVars:
+    DIGITALOCEAN_TOKEN: <YOUR_DO_API_TOKEN_HERE>
+
+# Info about the DO Spaces credentials to be used by the Velero deployment
+credentials:
+  secretContents:
+    cloud: |
+      [default]
+      aws_access_key_id=<YOUR_DO_SPACES_ACCESS_KEY_HERE>
+      aws_secret_access_key=<YOUR_DO_SPACES_SECRET_KEY_HERE>
+
 # Init containers to add to the Velero deployment's pod spec. At least one plugin provider image is required.
 initContainers:
   - name: velero-plugin-for-aws
@@ -15,45 +44,6 @@ initContainers:
     volumeMounts:
       - mountPath: /target
         name: plugins
-
-##
-## Parameters for the `default` BackupStorageLocation and VolumeSnapshotLocation,
-## and additional server settings.
-##
-configuration:
-  provider: aws
-  # Parameters for the `default` BackupStorageLocation. See
-  # https://velero.io/docs/v1.6/api-types/backupstoragelocation/
-  backupStorageLocation:
-    # provider is the name for the backup storage location provider.
-    provider: aws
-    # bucket is the name of the bucket to store backups in. Required.
-    bucket: <YOUR_DO_SPACES_BUCKET_NAME_HERE>
-    config:
-      region: <YOUR_DO_SPACES_BUCKET_REGION_HERE> # e.g. nyc1
-      s3Url: https://<YOUR_DO_SPACES_BUCKET_REGION_HERE>.digitaloceanspaces.com
-
-  # Parameters for the `default` VolumeSnapshotLocation. See
-  # https://velero.io/docs/v1.6/api-types/volumesnapshotlocation/
-  volumeSnapshotLocation:
-    provider: digitalocean.com/velero
-
-  # additional key/value pairs to be used as environment variables such as "AWS_CLUSTER_NAME: 'yourcluster.domain.tld'"
-  extraEnvVars:
-    DIGITALOCEAN_TOKEN: <YOUR_DO_API_TOKEN_HERE>
-
-##
-## Settings for additional Velero resources.
-##
-# Info about the secret to be used by the Velero deployment, which
-# should contain credentials for the cloud provider IAM account you've
-# set up for Velero.
-credentials:
-  secretContents:
-    cloud: |
-      [default]
-      aws_access_key_id=<YOUR_DO_SPACES_ACCESS_KEY_HERE>
-      aws_secret_access_key=<YOUR_DO_SPACES_SECRET_KEY_HERE>
 
 # Whether to deploy the restic daemonset.
 deployRestic: false

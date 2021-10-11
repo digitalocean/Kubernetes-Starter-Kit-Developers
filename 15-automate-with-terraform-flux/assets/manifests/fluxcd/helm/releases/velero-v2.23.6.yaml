@@ -1,0 +1,64 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: velero-stack
+  namespace: flux-system
+spec:
+  chart:
+    spec:
+      chart: velero
+      sourceRef:
+        kind: HelmRepository
+        name: vmware-tanzu
+      version: 2.23.6
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  releaseName: velero
+  targetNamespace: velero
+  interval: 1m0s
+  values:
+    configuration:
+      provider: aws
+      backupStorageLocation:
+        bucket: <YOUR_DO_SPACES_BUCKET_NAME_HERE>
+        config:
+          region: <YOUR_DO_SPACES_BUCKET_REGION_HERE>  # e.g.: nyc1
+          s3Url: https://<YOUR_DO_SPACES_BUCKET_REGION_HERE>.digitaloceanspaces.com  # e.g.: https://nyc1.digitaloceanspaces.com
+      volumeSnapshotLocation:
+        provider: digitalocean.com/velero
+    deployRestic: false
+    initContainers:
+      - image: velero/velero-plugin-for-aws:v1.0.0
+        imagePullPolicy: IfNotPresent
+        name: velero-plugin-for-aws
+        volumeMounts:
+          - mountPath: /target
+            name: plugins
+      - image: digitalocean/velero-plugin:v1.0.0
+        imagePullPolicy: IfNotPresent
+        name: velero-plugin
+        volumeMounts:
+          - mountPath: /target
+            name: plugins
+  valuesFrom:
+    - kind: Secret
+      name: do-api-credentials
+      valuesKey: do_api_token
+      targetPath: configuration.extraEnvVars.DIGITALOCEAN_TOKEN
+      optional: false
+    - kind: Secret
+      name: do-spaces-credentials
+      valuesKey: access_key_id
+      targetPath: configuration.extraEnvVars.AWS_ACCESS_KEY_ID
+      optional: false
+    - kind: Secret
+      name: do-spaces-credentials
+      valuesKey: secret_access_key
+      targetPath: configuration.extraEnvVars.AWS_SECRET_ACCESS_KEY
+      optional: false

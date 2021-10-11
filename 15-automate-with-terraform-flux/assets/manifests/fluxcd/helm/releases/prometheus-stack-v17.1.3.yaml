@@ -1,0 +1,92 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: kube-prometheus-stack
+  namespace: flux-system
+spec:
+  chart:
+    spec:
+      chart: kube-prometheus-stack
+      sourceRef:
+        kind: HelmRepository
+        name: prometheus-community
+      version: 17.1.3
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  releaseName: kube-prom-stack
+  targetNamespace: monitoring
+  interval: 1m0s
+  values:
+    alertmanager:
+      enabled: true
+    defaultRules:
+      create: true
+      rules:
+        alertmanager: true
+        etcd: false
+        general: true
+        k8s: true
+        kubeApiserver: true
+        kubeApiserverAvailability: true
+        kubeApiserverError: true
+        kubeApiserverSlos: true
+        kubePrometheusGeneral: true
+        kubePrometheusNodeAlerting: true
+        kubePrometheusNodeRecording: true
+        kubeScheduler: false
+        kubeStateMetrics: true
+        kubelet: true
+        kubernetesAbsent: true
+        kubernetesApps: true
+        kubernetesResources: true
+        kubernetesStorage: true
+        kubernetesSystem: true
+        network: true
+        node: true
+        prometheus: true
+        prometheusOperator: true
+        time: true
+    grafana:
+      enabled: true
+    kubeEtcd:
+      enabled: false
+    kubeScheduler:
+      enabled: false
+    prometheus:
+      additionalServiceMonitors:
+        - endpoints:
+            - path: /metrics
+              port: ambassador-admin
+              scheme: http
+          name: ambassador-monitor
+          namespaceSelector:
+            matchNames:
+              - ambassador
+          selector:
+            matchLabels:
+              service: ambassador-admin
+      enabled: true
+      prometheusSpec:
+        storageSpec:
+          volumeClaimTemplate:
+            spec:
+              accessModes:
+                - ReadWriteOnce
+              resources:
+                requests:
+                  storage: 5Gi
+              storageClassName: do-block-storage
+    prometheusOperator:
+      enabled: true
+  valuesFrom:
+    - kind: Secret
+      name: prometheus-stack-credentials
+      valuesKey: grafana_admin_password
+      targetPath: grafana.adminPassword
+      optional: false

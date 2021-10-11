@@ -6,20 +6,22 @@ In this tutorial, you will learn how to deploy and `encrypt` generic `Kubernetes
 
 ### Understanding How Sealed Secrets Work
 
-The `Sealed Secrets Controller` creates generic (classic) `Kubernetes` secrets in your `DOKS` cluster, from sealed secrets manifests. Sealed secrets `decryption` happens `server side` only, so as long as the `DOKS` cluster is secured, everything should be safe.
+The `Sealed Secrets Controller` creates generic (classic) `Kubernetes` secrets in your `DOKS` cluster, from sealed secrets manifests. Sealed secrets `decryption` happens `server side` only, so as long as the `DOKS` cluster is secured (`etcd` database), everything should be safe.
 
 There are two components involved:
 
-1. A client side utility called `kubeseal`,  used for `encrypting` generic `Kubernetes` secrets. The `kubeseal` CLI uses `asymmetric crypto` to encrypt secrets that `only` the `controller` can `decrypt`.
+1. A client side utility called `kubeseal`, used for `encrypting` generic `Kubernetes` secrets. The `kubeseal` CLI uses `asymmetric crypto` to encrypt secrets that `only` the `Sealed Secrets Controller` can `decrypt`.
 2. A server side component called `Sealed Secrets Controller` which runs on your `DOKS` cluster, and takes care of `decrypting` sealed secrets objects for applications to use.
 
-The real benefit comes when you use `Sealed Secrets` in a `GitOps` flow. After you commit the sealed secret manifest in your applications `Git` repository, the `Continuous Delivery` system is notified about the change, and creates a `Sealed Secret` resource in your `DOKS` cluster. Then the `Sealed Secrets Controller` kicks in, and `decrypts` your sealed secret object back to the original `Kubernetes` secret. Next, applications can consume the secret as usual.
+The real benefit comes when you use `Sealed Secrets` in a `GitOps` flow. After you `commit` the sealed secret `manifest` to your applications `Git` repository, the `Continuous Delivery` system (e.g. `Flux CD`) is notified about the change, and creates a `Sealed Secret` resource in your `DOKS` cluster. Then the `Sealed Secrets Controller` kicks in, and `decrypts` your sealed secret object back to the original `Kubernetes` secret. Next, applications can consume the secret as usual.
 
-In terms of security, meaning restricting other users to decrypt your sealed secrets inside the cluster, there are three scopes that you can use (kubeseal `--scope` flag):
+In terms of security, meaning restricting other users to decrypt your sealed secrets inside the cluster, there are three scopes that you can use (`kubeseal` CLI `--scope` flag):
 
-1. `strict` (default): the secret must be sealed with exactly the same name and namespace. These attributes become part of the encrypted data and thus changing name and/or namespace would lead to **"decryption error"**.
-2. `namespace-wide`: you can freely rename the sealed secret within a given namespace.
-3. `cluster-wide`: the secret can be unsealed in any namespace and can be given any name.
+1. `strict` (default): the secret must be sealed with `exactly` the same `name` and `namespace`. These attributes become part of the encrypted data and thus changing name and/or namespace would lead to **"decryption error"**.
+2. `namespace-wide`: you can freely `rename` the sealed secret within a given `namespace`.
+3. `cluster-wide`: the `secret` can be `unsealed` in any `namespace` and can be given any `name`.
+
+Compared to other solutions, like `Vault` or `KMS` providers, `Sealed Secrets` is neither of those. It's just a way to safely `encrypt` your `Kubernetes Secrets`, so that the same `GitOps` principles can be applied as well when you need to `manage` sensitive data.
 
 After finishing this tutorial, you will be able to:
 
@@ -42,6 +44,7 @@ After finishing this tutorial, you will be able to:
 - [Step 3 - Managing Sealed Secrets](#step-3---managing-sealed-secrets)
   - [Managing Existing Secrets](#managing-existing-secrets)
   - [Updating Existing Secrets](#updating-existing-secrets)
+- [Step 4 - Sealed Secrets Controller Private Key Backup](#step-4---sealed-secrets-controller-private-key-backup)
 - [Conclusion](#conclusion)
   - [Pros](#pros)
   - [Cons](#cons)
@@ -58,9 +61,9 @@ To complete this tutorial, you will need:
 
 ## Step 1 - Installing the Sealed Secrets Controller
 
-In this step, you will learn how to deploy the `Sealed Secrets Controller` using `Helm`. The chart of interest is called `sealed-secrets` and it's hosted by the `bitnami-labs` repository.
+In this step, you will learn how to deploy the `Sealed Secrets Controller` using `Helm`. The chart of interest is called `sealed-secrets` and it's provided by the `bitnami-labs` repository.
 
-First, clone the `Starter Kit` Git repository and change directory to your local copy:
+First, clone the `Starter Kit` Git repository, and change directory to your local copy:
 
 ```shell
 git clone https://github.com/digitalocean/Kubernetes-Starter-Kit-Developers.git
@@ -68,7 +71,7 @@ git clone https://github.com/digitalocean/Kubernetes-Starter-Kit-Developers.git
 cd Kubernetes-Starter-Kit-Developers
 ```
 
-Then, add the `bitnami-labs` repository for `Helm`:
+Then, add the sealed secrets `bitnami-labs` repository for `Helm`:
 
 ```shell
 helm repo add sealed-secrets https://bitnami-labs.github.io/sealed-secrets
@@ -87,7 +90,7 @@ NAME                            CHART VERSION   APP VERSION     DESCRIPTION
 sealed-secrets/sealed-secrets   1.16.1          v0.16.0         Helm chart for the sealed-secrets controller.
 ```
 
-Then, open and inspect the `08-kubernetes-sealed-secrets/assets/manifests/sealed-secrets-values-v1.16.1.yaml` file provided in the `Starter kit` repository, using an editor of your choice (preferably with `YAML` lint support). You can use [VS Code](https://code.visualstudio.com), for example:
+Now, open and inspect the `08-kubernetes-sealed-secrets/assets/manifests/sealed-secrets-values-v1.16.1.yaml` file provided in the `Starter kit` repository, using an editor of your choice (preferably with `YAML` lint support). You can use [VS Code](https://code.visualstudio.com), for example:
 
 ```shell
 code 08-kubernetes-sealed-secrets/assets/manifests/sealed-secrets-values-v1.16.1.yaml
@@ -105,9 +108,9 @@ helm install sealed-secrets-controller sealed-secrets/sealed-secrets --version 1
 **Notes:**
 
 - A `specific` version for the `Helm` chart is used. In this case `1.16.1` is picked, which maps to the `0.16.0` version of the application. It’s good practice in general, to lock on a specific version. This helps to have predictable results, and allows versioning control via `Git`.
-- You need to `restrict` access to the sealed-secrets `namespace` for other users that have access to your `DOKS` cluster, to prevent `unauthorized` access to the `private key`.
+- You will want to `restrict` access to the sealed-secrets `namespace` for other users that have access to your `DOKS` cluster, to prevent `unauthorized` access to the `private key`.
 
-Next, list the deployment status for `Sealed Secrets` controller (notice the `STATUS` column value - must be `deployed`):
+Next, list the deployment status for `Sealed Secrets` controller (the `STATUS` column value should be `deployed`):
 
 ```shell
 helm ls -n sealed-secrets
@@ -142,11 +145,11 @@ NAME                                                   DESIRED   CURRENT   READY
 replicaset.apps/sealed-secrets-controller-7b649d967c   1         1         1       2m20s
 ```
 
-In the next step you will learn how to `seal` your `secrets`. Only `your DOKS` cluster can `decrypt` the sealed secrets, because it has the `private` key.
+In the next step you will learn how to `seal` your `secrets`. Only `your DOKS` cluster can `decrypt` the sealed secrets, because it's the only one having the `private` key.
 
 ## Step 2 - Encrypting a Kubernetes Secret
 
-In this step, you will learn how to encrypt your generic `Kubernetes` secret, using `kubeseal` CLI. Then, you will deploy it to your DOKS cluster and see how the `Sealed Secrets` controller decrypts it for your applications to use.
+In this step, you will learn how to encrypt your generic `Kubernetes` secret, using `kubeseal` CLI. Then, you will deploy it to your `DOKS` cluster and see how the `Sealed Secrets` controller `decrypts` it for your applications to use.
 
 Suppose that you need to seal a generic secret for your application, saved in the following file: `your-app-secret.yaml`. Notice the `your-data` field which is `base64` encoded (it's `vulnerable` to attacks, because it can be very easily `decoded` using free tools):
 
@@ -167,8 +170,8 @@ kubeseal --fetch-cert --controller-namespace=sealed-secrets > pub-sealed-secrets
 
 **Notes:**
 
-- If you deploy the `Sealed Secrets` controller to another namespace (defaults to `kube-system`), you need to specify `kubeseal` CLI the namespace, via the `--controller-namespace` flag.
-- The `public key` can be `safely` stored in a `Git` repository for example, or even given to the world. The encryption mechanism used by the `Sealed Secrets` controller cannot be reversed without the `private key` (`stored` in your `DOKS` cluster only).
+- If you deploy the `Sealed Secrets` controller to another namespace (defaults to `kube-system`), you need to specify to the `kubeseal` CLI the namespace, via the `--controller-namespace` flag.
+- The `public key` can be `safely` stored in a `Git` repository for example, or even given to the world. The encryption mechanism used by the `Sealed Secrets` controller cannot be reversed without the `private key` (stored in your `DOKS` cluster only).
 
 Next, create a `sealed` file from the `Kubernetes` secret, using the `pub-sealed-secrets.pem` key:
 
@@ -201,7 +204,7 @@ spec:
 
 **Note:**
 
-If you don't specify a `namespace`, the `default` one is assumed (use kubeseal `--namespace` flag, to change the scope).
+If you don't specify a `namespace`, the `default` one is assumed (use kubeseal `--namespace` flag, to change targeted namespace). Default `scope` used by `kubeseal` is `strict` - please refer to scopes in [Understanding How Sealed Secrets Work](#understanding-how-sealed-secrets-work).
 
 Next, you can delete the `Kubernetes` secret file, because it's not needed anymore:
 
@@ -302,19 +305,22 @@ Best approach is to perform regular backups via `Velero` for example, as you alr
 
 In this tutorial, you learned how to use generic `Kubernetes secrets` in a `secure` way. You also learned that the `encryption key` is stored and secrets are `decrypted` in the `cluster` (the client doesn’t have access to the encryption key).
 
-Then you discovered how the client uses the `kubeseal` CLI tool to generate `SealedSecret` manifests that hold `encrypted` data. After `applying` the file the server-side, `Sealed Secrets Controller` will recognize a new sealed secret resource, and `decrypt` it to create a `Kubernetes Secret` resource.
+Then, you discovered how to use `kubeseal` CLI, to generate `SealedSecret` manifests that hold sensitive content `encrypted`. After `applying` the sealed secrets manifest file to your `DOKS` cluster, the `Sealed Secrets Controller` will recognize it as a new sealed secret resource, and `decrypt` it to generic `Kubernetes Secret` resource.
 
 ### Pros
 
-- `Easy` and `transparent` integration with existing `Kubernetes` secrets.
+- `Easy` and `transparent` integration with `Kubernetes Secrets`.
 - `Decryption` happens `server side` (DOKS cluster).
-- Works very well in a `GitOps` setup.
+- Works very well in a `GitOps` setup (`encrypted` files can be stored using `public Git` repositories).
 
 ### Cons
 
-- For `each cluster` a separate `private` and `public key pair` needs to be `created` and `maintained`.
+- For `each DOKS cluster` a separate `private` and `public key` pair needs to be `created` and `maintained`.
 - `Private keys` must be `backed` up (e.g. using `Velero`) for `disaster` recovery.
-  
+- `Updating` and `re-sealing` secrets (`adding` or `merging` new key/values) is not quite straightforward.
+
+Even though there are some cons to using `Sealed Secrets`, the `transparent` integration with `Kubernetes` and `GitOps` flows makes it a good candidate in practice.
+
 ### Learn More
 
 - [Secret rotation](https://github.com/bitnami-labs/sealed-secrets#secret-rotation) best practices.
