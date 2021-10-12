@@ -541,7 +541,7 @@ Please use the following steps, to create required manifests for the `Sealed Sec
     ```shell
     SEALED_SECRETS_CHART_VERSION="1.16.1"
 
-    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/1.21/08-kubernetes-sealed-secrets/assets/manifests/sealed-secrets-values-v${SEALED_SECRETS_CHART_VERSION}.yaml" > "sealed-secrets-values-v${SEALED_SECRETS_CHART_VERSION}.yaml"
+    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/08-kubernetes-sealed-secrets/assets/manifests/sealed-secrets-values-v${SEALED_SECRETS_CHART_VERSION}.yaml" > "sealed-secrets-values-v${SEALED_SECRETS_CHART_VERSION}.yaml"
     ```
 
 4. Now, create the `Sealed Secrets` HelmRelease manifest for `Flux CD`. `Kubeseal` CLI expects by default to find the controller in the `kube-system` namespace and to be named `sealed-secrets-controller`, hence we override the release name via the `--release-name` and `--target-namespace` flags. This is not mandatory, but `kube-system` is usually accessible only to power users (administrators):
@@ -697,7 +697,7 @@ Steps to follow:
 2. Then, fetch the Ambassador `HelmRepository` manifest provided by the `Starter Kit` Git repository:
 
     ```shell
-    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/1.21/15-automate-with-terraform-flux/assets/manifests/fluxcd/helm/repositories/ambassador.yaml" > "${FLUXCD_HELM_MANIFESTS_PATH}/repositories/ambassador.yaml"
+    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/15-automate-with-terraform-flux/assets/manifests/fluxcd/helm/repositories/ambassador.yaml" > "${FLUXCD_HELM_MANIFESTS_PATH}/repositories/ambassador.yaml"
     ```
 
 3. Now, fetch the Ambassador `HelmRelease` manifest provided by the `Starter Kit` Git repository:
@@ -705,7 +705,7 @@ Steps to follow:
     ```shell
     AMBASSADOR_CHART_VERSION="6.7.13"
 
-    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/1.21/15-automate-with-terraform-flux/assets/manifests/fluxcd/helm/releases/ambassador-stack-v${AMBASSADOR_CHART_VERSION}.yaml" > "${FLUXCD_HELM_MANIFESTS_PATH}/releases/ambassador-stack-v${AMBASSADOR_CHART_VERSION}.yaml"
+    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/15-automate-with-terraform-flux/assets/manifests/fluxcd/helm/releases/ambassador-stack-v${AMBASSADOR_CHART_VERSION}.yaml" > "${FLUXCD_HELM_MANIFESTS_PATH}/releases/ambassador-stack-v${AMBASSADOR_CHART_VERSION}.yaml"
     ```
 
 4. Next, inspect the downloaded Ambassador `HelmRelease` manifest using an editor of your choice (preferably with `YAML` lint support), and adjust to your needs. For example, you can use [VS Code](https://code.visualstudio.com) (please make sure to replace the `<>` placeholders accordingly, if present):
@@ -791,7 +791,7 @@ Steps to follow:
 2. Then, fetch the `Prometheus` HelmRepository manifest provided by the `Starter Kit` Git repository:
 
     ```shell
-    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/1.21/15-automate-with-terraform-flux/assets/manifests/fluxcd/helm/repositories/prometheus-community.yaml" > "${FLUXCD_HELM_MANIFESTS_PATH}/repositories/prometheus-community.yaml"
+    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/15-automate-with-terraform-flux/assets/manifests/fluxcd/helm/repositories/prometheus-community.yaml" > "${FLUXCD_HELM_MANIFESTS_PATH}/repositories/prometheus-community.yaml"
     ```
 
 3. Next, `create` and `encrypt` the `Kubernetes Secret` holding your `Grafana` dashboard `admin password`. Make sure that you have the `Sealed Secrets` public key exported as mentioned in [Exporting the Sealed Secrets Controller Public Key](#exporting-the-sealed-secrets-controller-public-key) (please replace the `<>` placeholders accordingly):
@@ -817,7 +817,7 @@ Steps to follow:
     ```shell
     PROMETHEUS_CHART_VERSION="17.1.3"
 
-    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/1.21/15-automate-with-terraform-flux/assets/manifests/fluxcd/helm/releases/prometheus-stack-v${PROMETHEUS_CHART_VERSION}.yaml" > "${FLUXCD_HELM_MANIFESTS_PATH}/releases/prometheus-stack-v${PROMETHEUS_CHART_VERSION}.yaml"
+    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/15-automate-with-terraform-flux/assets/manifests/fluxcd/helm/releases/prometheus-stack-v${PROMETHEUS_CHART_VERSION}.yaml" > "${FLUXCD_HELM_MANIFESTS_PATH}/releases/prometheus-stack-v${PROMETHEUS_CHART_VERSION}.yaml"
     ```
 
 5. Then, inspect the downloaded Prometheus `HelmRelease` manifest using an editor of your choice (preferably with `YAML` lint support), and adjust to your needs. For example, you can use [VS Code](https://code.visualstudio.com) (please make sure to replace the `<>` placeholders accordingly, if present):
@@ -907,7 +907,7 @@ Steps to follow:
 2. Then, fetch the `Loki` HelmRepository manifest provided by the `Starter Kit` Git repository:
 
     ```shell
-    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/1.21/15-automate-with-terraform-flux/assets/manifests/fluxcd/helm/repositories/grafana.yaml" > "${FLUXCD_HELM_MANIFESTS_PATH}/repositories/grafana.yaml"
+    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/15-automate-with-terraform-flux/assets/manifests/fluxcd/helm/repositories/grafana.yaml" > "${FLUXCD_HELM_MANIFESTS_PATH}/repositories/grafana.yaml"
     ```
 
 3. Next, `create` and `encrypt` the Kubernetes secret for your `DO Spaces` credentials. Make sure that you have the `Sealed Secrets` public key exported as mentioned in [Exporting the Sealed Secrets Controller Public Key](#exporting-the-sealed-secrets-controller-public-key) (please replace the `<>` placeholders accordingly):
@@ -935,7 +935,7 @@ Steps to follow:
     ```shell
     LOKI_CHART_VERSION="2.4.1"
 
-    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/1.21/15-automate-with-terraform-flux/assets/manifests/fluxcd/helm/releases/loki-stack-v${LOKI_CHART_VERSION}.yaml" > "${FLUXCD_HELM_MANIFESTS_PATH}/releases/loki-stack-v${LOKI_CHART_VERSION}.yaml"
+    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/15-automate-with-terraform-flux/assets/manifests/fluxcd/helm/releases/loki-stack-v${LOKI_CHART_VERSION}.yaml" > "${FLUXCD_HELM_MANIFESTS_PATH}/releases/loki-stack-v${LOKI_CHART_VERSION}.yaml"
     ```
 
 5. Then, inspect the downloaded Loki `HelmRelease` manifest using an editor of your choice (preferably with `YAML` lint support), and adjust to your needs. For example, you can use [VS Code](https://code.visualstudio.com) (please make sure to replace the `<>` placeholders accordingly, if present):
@@ -1028,7 +1028,7 @@ Steps to follow:
 2. Then, fetch the `Velero` HelmRepository manifest provided by the `Starter Kit` Git repository:
 
     ```shell
-    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/1.21/15-automate-with-terraform-flux/assets/manifests/fluxcd/helm/repositories/vmware-tanzu.yaml" > "${FLUXCD_HELM_MANIFESTS_PATH}/repositories/vmware-tanzu.yaml"
+    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/15-automate-with-terraform-flux/assets/manifests/fluxcd/helm/repositories/vmware-tanzu.yaml" > "${FLUXCD_HELM_MANIFESTS_PATH}/repositories/vmware-tanzu.yaml"
     ```
 
 3. Next, `create` and `encrypt` the Kubernetes secret for Velero `HelmRelease` to consume (`DO API TOKEN`). Make sure that you have the `Sealed Secrets` public key exported as mentioned in [Exporting the Sealed Secrets Controller Public Key](#exporting-the-sealed-secrets-controller-public-key) (please replace the `<>` placeholders accordingly):
@@ -1054,7 +1054,7 @@ Steps to follow:
     ```shell
     VELERO_CHART_VERSION="2.23.6"
 
-    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/1.21/15-automate-with-terraform-flux/assets/manifests/fluxcd/helm/releases/velero-v${VELERO_CHART_VERSION}.yaml" > "${FLUXCD_HELM_MANIFESTS_PATH}/releases/velero-v${VELERO_CHART_VERSION}.yaml"
+    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/15-automate-with-terraform-flux/assets/manifests/fluxcd/helm/releases/velero-v${VELERO_CHART_VERSION}.yaml" > "${FLUXCD_HELM_MANIFESTS_PATH}/releases/velero-v${VELERO_CHART_VERSION}.yaml"
     ```
 
 5. Then, inspect the downloaded Velero `HelmRelease` manifest using an editor of your choice (preferably with `YAML` lint support), and adjust to your needs. For example, you can use [VS Code](https://code.visualstudio.com) (please make sure to replace the `<>` placeholders accordingly, if present):
