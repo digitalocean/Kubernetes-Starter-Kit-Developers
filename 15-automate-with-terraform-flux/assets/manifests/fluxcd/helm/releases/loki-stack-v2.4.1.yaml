@@ -24,7 +24,14 @@ spec:
   interval: 1m0s
   values:
     promtail:
+    enabled: true
+    serviceMonitor:
       enabled: true
+    pipelineStages:
+      - docker: {}
+      - drop:
+          source: namespace
+          expression: "kube-.*"
     prometheus:
       enabled: false
     fluent-bit:
