@@ -30,6 +30,17 @@ loki:
 
 promtail:
   enabled: true
+  #
+  # Enable Promtail service monitoring
+  # serviceMonitor:
+  #   enabled: true
+  #
+  # User defined pipeline stages
+  # pipelineStages:
+  #   - docker: {}
+  #   - drop:
+  #       source: namespace
+  #       expression: "kube-.*"
 
 fluent-bit:
   enabled: false

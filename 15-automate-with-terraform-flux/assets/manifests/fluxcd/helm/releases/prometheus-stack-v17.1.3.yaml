@@ -28,30 +28,8 @@ spec:
     defaultRules:
       create: true
       rules:
-        alertmanager: true
         etcd: false
-        general: true
-        k8s: true
-        kubeApiserver: true
-        kubeApiserverAvailability: true
-        kubeApiserverError: true
-        kubeApiserverSlos: true
-        kubePrometheusGeneral: true
-        kubePrometheusNodeAlerting: true
-        kubePrometheusNodeRecording: true
         kubeScheduler: false
-        kubeStateMetrics: true
-        kubelet: true
-        kubernetesAbsent: true
-        kubernetesApps: true
-        kubernetesResources: true
-        kubernetesStorage: true
-        kubernetesSystem: true
-        network: true
-        node: true
-        prometheus: true
-        prometheusOperator: true
-        time: true
     grafana:
       enabled: true
     kubeEtcd:
@@ -59,19 +37,37 @@ spec:
     kubeScheduler:
       enabled: false
     prometheus:
+      enabled: true
       additionalServiceMonitors:
-        - endpoints:
-            - path: /metrics
-              port: ambassador-admin
-              scheme: http
-          name: ambassador-monitor
+        - name: "ambassador-monitor"
+          selector:
+            matchLabels:
+              service: "ambassador-admin"
           namespaceSelector:
             matchNames:
               - ambassador
+          endpoints:
+            - port: "ambassador-admin"
+        - name: "loki-monitor"
           selector:
             matchLabels:
-              service: ambassador-admin
-      enabled: true
+              app: loki
+              release: loki
+          namespaceSelector:
+            matchNames:
+              - monitoring
+          endpoints:
+            - port: "http-metrics"
+        - name: "promtail-monitor"
+          selector:
+            matchLabels:
+              app: promtail
+              release: loki
+          namespaceSelector:
+            matchNames:
+              - monitoring
+          endpoints:
+            - port: "http-metrics"
       prometheusSpec:
         storageSpec:
           volumeClaimTemplate:

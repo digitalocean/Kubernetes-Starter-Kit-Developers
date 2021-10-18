@@ -8,19 +8,19 @@ In this tutorial you will learn about [Loki](https://github.com/grafana/helm-cha
 
 Main reasons for using Loki:
 
-- `Horizontally scalable`
-- `High availabilty`
-- `Multi-tenant` mode available
-- `Stores` and `indexes` data in a very `efficient` way
-- `Cost` effective
-- `Easy` to operate
-- `LogQL` DSL (offers the same functionality as `PromQL` from `Prometheus`, which is a plus if you're already familiar with it)
+- `Horizontally scalable`.
+- `High availabilty`.
+- `Multi-tenant` mode available.
+- `Stores` and `indexes` data in a very `efficient` way.
+- `Cost` effective.
+- `Easy` to operate.
+- `LogQL` DSL (offers the same functionality as `PromQL` from `Prometheus`, which is a plus if you're already familiar with it).
 
 In the steps to follow, you will learn to:
 
-- Install and configure `Loki` for your `DOKS` cluster
-- Configure `Grafana` with `Loki` data source to query logs, using `LogQL`
-- Configure `Loki` to use `persistent` storage for logs, via `DO Spaces`
+- Install and configure `Loki` for your `DOKS` cluster.
+- Configure `Grafana` with `Loki` data source to query logs, using `LogQL`.
+- Configure `Loki` to use `persistent` storage for logs, via `DO Spaces`.
 
 After finishing all the steps, you will have a production ready `Loki` setup, that will help you troubleshoot any issues you might have with running applications. Just log in to `Grafana`, and make use of `LogQL` syntax to search, filter, and perform all kind of queries on application logs, to fetch useful information.
 
@@ -34,8 +34,10 @@ After finishing all the steps, you will have a production ready `Loki` setup, th
 - [Prerequisites](#prerequisites)
 - [Step 1 - Installing LOKI](#step-1---installing-loki)
 - [Step 2 - Configure Grafana with Loki](#step-2---configure-grafana-with-loki)
-- [Step 3 - Promtail Agent](#step-3---promtail-agent)
-- [Step 4 - Using LogQL](#step-4---using-logql)
+- [Step 3 - Using LogQL](#step-3---using-logql)
+- [Step 4 - Understanding Promtail](#step-4---understanding-promtail)
+  - [Logs Discovery and Parsing](#logs-discovery-and-parsing)
+  - [Dropping Logs per Namespace](#dropping-logs-per-namespace)
 - [Step 5 - Setting Persistent Storage for Loki](#step-5---setting-persistent-storage-for-loki)
 - [Step 6 - Setting Loki Storage Retention](#step-6---setting-loki-storage-retention)
 - [Conclusion](#conclusion)
@@ -172,70 +174,9 @@ If everything goes well, a green label message will appear, saying `Data source 
 
 Now, you can access logs from the `Explore` tab of `Grafana`. Make sure to select `Loki` as the data source. Use `Help` button for log search cheat sheet.
 
-In the next section, you will discover `Promtail`, which is the agent responsible with `fetching` the logs, and `labeling` the data.
+In the next step, you'll be introduced to `LogQL`, which is the `PromQL` brother, but for logs. Some basic features of `LogQL` will be presented as well.
 
-## Step 3 - Promtail Agent
-
-In this step, you will learn what `Promtail` is, as well as how it works. It is deployed as a `DaemonSet`, and it's an `important` part of your `Loki` stack installation, responsible with fetching all your `Pods` logs from the `Kubernetes` cluster.
-
-What `Promtail` does is:
-
-- `Discovers` targets
-- `Attaches labels` to `log streams`
-- `Pushes` log streams to the `Loki` instance.
-
-### Logs discovery
-
-Before `Promtail` can ship any data from log files to `Loki`, it needs to find out information about its environment. Specifically, this means discovering applications emitting log lines to files that need to be monitored.
-
-`Promtail` borrows the same service discovery mechanism from `Prometheus`, although it currently only supports `Static` and `Kubernetes` service discovery. This limitation is due to the fact that `Promtail` is deployed as a daemon to every local machine and, as such, does not discover label from other machines. `Kubernetes` service discovery fetches required labels from the `Kubernetes API` server while `Static` usually covers all other use cases.
-
-As with every `monitoring agent`, you need to have a way for it to be up all the time. The `Loki` stack `Helm` deployment already makes this possible via a `DaemonSet`, as seen below:
-
-```shell
-kubectl get ds -n monitoring
-```
-
-The output looks similar to the following (notice the `loki-promtail` line):
-
-```text
-NAME                                       DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR   AGE
-kube-prom-stack-prometheus-node-exporter   2         2         2       2            2           <none>          7d4h
-loki-promtail                              2         2         2       2            2           <none>          5h6m
-```
-
-This is great! But how does it discover `Kubernetes` pods and assigns labels? Please take a look at the associated `ConfigMap`:
-
-```shell
-kubectl get cm loki-promtail -n monitoring -o yaml
-```
-
-The output looks similar to the following:
-
-```yaml
-scrape_configs:
-  - job_name: kubernetes-pods-name
-    pipeline_stages:
-      - docker: {}
-    kubernetes_sd_configs:
-    - role: pod
-    relabel_configs:
-    - action: replace
-      source_labels:
-      - __meta_kubernetes_namespace
-      target_label: namespace
-```
-
-As seen above in the `scrape_configs` section, there's a `kubernetes-pods-name` job, which:
-
-- Helps with `service discovery` on the `Kubernetes` side via `kubernetes_sd_configs`.
-- Re-labels `__meta_kubernetes_namespace` to `namespace`, as seen in the `relabel_configs` section.
-
-For more features and in depth explanations, please visit the [Promtail](https://grafana.com/docs/loki/latest/clients/promtail) official documentation page.
-
-In the next section, you'll be introduced to `LogQL`, which is the `PromQL` brother, but for logs. Some basic features of `LogQL` will be presented as well.
-
-## Step 4 - Using LogQL
+## Step 3 - Using LogQL
 
 In this step, you will learn how to use `LogQL` for querying application logs, and make use of the available `features` to ease your work.
 
@@ -285,6 +226,161 @@ Another feature of `Loki` worth mentioning is [Labels](https://grafana.com/docs/
 `Loki` indexes data based on labels, allowing more efficient storage. Below picture highlights this feature, in the `Log labels` panel:
 
 ![LogQL Labels Example](assets/images/LQL.png)
+
+In the next step, you will discover `Promtail`, which is the agent responsible with logs `fetching`, and `transforming` the data (`labeling`, `adding` new `fields`, `dropping`, etc).
+
+## Step 4 - Understanding Promtail
+
+In this step, you will learn what `Promtail` is, as well as how it works. It is deployed as a `DaemonSet`, and it's an `important` part of your `Loki` stack installation, responsible with fetching all `Pods` logs running in your `Kubernetes` cluster.
+
+What `Promtail` is essentially doing, is to:
+
+- `Discover` targets that `emit` logs.
+- `Attach labels` to `log streams`.
+- `Push log streams` to the `Loki` instance.
+
+### Logs Discovery and Parsing
+
+Before `Promtail` can ship any data from log files to `Loki`, it needs to find out information about its environment. Specifically, this means discovering applications emitting log lines to files that need to be monitored.
+
+`Promtail` borrows the same service discovery mechanism from `Prometheus`, although it currently only supports `Static` and `Kubernetes` service discovery. This limitation is due to the fact that `Promtail` is deployed as a daemon to every local machine and, as such, does not discover label from other machines. `Kubernetes` service discovery fetches required labels from the `Kubernetes API` server while `Static` usually covers all other use cases.
+
+As with every `monitoring agent`, you need to have a way for it to be up all the time. The `Loki` stack `Helm` deployment already makes this possible via a `DaemonSet`, as seen below:
+
+```shell
+kubectl get ds -n monitoring
+```
+
+The output looks similar to the following (notice the `loki-promtail` line):
+
+```text
+NAME                                       DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR   AGE
+kube-prom-stack-prometheus-node-exporter   2         2         2       2            2           <none>          7d4h
+loki-promtail                              2         2         2       2            2           <none>          5h6m
+```
+
+This is great, but how does Promtail discover `Kubernetes` pods and assigns labels ?
+
+The `scrape_configs` section from the `Promtail` main `configuration` will show you the details. You can use `kubectl` for inspection (notice that the application `configuration` is stored using a `Kubernetes ConfigMap`):
+
+```shell
+kubectl get cm loki-promtail -n monitoring -o yaml > loki-promtail-config.yaml
+```
+
+Next, please open the `loki-promtail-config.yaml` file using a text editor of your choice (preferably with `YAML` support). For example you can use [VS Code](https://code.visualstudio.com):
+
+```shell
+code loki-promtail-config.yaml
+```
+
+Then, look for the `scrape_configs` section. The output should be similar to:
+
+```yaml
+...
+scrape_configs:
+  - job_name: kubernetes-pods-name
+    pipeline_stages:
+      - docker: {}
+    kubernetes_sd_configs:
+    - role: pod
+    relabel_configs:
+    - action: replace
+      source_labels:
+      - __meta_kubernetes_namespace
+      target_label: namespace
+...
+```
+
+`Promtail` knows how to scrape for logs by using `scrape_configs`. Each scrape configuration tells `Promtail` how to `discover logs` and `extract labels`. Next, each scrape configuration contains one or more entries (called `jobs`) which are executed for each discovered target. Then, each `job` may contain a `pipeline` comprised of multiple `stages`. The main purpose of each `stage` is to `transform` your application logs, but it can also `drop` (filter) unwanted logs data, if needed. `Jobs` can contain `relabel_configs` stanzas as well, used to `transform labels`.
+
+Explanations for the above configuration:
+
+- `job_name`: Defines a new `job`, and its associated name.
+- `pipeline_stages`: Can be used to `add` or `update` labels, `correct` the timestamp, or `re-write` log lines entirely. It uses `stages` to accomplish the previously mentioned tasks. The configuration snippet presented above, is using a [docker](https://grafana.com/docs/loki/latest/clients/promtail/stages/docker) stage, which can extract data based on the standard `Docker` format. You can refer to the official documentation to read more about [Stages](https://grafana.com/docs/loki/latest/clients/promtail/stages) and [Pipelines](https://grafana.com/docs/loki/latest/clients/promtail/pipelines).
+- `kubernetes_sd_config`: Tells `Promtail` how to `discover logs` coming from `Pods` via `Kubernetes service discovery`.
+- `relabel_configs`: Defines a `list` of operations to `transform` the `labels` from `discovery` into another form. The configuration snippet presented above, is renaming the `__meta_kubernetes_namespace` source label provided by the Kubernetes service discovery mechanism, to a more human friendly form - `namespace`.
+
+### Dropping Logs per Namespace
+
+In most of the cases you may not want to fetch logs from all namespaces (and pods, implicitly). This is very useful to avoid `high traffic` inside your `Kubernetes` cluster caused by `Promtail`, as well as to `reduce` the amount of `data ingested` by `Loki`. What `Promtail` allows you to do in this case, is to `drop` logs from `unwanted namespaces` and keep the rest. Another advantage of this approach, is that the volume of data that needs to be `indexed` by Loki is `reduced`, meaning `less` storage used and number of `objects`, if using a `DO Spaces bucket` for example.
+
+`Promtail` allows you to filter logs on a namespace basis, via the `drop` stage. You can use `Helm` to configure `Promtail` for `namespace filtering`.
+
+First, open the `05-setup-loki-stack/assets/manifests/loki-stack-values-v2.4.1.yaml` file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support). For example you can use [VS Code](https://code.visualstudio.com) (please make sure to `change directory` where the `Starter Kit` repository was cloned first):
+
+```shell
+code 05-setup-loki-stack/assets/manifests/loki-stack-values-v2.4.1.yaml
+```
+
+Next, please remove the comments surrounding the `pipelineStages` section. In the following example, you will configure `Promtail` to drop all logs coming from all `namespaces` prefixed with `kube-`, meaning: `kube-node-lease`, `kube-public`, `kube-system`. The output looks similar to:
+
+```yaml
+promtail:
+  enabled: true
+  #
+  # Enable Promtail service monitoring
+  # serviceMonitor:
+  #   enabled: true
+  #
+  # User defined pipeline stages
+  pipelineStages:
+    - docker: {}
+    - drop:
+        source: namespace
+        expression: "kube-.*"
+```
+
+Explanations for the above configuration:
+
+- `pipelineStages`: Tells `Helm` to insert user defined pipeline stages in each job that it creates. By default, the `Loki` stack `Helm` chart is configuring `Promtail` to fetch `all` the logs coming from every `namespace` and `pod` (you can inspect the [ConfigMap](https://github.com/grafana/helm-charts/blob/promtail-2.1.0/charts/promtail/templates/configmap.yaml) template for details).
+- `docker`: Tells `Promtail` to use a [Docker](https://grafana.com/docs/loki/latest/clients/promtail/stages/docker) stage. Helps with `Docker` logs `formatting`.
+- `drop`: Tells `Promtail` to use a [Drop](https://grafana.com/docs/loki/latest/clients/promtail/stages/drop) stage. Then, you make use of the `source` field, to drop logs based on a `namespace`. Finally, `expression` is the regex selector for the `source` field.
+
+Finally, save the values file and apply changes using `Helm` upgrade:
+
+```shell
+HELM_CHART_VERSION="2.4.1"
+
+helm upgrade loki grafana/loki-stack --version "${HELM_CHART_VERSION}" \
+  --namespace=monitoring \
+  -f "05-setup-loki-stack/assets/manifests/loki-stack-values-v${HELM_CHART_VERSION}.yaml"
+```
+
+If the upgrade succeeded and no errors were reported, you can check via `LogQL` if logs are still pushed to `Loki` from the `kube-system` namespace after a while. Please wait a minute or so, and then run below queries. Make sure to `adjust` the `time window` in `Grafana` as well to match the last minute(s) interval (you will want to fetch the most recent data only).
+
+Next (if not already), please create a port forward for the `Grafana` web console on your local machine (default credentials: `admin/prom-operator`):
+
+```shell
+kubectl --namespace monitoring port-forward svc/kube-prom-stack-grafana 3000:80
+```
+
+Then, point your web browser to [localhost:3000](http://localhost:3000), and navigate to the `Explore` tab from the left panel. Select `Loki` from the data source menu, and run below queries:
+
+```json
+{namespace="kube-system"}
+```
+
+```json
+{namespace="kube-public"}
+```
+
+```json
+{namespace="kube-node-leases"}
+```
+
+The output window **should not return any data** for any of the above queries.
+
+**Hints:**
+
+- You can have as many drop stages as you want by using different regex expressions, or combine them together under a single stage if desired, via the regex `OR` operator (`|`).
+- You can also leverage the power of `ServiceMonitors` and enable Promtail `metrics` collection, as learned in [Step 2 - Configure Prometheus and Grafana](../04-setup-prometheus-stack/README.md#step-2---configure-prometheus-and-grafana) from the `Prometheus` tutorial:
+  - First, make sure to enable both the [Loki ServiceMonitor](../04-setup-prometheus-stack/assets/manifests/prom-stack-values-v17.1.3.yaml#L63) and [Promtail ServiceMonitor](../04-setup-prometheus-stack/assets/manifests/prom-stack-values-v17.1.3.yaml#L75) from `Prometheus Stack`, followed by a `Helm upgrade`.
+  - Next, enable [Promtail Service](assets/manifests/loki-stack-values-v2.4.1.yaml#L33) from `Loki Stack`, followed by a `Helm upgrade`.
+  - Then, you can install the [Loki&Promtail](https://grafana.com/grafana/dashboards/10880) Grafana dashboard provided by the community, and inspect the `volume` of data `ingested` by `Loki`. After a while, you can get a visual feedback of what it means to filter unnecessary application logs, as seen in the picture below (`before` fitlering - on the `left` side, and `after` - on the `right` side):
+
+    ![Loki Namespace Filtering Data Ingestion](assets/images/loki_data_ing.png)
+
+For more features and in depth explanations, please visit the [Promtail](https://grafana.com/docs/loki/latest/clients/promtail) official documentation page.
 
 In the next step, you will learn how to set up `persistent` storage for `Loki`, using `DO Spaces`. By default, `Helm` deploys `Loki` with `ephemeral` storage, meaning all your indexed `log data` will be `lost` if it restarts, or if the `DOKS` cluster is recreated.
 

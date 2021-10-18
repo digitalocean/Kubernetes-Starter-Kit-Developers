@@ -8,33 +8,11 @@
 defaultRules:
   create: true
   rules:
-    alertmanager: true
     etcd: false
-    general: true
-    k8s: true
-    kubeApiserver: true
-    kubeApiserverAvailability: true
-    kubeApiserverError: true
-    kubeApiserverSlos: true
-    kubelet: true
-    kubePrometheusGeneral: true
-    kubePrometheusNodeAlerting: true
-    kubePrometheusNodeRecording: true
-    kubernetesAbsent: true
-    kubernetesApps: true
-    kubernetesResources: true
-    kubernetesStorage: true
-    kubernetesSystem: true
     kubeScheduler: false
-    kubeStateMetrics: true
-    network: true
-    node: true
-    prometheus: true
-    prometheusOperator: true
-    time: true
 
 ## Component scraping kube scheduler
-## 
+##
 # Disabled because it's being managed by DOKS, so it's not accessible
 kubeScheduler:
   enabled: false
@@ -49,7 +27,6 @@ kubeEtcd:
 ## ref: https://prometheus.io/docs/alerting/alertmanager/
 ##
 alertmanager:
-
   ## Deploy alertmanager
   ##
   enabled: true
@@ -68,10 +45,9 @@ prometheusOperator:
 ## Deploy a Prometheus instance
 ##
 prometheus:
-
   enabled: true
 
-  # Starter Kit setup for the Ambassador Service monitoring
+  ## Starter Kit components service monitors
   #
   # additionalServiceMonitors:
   #   - name: "ambassador-monitor"
@@ -83,8 +59,30 @@ prometheus:
   #         - ambassador
   #     endpoints:
   #       - port: "ambassador-admin"
-  #         path: /metrics
-  #         scheme: http
+  #
+  ## Uncomment the following section to enable Loki service monitoring
+  #   - name: "loki-monitor"
+  #     selector:
+  #       matchLabels:
+  #         app: loki
+  #         release: loki
+  #     namespaceSelector:
+  #       matchNames:
+  #         - monitoring
+  #     endpoints:
+  #       - port: "http-metrics"
+  #
+  ## Uncomment the following section to enable Promtail service monitoring
+  #   - name: "promtail-monitor"
+  #     selector:
+  #       matchLabels:
+  #         app: promtail
+  #         release: loki
+  #     namespaceSelector:
+  #       matchNames:
+  #         - monitoring
+  #     endpoints:
+  #       - port: "http-metrics"
 
   ## Prometheus StorageSpec for persistent data
   ## ref: https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/user-guides/storage.md
