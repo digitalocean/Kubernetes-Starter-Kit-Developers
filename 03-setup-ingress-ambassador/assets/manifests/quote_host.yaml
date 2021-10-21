@@ -5,7 +5,7 @@ metadata:
   name: quote-host
   namespace: ambassador
 spec:
-  hostname: quote.starterkits.online
+  hostname: quote.starter-kit.online
   acmeProvider:
     email: quote@gmail.com
   tlsSecret:

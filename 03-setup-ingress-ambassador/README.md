@@ -20,7 +20,7 @@ After finishing this tutorial, you will be able to:
 
 - Create and manage `Ambassador Edge Stack` Helm deployments.
 - Create and configure the `Ambassador Edge Stack` domain and hosts.
-- Automatically configure `SSL` certificates for your `hosts`, and `TLS` termination enabled.
+- Automatically configure `SSL` certificates for your `hosts`, thus having `TLS` termination.
 - Create and configure `Ambassador Edge Stack` host mappings.
 - Know about `Ambassador Edge Stack` resource usage in your `DOKS` cluster.
 
@@ -36,7 +36,10 @@ After finishing this tutorial, you will be able to:
 - [Step 6 - Configuring the Ambassador Edge Stack Mappings for Hosts](#step-6---configuring-the-ambassador-edge-stack-mappings-for-hosts)
 - [Step 7 - Enabling Proxy Protocol](#step-7---enabling-proxy-protocol)
 - [Step 8 - Verifying the Ambassador Edge Stack Setup](#step-8---verifying-the-ambassador-edge-stack-setup)
-- [Step 9 - Performance Considerations for the Ambassador Edge Stack](#step-9---performance-considerations-for-the-ambassador-edge-stack)
+- [Step 9 [OPTIONAL] - Enabling Wildcard Certificates Support for the Ambassador Edge Stack](#step-9-optional---enabling-wildcard-certificates-support-for-the-ambassador-edge-stack)
+  - [Installing Cert-Manager](#installing-cert-manager)
+  - [Configuring the Ambassador Edge Stack with Cert-Manager](#configuring-the-ambassador-edge-stack-with-cert-manager)
+- [Step 10 - Performance Considerations for the Ambassador Edge Stack](#step-10---performance-considerations-for-the-ambassador-edge-stack)
   - [Adjusting Deployment Replica Count](#adjusting-deployment-replica-count)
   - [Adjusting Resource Requests](#adjusting-resource-requests)
 - [Conclusion](#conclusion)
@@ -133,29 +136,56 @@ Steps to follow:
 
 ## Step 3 - Defining the Domain and Hosts for Ambassador Edge Stack
 
-In a real world scenario each `host` maps to a `service`, so you need a way to tell `AES` about your intentions - meet the [Host](https://www.getambassador.io/docs/edge-stack/1.13/topics/running/host-crd/) CRD.
+In a real world scenario each `host` maps to a `service`, so you need a way to tell `AES` about your intentions - meet the [Host](https://www.getambassador.io/docs/edge-stack/1.13/topics/running/host-crd/) CRD. The `Host` CRD can handle `TLS termination` automatically, by using `HTTP-01` ACME challenge to request `TLS certificates` from a well known `Certificate Authority` (like [Let's Encrypt](https://letsencrypt.org/)). Certificates creation and renewal happens automatically once you configure and enable this feature in the `Host` CRD.
 
 The custom `Host` resource defines how `Ambassador Edge Stack` will be visible to the outside world. It collects all the following information in a single configuration resource. The most relevant parts are:
 
-- The `hostname` by which `Ambassador Edge Stack` will be reachable
-- How `Ambassador Edge Stack` should handle `TLS` certificates
-- How `Ambassador Edge Stack` should handle secure and insecure requests
+- The `hostname` by which `Ambassador Edge Stack` will be reachable.
+- How `Ambassador Edge Stack` should handle `TLS` certificates.
+- How `Ambassador Edge Stack` should handle secure and insecure requests.
+
+A typical `Host` configuration looks like below:
+
+```yaml
+apiVersion: getambassador.io/v2
+kind: Host
+metadata:
+  name: echo-host
+  namespace: ambassador
+spec:
+  hostname: echo.starter-kit.online
+  acmeProvider:
+    email: echo@gmail.com
+  tlsSecret:
+    name: tls2-cert
+  requestPolicy:
+    insecure:
+      action: Redirect
+      additionalPort: 8080
+```
+
+Explanations for the above configuration:
+
+- `hostname`: The hostname by which `Ambassador Edge Stack` will be reachable.
+- `acmeProvider`: Tells Ambassador Edge Stack what `Certificate Authority` to use, and request certificates from. The `email` address is used by the `Certificate Authority` to notify about any lifecycle events of the certificate.
+- `tlsSecret`: The `Kubernetes Secret` name to use for storing the `certificate`, after the Ambassador Edge Stack `ACME challenge` finishes successfully.
+- `requestPolicy`: Tells how `Ambassador Edge Stack` should handle secure and insecure requests.
+
+**Notes:**
+
+- The `hostname` must be reachable from the internet so the `CA` can check `POST` to an endpoint in `Ambassador Edge Stack`.
+- In general the `registrant email address` is mandatory when using `ACME`, and it should be a valid one in order to receive notifications when the certificates are going to expire.
+- The Ambassador Edge Stack built-in `ACME` client knows to handle `HTTP-01` challenges only. For other `ACME` challenge types like `DNS-01` for example, an `external` certificate management tool is required (e.g. [Cert-Manager](https://cert-manager.io)).
 
 For more details, please visit the [AES Host CRD](https://www.getambassador.io/docs/edge-stack/1.13/topics/running/host-crd/) official documentation.
 
-Notes on `ACME` support:
-
-- If the `Authority` is not supplied, then a `Let’s Encrypt` **production environment** is assumed.
-- In general the `registrant email address` is mandatory when using `ACME`, and it should be a valid one in order to receive notifications when the certificates are going to expire.
-- `ACME` stores certificates using `Kubernetes Secrets`. The name of the secret can be set using the `tlsSecret` element.
-
-The following example configures the `TLS` enabled `hosts` for this tutorial: [echo_host](assets/manifests/echo_host.yaml) and [quote_host](assets/manifests/quote_host.yaml).
+The following examples configure the `TLS` enabled `hosts` for this tutorial: [echo_host](assets/manifests/echo_host.yaml) and [quote_host](assets/manifests/quote_host.yaml).
 
 Steps to follow:
 
 1. First, change directory (if not already) where you cloned the `Starter Kit` repository.
 
-   ```shell
+    ```shell
     cd Kubernetes-Starter-Kit-Developers
     ```
 
@@ -177,8 +207,8 @@ Steps to follow:
 
     ```text
     NAME         HOSTNAME                   STATE     PHASE COMPLETED      PHASE PENDING              AGE
-    echo-host    echo.starterkits.online    Pending   ACMEUserRegistered   ACMECertificateChallenge   3s
-    quote-host   quote.starterkits.online   Pending   ACMEUserRegistered   ACMECertificateChallenge   3s
+    echo-host    echo.starter-kit.online    Pending   ACMEUserRegistered   ACMECertificateChallenge   3s
+    quote-host   quote.starter-kit.online   Pending   ACMEUserRegistered   ACMECertificateChallenge   3s
     ```
 
 **Observations and results:**
@@ -204,35 +234,35 @@ Events:
   Normal   Pending  32m                Ambassador Edge Stack  registering ACME account
   Normal   Pending  32m                Ambassador Edge Stack  ACME account registered
   Normal   Pending  32m                Ambassador Edge Stack  waiting for Host ACME account registration change to be reflected in snapshot
-  Normal   Pending  16m (x4 over 32m)  Ambassador Edge Stack  tlsSecret "tls2-cert"."ambassador" (hostnames=["echo.starterkits.online"]): needs updated: tlsSecret does not exist
-  Normal   Pending  16m (x4 over 32m)  Ambassador Edge Stack  performing ACME challenge for tlsSecret "tls2-cert"."ambassador" (hostnames=["echo.starterkits.online"])...
-  Warning  Error    16m (x4 over 32m)  Ambassador Edge Stack  obtaining tlsSecret "tls2-cert"."ambassador" (hostnames=["echo.starterkits.online"]): acme: Error -> One or more domains had a problem:
-[echo.starterkits.online] acme: error: 400 :: urn:ietf:params:acme:error:dns :: DNS problem: SERVFAIL looking up A for echo.starterkits.online - the domain's nameservers may be malfunctioning
+  Normal   Pending  16m (x4 over 32m)  Ambassador Edge Stack  tlsSecret "tls2-cert"."ambassador" (hostnames=["echo.starter-kit.online"]): needs updated: tlsSecret does not exist
+  Normal   Pending  16m (x4 over 32m)  Ambassador Edge Stack  performing ACME challenge for tlsSecret "tls2-cert"."ambassador" (hostnames=["echo.starter-kit.online"])...
+  Warning  Error    16m (x4 over 32m)  Ambassador Edge Stack  obtaining tlsSecret "tls2-cert"."ambassador" (hostnames=["echo.starter-kit.online"]): acme: Error -> One or more domains had a problem:
+[echo.starter-kit.online] acme: error: 400 :: urn:ietf:params:acme:error:dns :: DNS problem: SERVFAIL looking up A for echo.starter-kit.online - the domain's nameservers may be malfunctioning
 ...
 ```
 
-As seen above, the last `event` tells that there's no `A` record to point to the `echo` host for the `starterkits.online` domain, which results in a lookup failure. You will learn how to fix this issue, in the next step of the tutorial.
+As seen above, the last `event` tells that there's no `A` record to point to the `echo` host for the `starter-kit.online` domain, which results in a lookup failure. You will learn how to fix this issue, in the next step of the tutorial.
 
 ## Step 4 - Configuring the DO Domain for Ambassador Edge Stack
 
 In this step, you will configure the `DigitalOcean` domain for `AES`, using `doctl`. Then, you will create the domain `A` records for each host: `echo` and `quote`.
 
-First, please issue the below command to create a new `domain` (`starterkits.online`, in this example):
+First, please issue the below command to create a new `domain` (`starter-kit.online`, in this example):
 
 ```shell
-doctl compute domain create starterkits.online
+doctl compute domain create starter-kit.online
 ```
 
 The output looks similar to the following:
 
 ```text
-Domain           TTL
-starterkits.online    0
+Domain                TTL
+starter-kit.online    0
 ```
 
 **Note:**
 
-**YOU NEED TO ENSURE THAT YOUR DOMAIN REGISTRAR IS CONFIGURED TO POINT TO DIGITALOCEAN NAMESERVERS**. More information on how to do that is available [here](https://www.digitalocean.com/community/tutorials/how-to-point-to-digitalocean-nameservers-from-common-domain-registrars).
+**YOU NEED TO ENSURE THAT YOUR DOMAIN REGISTRAR IS CONFIGURED TO POINT TO DIGITALOCEAN NAME SERVERS**. More information on how to do that is available [here](https://www.digitalocean.com/community/tutorials/how-to-point-to-digitalocean-nameservers-from-common-domain-registrars).
 
 Next, you will add required `A` records for the `hosts` you created earlier. First, you need to identify the `Load Balancer` IP that points to your `Kubernetes` cluster (the `Ambassador Edge Stack` deployed earlier creates one for you). Pick the one that matches your configuration from the list:
 
@@ -243,9 +273,9 @@ doctl compute load-balancer list
 Then, add the records (please replace the `<>` placeholders accordingly). You can change the `TTL` value as per your requirement:
 
 ```shell
-doctl compute domain records create starterkits.online --record-type "A" --record-name "echo" --record-data "<your_lb_ip_address>" --record-ttl "30"
+doctl compute domain records create starter-kit.online --record-type "A" --record-name "echo" --record-data "<your_lb_ip_address>" --record-ttl "30"
 
-doctl compute domain records create starterkits.online --record-type "A" --record-name "quote" --record-data "<your_lb_ip_address>" --record-ttl "30"
+doctl compute domain records create starter-kit.online --record-type "A" --record-name "quote" --record-data "<your_lb_ip_address>" --record-ttl "30"
 ```
 
 **Hint:**
@@ -255,17 +285,17 @@ If you have only one `LB` in your account, then please use the following snippet
 ```shell
 LOAD_BALANCER_IP=$(doctl compute load-balancer list --format IP --no-header)
 
-doctl compute domain records create starterkits.online --record-type "A" --record-name "echo" --record-data "$LOAD_BALANCER_IP" --record-ttl "30"
+doctl compute domain records create starter-kit.online --record-type "A" --record-name "echo" --record-data "$LOAD_BALANCER_IP" --record-ttl "30"
 
-doctl compute domain records create starterkits.online --record-type "A" --record-name "quote" --record-data "$LOAD_BALANCER_IP" --record-ttl "30"
+doctl compute domain records create starter-kit.online --record-type "A" --record-name "quote" --record-data "$LOAD_BALANCER_IP" --record-ttl "30"
 ```
 
 **Observation and results:**
 
-List the available records for the `starterkits.online` domain:
+List the available records for the `starter-kit.online` domain:
 
 ```shell
-doctl compute domain records list starterkits.online
+doctl compute domain records list starter-kit.online
 ```
 
 The output looks similar to the following:
@@ -290,8 +320,8 @@ The output looks similar to the following (the `STATE` column should display `Re
 
 ```text
 NAME         HOSTNAME                   STATE   PHASE COMPLETED   PHASE PENDING   AGE
-echo-host    echo.starterkits.online    Ready                                     2m11s
-quote-host   quote.starterkits.online   Ready                                     2m12s
+echo-host    echo.starter-kit.online    Ready                                     2m11s
+quote-host   quote.starter-kit.online   Ready                                     2m12s
 ```
 
 **Note:**
@@ -412,8 +442,8 @@ ambassador-devportal                                     /documentation/        
 ambassador-devportal-api                                 /openapi/                                   127.0.0.1:8500           
 ambassador-devportal-assets                              /documentation/(assets|styles)/(.*)(.css)   127.0.0.1:8500           
 ambassador-devportal-demo                                /docs/                                      127.0.0.1:8500           
-echo-backend                  echo.starterkits.online    /echo/                                      echo.backend             
-quote-backend                 quote.starterkits.online   /quote/                                     quote.backend 
+echo-backend                  echo.starter-kit.online    /echo/                                      echo.backend             
+quote-backend                 quote.starter-kit.online   /quote/                                     quote.backend 
 ```
 
 You can further explore some of the concepts you learned so far, by following below links:
@@ -448,9 +478,9 @@ In the next step, you will test the `AES` mappings configuration, and perform HT
 
 ## Step 8 - Verifying the Ambassador Edge Stack Setup
 
-In the current setup, you have two hosts configured with `TLS` termination and `ACME` protocol: `quote.starterkits.online` and `echo.starterkits.online`. By creating AES `Mappings` it's very easy to have `TLS` termination support and `API Gateway` capabilities.
+In the current setup, you have two hosts configured with `TLS` termination and `ACME` protocol: `quote.starter-kit.online` and `echo.starter-kit.online`. By creating AES `Mappings` it's very easy to have `TLS` termination support and `API Gateway` capabilities.
 
-If pinging `quote.starterkits.online` or `echo.starterkits.online` in the terminal you can see that packets are being sent to the `AES` external `IP`. Then, `AES` is using the mapping feature to reach the endpoints. Next, you're going to verify if service mappings are working.
+If pinging `quote.starter-kit.online` or `echo.starter-kit.online` in the terminal you can see that packets are being sent to the `AES` external `IP`. Then, `AES` is using the mapping feature to reach the endpoints. Next, you're going to verify if service mappings are working.
 
 First, inspect the `Ambassador` services:
 
@@ -470,13 +500,13 @@ ambassador-redis   ClusterIP      10.245.9.81    <none>           6379/TCP      
 Next, `ping` the `quote` service host:
 
 ```shell
-ping quote.starterkits.online
+ping quote.starter-kit.online
 ```
 
 The output looks similar to the following (notice that it hits the `AES` external IP: `68.183.252.190`):
 
 ```text
-PING quote.starterkits.online (68.183.252.190): 56 data bytes
+PING quote.starter-kit.online (68.183.252.190): 56 data bytes
 64 bytes from 68.183.252.190: icmp_seq=0 ttl=54 time=199.863 ms
 64 bytes from 68.183.252.190: icmp_seq=1 ttl=54 time=202.999 ms
 ...
@@ -485,14 +515,14 @@ PING quote.starterkits.online (68.183.252.190): 56 data bytes
 Now, verify the `quote` backend service response using `curl`:
 
 ```shell
-curl -Li http://quote.starterkits.online/quote/
+curl -Li http://quote.starter-kit.online/quote/
 ```
 
 The output looks similar to (notice how it automatically redirects, and is using `https` instead):
 
 ```text
 HTTP/1.1 301 Moved Permanently
-location: https://quote.starterkits.online/quote/
+location: https://quote.starter-kit.online/quote/
 date: Thu, 12 Aug 2021 18:28:43 GMT
 server: envoy
 content-length: 0
@@ -514,14 +544,14 @@ server: envoy
 Finally, please do the same for the `echo` service:
 
 ```shell
-curl -Li http://echo.starterkits.online/echo/
+curl -Li http://echo.starter-kit.online/echo/
 ```
 
 The output looks similar to (notice how it automatically redirects, and is using `https` instead):
 
 ```text
 HTTP/1.1 301 Moved Permanently
-location: https://echo.starterkits.online/echo/
+location: https://echo.starter-kit.online/echo/
 date: Thu, 12 Aug 2021 18:31:27 GMT
 server: envoy
 content-length: 0
@@ -537,7 +567,7 @@ Request served by echo-5d5bdf99cf-cq8nh
 
 HTTP/1.1 GET /
 
-Host: echo.starterkits.online
+Host: echo.starter-kit.online
 X-Forwarded-Proto: https
 X-Envoy-Internal: true
 X-Request-Id: 07afec17-4535-4157-bf5f-ad19dafb7bff
@@ -551,9 +581,322 @@ X-Envoy-Original-Path: /echo/
 
 Given that `proxy protocol` is configured, you should see the original `client IP` in the https `request header` as well.
 
-If everything looks like above, you configured the `Ambassador Edge Stack` successfully. Next, you will analyze the `Ambassador Edge Stack` from the resource usage standpoint, and learn about recommended values for the replica count, as well as resource requests and limits.
+If everything looks like above, you configured the `Ambassador Edge Stack` successfully.
 
-## Step 9 - Performance Considerations for the Ambassador Edge Stack
+Next, you will learn how to handle wildcard certificates for your domain, including sub-domains as well.
+
+## Step 9 [OPTIONAL] - Enabling Wildcard Certificates Support for the Ambassador Edge Stack
+
+A `wildcard certificate` is a kind of certificate that is able to handle `sub-domains` as well. The wildcard notion means that it has a global scope for the whole `DNS` domain you own.
+
+The `Ambassador Edge Stack` built-in `ACME` client has support for the `HTTP-01` challenge only, which `doesn't support wildcard certificates`. To be able to issue and use `wildcard certificates`, you need to have an `ACME` client or certificate management tool that it is able to handle the `DNS-01` challenge type. A good choice that works with `Kubernetes` (and `Ambassador Edge Stack` implicitly) is [Cert-Manager](https://cert-manager.io).
+
+For the `DNS-01` challenge type to work, the certificate management tool needs to be able to handle DNS `TXT records` for your cloud provider - `DigitalOcean` in this case. `Cert-Manager` is able to perform this kind of operation via the built-in [DigitalOcean Provider](https://cert-manager.io/docs/configuration/acme/dns01/digitalocean).
+
+For more information on how the `DNS-01` challenge works, please read the [DNS-01](https://letsencrypt.org/docs/challenge-types/#dns-01-challenge) article from `Let's Encrypt`.
+
+### Installing Cert-Manager
+
+Installing `Cert-Manager` is possible in many [ways](https://docs.cert-manager.io/en/latest/getting-started/install.html). In this tutorial, you will use `Helm` to accomplish the task.
+
+First, change directory (if not already) where you cloned the `Starter Kit` repository:
+
+```shell
+cd Kubernetes-Starter-Kit-Developers
+```
+
+Next, please add the `Jetstack` Helm repository:
+
+```shell
+helm repo add jetstack https://charts.jetstack.io
+```
+
+Then, open and inspect the `03-setup-ingress-ambassador/assets/manifests/cert-manager-values-v1.5.4.yaml` file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://code.visualstudio.com):
+
+```shell
+code 03-setup-ingress-ambassador/assets/manifests/cert-manager-values-v1.5.4.yaml
+```
+
+Finally, you can install the `jetstack/cert-manager` chart using Helm:
+
+```shell
+CERT_MANAGER_HELM_CHART_VERSION="1.5.4"
+
+helm install cert-manager jetstack/cert-manager --version "$CERT_MANAGER_HELM_CHART_VERSION" \
+  --namespace cert-manager \
+  --create-namespace \
+  -f 03-setup-ingress-ambassador/assets/manifests/cert-manager-values-v1.5.4.yaml
+```
+
+Check Helm release status:
+
+```shell
+helm ls -n cert-manager
+```
+
+The output looks similar to (notice the `STATUS` column which has the `deployed` value):
+
+```text
+NAME            NAMESPACE       REVISION        UPDATED                                 STATUS          CHART                   APP VERSION
+cert-manager    cert-manager    1               2021-10-20 12:13:05.124264 +0300 EEST   deployed        cert-manager-v1.5.4     v1.5.4
+```
+
+Inspect `Kubernetes` resources created by the `cert-manager` Helm release:
+
+```shell
+kubectl get all -n cert-manager
+```
+
+The output looks similar to (notice the `cert-manager` pod and `webhook` service, which should be `UP` and `RUNNING`):
+
+```text
+NAME                                           READY   STATUS    RESTARTS   AGE
+pod/cert-manager-5ffd4f6c89-ckc9n              1/1     Running   0          10m
+pod/cert-manager-cainjector-748dc889c5-l4dbv   1/1     Running   0          10m
+pod/cert-manager-webhook-5b679f47d6-4xptd      1/1     Running   0          10m
+
+NAME                           TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)   AGE
+service/cert-manager-webhook   ClusterIP   10.245.227.199   <none>        443/TCP   10m
+
+NAME                                      READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/cert-manager              1/1     1            1           10m
+deployment.apps/cert-manager-cainjector   1/1     1            1           10m
+deployment.apps/cert-manager-webhook      1/1     1            1           10m
+
+NAME                                                 DESIRED   CURRENT   READY   AGE
+replicaset.apps/cert-manager-5ffd4f6c89              1         1         1       10m
+replicaset.apps/cert-manager-cainjector-748dc889c5   1         1         1       10m
+replicaset.apps/cert-manager-webhook-5b679f47d6      1         1         1       10m
+```
+
+Inspect the available `CRDs`:
+
+```shell
+kubectl get crd -l app.kubernetes.io/name=cert-manager
+```
+
+The output looks similar to:
+
+```text
+NAME                                  CREATED AT
+certificaterequests.cert-manager.io   2021-10-20T09:13:15Z
+certificates.cert-manager.io          2021-10-20T09:13:15Z
+challenges.acme.cert-manager.io       2021-10-20T09:13:16Z
+clusterissuers.cert-manager.io        2021-10-20T09:13:17Z
+issuers.cert-manager.io               2021-10-20T09:13:18Z
+orders.acme.cert-manager.io           2021-10-20T09:13:18Z
+```
+
+### Configuring the Ambassador Edge Stack with Cert-Manager
+
+`Cert-Manager` relies on `three` important `CRDs` to issue certificates from a `Certificate Authority` (such as `Let's Encrypt`):
+
+- [Issuer](https://cert-manager.io/docs/concepts/issuer): Defines a `namespaced` certificate issuer, allowing you to use `different CAs` in each `namespace`.
+- [ClusterIssuer](https://cert-manager.io/docs/concepts/issuer): Similar to `Issuer`, but it doesn't belong to a namespace, hence can be used to `issue` certificates in `any namespace`.
+- [Certificate](https://cert-manager.io/docs/concepts/certificate): Defines a `namespaced` resource that references an `Issuer` or `ClusterIssuer` for issuing certificates.
+
+In this tutorial you will create a `namespaced Issuer` for the `Ambassador` stack.
+
+The way `cert-manager` works is by defining custom resources to handle certificates in your cluster. You start by creating an `Issuer` resource type, which is responsible with the `ACME` challenge process. The `Issuer` CRD also defines the required `provider` (such as `DigitalOcean`), to create `DNS` records during the `DNS-01` challenge.
+
+Then, you create a `Certificate` resource type which makes use of the `Issuer` CRD to obtain a valid certificate from the `CA` (Certificate Authority). The `Certificate` CRD also defines what `Kubernetes Secret` to create and store the final certificate after the `DNS-01` challenge completes successfully. Then, `Ambassador` can consume the `secret`, and use the `wildcard certificate` to enable `TLS` encryption for your `entire` domain.
+
+In the following steps, you will learn how to configure `Ambassador` to use `cert-manager` for `wildcard` certificates support.
+
+**Important note:**
+
+Before continuing with the steps, please make sure that your `DO` domain is set up correctly as explained in [Step 4 - Configuring the DO Domain for Ambassador Edge Stack](#step-4---configuring-the-do-domain-for-ambassador-edge-stack).
+
+First, you need to create a `Kubernetes Secret` for the [DigitalOcean Provider](https://cert-manager.io/docs/configuration/acme/dns01/digitalocean) that `cert-manager` is going to use to perform the `DNS-01` challenge. The secret must contain your `DigitalOcean API token`, which is needed by the provider to create `DNS` records on your behalf during the `DNS-01` challenge. This step is required, so that the `CA` knows that the `domain` in question is really owned by you.
+
+Create the `Kubernetes` secret containing the `DigitalOcean API` token, using the `ambassador` namespace (must be in the same `namespace` where the `Ambassador Edge Stack` was deployed):
+
+```shell
+DO_API_TOKEN="<YOUR_DO_API_TOKEN_HERE>"
+
+kubectl create secret generic "digitalocean-dns" \
+  --namespace ambassador \
+  --from-literal=access-token="$DO_API_TOKEN"
+```
+
+**Important note:**
+
+Because the above `secret` is created in the `ambassador` namespace, please make sure that `RBAC` is set correctly to `restrict` access for `unauthorized` users and applications.
+
+Next, change directory where the `Starter Kit` repository was cloned on your local machine:
+
+```shell
+cd Kubernetes-Starter-Kit-Developers
+```
+
+Then, open and inspect the `03-setup-ingress-ambassador/assets/manifests/cert-manager-ambassador-certificate.yaml` file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://code.visualstudio.com) (please replace the `<>` placeholders using a **valid e-mail address**):
+
+```shell
+code 03-setup-ingress-ambassador/assets/manifests/cert-manager-ambassador-certificate.yaml
+```
+
+**Note:**
+
+Explanations for each of the important `Issuer` CRD fields, can be found inside the [cert-manager-ambassador-certificate.yaml](assets/manifests/cert-manager-ambassador-issuer.yaml) file.
+
+Save the file and apply changes to your `Kubernetes` cluster using `kubectl`:
+
+```shell
+kubectl apply -f 03-setup-ingress-ambassador/assets/manifests/cert-manager-ambassador-certificate.yaml
+```
+
+Verify `Issuer` status using `kubectl`:
+
+```shell
+kubectl get issuer letsencrypt-ambassador -n ambassador
+```
+
+The output looks similar to (notice the `READY` column value - should be `True`):
+
+```text
+NAME                     READY   AGE
+letsencrypt-ambassador   True    3m32s
+```
+
+**Note:**
+
+If the `Issuer` object reports a not ready state for some reason, then you can use `kubectl describe` and inspect the `Status` section from the output. It should tell you the main reason why the `Issuer` failed.
+
+```shell
+kubectl describe issuer letsencrypt-ambassador -n ambassador
+```
+
+Now, you must create a `Certificate` resource which is referencing the `Issuer` created previously. Open and inspect the `03-setup-ingress-ambassador/assets/manifests/cert-manager-ambassador-certificate.yaml` file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://code.visualstudio.com):
+
+```shell
+code 03-setup-ingress-ambassador/assets/manifests/cert-manager-ambassador-certificate.yaml
+```
+
+**Notes:**
+
+- Explanation for each important field of the `Certificate` CRD, can be found inside the [cert-manager-ambassador-certificate.yaml](assets/manifests/cert-manager-ambassador-certificate.yaml) file.
+- The example provided in this tutorial is using `starter-kit.online` domain name (and naming convention). Please make sure to use your own domain name and naming convention.
+
+Next, create the `Certificate` resource in your `DOKS` cluster:
+
+```shell
+kubectl apply -f 03-setup-ingress-ambassador/assets/manifests/cert-manager-ambassador-certificate.yaml
+```
+
+Verify certificate status:
+
+```shell
+kubectl get certificate starter-kit.online -n ambassador
+```
+
+The output looks similar to (notice the `READY` column value - should be `True`, and the `SECRET` name):
+
+```text
+NAME                 READY   SECRET               AGE
+starter-kit.online   True    starter-kit.online   3m8s
+```
+
+**Notes:**
+
+- Please bear in mind that it can take a `few minutes` for the process to complete.
+- If the `Certificate` object reports a `not ready state` for some reason, then you can fetch the logs from the `Cert-Manager Controller` Pod and see why the `Certificate` failed:
+
+    ```shell
+    kubectl logs -l app=cert-manager,app.kubernetes.io/component=controller -n cert-manager
+    ```
+
+Inspect the `Kubernetes` secret which contains your `TLS` certificate:
+
+```shell
+kubectl describe secret  starter-kit.online -n ambassador
+```
+
+The output looks similar to (notice that it contains the `wildcard` certificate `private` and `public` keys):
+
+```text
+Name:         starter-kit.online
+Namespace:    ambassador
+Labels:       <none>
+Annotations:  cert-manager.io/alt-names: *.starter-kit.online,starter-kit.online
+              cert-manager.io/certificate-name: starter-kit.online
+              cert-manager.io/common-name: *.starter-kit.online
+              cert-manager.io/ip-sans: 
+              cert-manager.io/issuer-group: cert-manager.io
+              cert-manager.io/issuer-kind: Issuer
+              cert-manager.io/issuer-name: letsencrypt-ambassador
+              cert-manager.io/uri-sans: 
+
+Type:  kubernetes.io/tls
+
+Data
+====
+tls.crt:  5632 bytes
+tls.key:  1679 bytes
+```
+
+Now, you can use the new secret with Ambassador `Hosts` to enable `TLS` termination on `all domains`. The following snippet shows the `wildcard` configuration for the `Host` CRD:
+
+```yaml
+apiVersion: getambassador.io/v2
+kind: Host
+metadata:
+  name: wildcard-host
+  namespace: ambassador
+spec:
+  hostname: "*.starter-kit.online"
+  acmeProvider:
+    authority: none
+  tlsSecret:
+    name: starter-kit.online
+  selector:
+    matchLabels:
+      hostname: wildcard-host
+```
+
+Explanations for the above configuration:
+
+- `spec.hostname`: Because a wildcard certificate is available, you can use wildcards to match all hosts for a specific domain (e.g.: `*.starter-kit.online`).
+- `spec.acmeProvider`: Authority is set to `none`, because you configured an `external` certificate management tool (`cert-manager`).
+- `spec.tlsSecret`: Reference to `Kubernetes Secret` containing your `TLS` certificate.
+
+Open and inspect the `03-setup-ingress-ambassador/assets/manifests/wildcard-host.yaml` file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://code.visualstudio.com):
+
+```shell
+code 03-setup-ingress-ambassador/assets/manifests/wildcard-host.yaml
+```
+
+Then, after adjusting accordingly, save the file and create the wildcard `Host` resource using `kubectl`:
+
+```shell
+kubectl apply -f 03-setup-ingress-ambassador/assets/manifests/wildcard-host.yaml
+```
+
+Check that the resource was created:
+
+```shell
+kubectl get hosts -n ambassador
+```
+
+The output looks similar to (notice the `HOSTNAME` using wildcards now, and the `Ready` state):
+
+```text
+NAME            HOSTNAME               STATE   PHASE COMPLETED   PHASE PENDING   AGE
+wildcard-host   *.starter-kit.online   Ready                                     84m
+```
+
+After applying the `wildcard-host.yaml` manifest, you can go ahead and create the Ambassador `Mappings` for each `backend service` that you're using, as learned in [Step 6 - Configuring the Ambassador Edge Stack Mappings for Hosts](#step-6---configuring-the-ambassador-edge-stack-mappings-for-hosts).
+
+Testing the new setup goes the same way as you already learned in [Step 8 - Verifying the Ambassador Edge Stack Setup](#step-8---verifying-the-ambassador-edge-stack-setup).
+
+Please go ahead and navigate using your web browser to one of the example backend services used in this tutorial, and inspect the certificate. The output should look similar to (notice the wildcard certificate `*.starter-kit.online`):
+
+![Starter Kit Online Wildcard Certificate](assets/images/starter_kit_wildcard_cert.png)
+
+One of the `advantages` of using a `wildcard` certificate is that you need to create **only one** `Host` definition, and then focus on the `Mappings` needed for each `backend application`. The `wildcard` setup takes care `automatically` of all the `hosts` that need to be `managed` under a single `domain`, and have `TLS` termination `enabled`. Also, `certificate renewal` happens automatically for the entire domain, via `cert-manager` and `Let's Encrypt` CA.
+
+In the next step, you will analyze the `Ambassador Edge Stack` from the resource usage standpoint, and learn about recommended values for the replica count, as well as resource requests and limits.
+
+## Step 10 - Performance Considerations for the Ambassador Edge Stack
 
 The performance of `Ambassador Edge Stack's` control plane can be characterized along a number of different `dimensions`. The following list contains each `dimension` that has an impact at the application level:
 
@@ -670,7 +1013,7 @@ For more information about performance tuning` please visit the [AES Performance
 
 ## Conclusion
 
-In this tutorial, you learned how to set up an `Ingress` controller for your `DOKS` cluster, using the `Ambassador Edge Stack`. Then, you discovered how `AES` simplifies some of the common tasks, like: handling `SSL` certificates for your applications, enabling `TLS` termination, `routing` traffic to `backend` services, and `adjusting` resource `requests` and `limits` for the stack.
+In this tutorial, you learned how to set up an `Ingress` controller for your `DOKS` cluster, using the `Ambassador Edge Stack`. Then, you discovered how `AES` simplifies some of the common tasks, like: handling `SSL` certificates for your applications (thus enabling `TLS` termination), `routing` traffic to `backend` services, and `adjusting` resource `requests` and `limits` for the stack.
 
 Next, `monitoring` plays a key role in every `production ready` system. In [Section 4 - Set up Prometheus Stack](../04-setup-prometheus-stack), you will learn how to enable monitoring for your `DOKS` cluster, as well as for the `AES` stack, using `Prometheus`.
 
