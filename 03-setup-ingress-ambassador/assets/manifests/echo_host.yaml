@@ -5,7 +5,7 @@ metadata:
   name: echo-host
   namespace: ambassador
 spec:
-  hostname: echo.starterkits.online
+  hostname: echo.starter-kit.online
   acmeProvider:
     email: echo@gmail.com
   tlsSecret:

@@ -6,5 +6,5 @@ metadata:
   namespace: ambassador
 spec:
   prefix: /quote/
-  host: quote.starterkits.online
+  host: quote.starter-kit.online
   service: quote.backend

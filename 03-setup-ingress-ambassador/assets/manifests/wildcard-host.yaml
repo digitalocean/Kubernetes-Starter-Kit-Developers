@@ -1,0 +1,17 @@
+---
+apiVersion: getambassador.io/v2
+kind: Host
+metadata:
+  name: wildcard-host
+  namespace: ambassador
+spec:
+  # Wildcard to match all hosts for the `starter-kit.online` domain
+  hostname: "*.starter-kit.online"
+  acmeProvider:
+    authority: none
+  # The `Kubernetes Secret` containing your `TLS` certificate
+  tlsSecret:
+    name: starter-kit.online
+  selector:
+    matchLabels:
+      hostname: wildcard-host

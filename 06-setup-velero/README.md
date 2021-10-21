@@ -285,9 +285,9 @@ kubectl get namespaces
 Finally, verify that the `echo` and `quote` backend services `endpoint` is `DOWN` (please refer to [Creating the Ambassador Edge Stack Backend Services](../03-setup-ingress-ambassador/README.md#step-5---creating-the-ambassador-edge-stack-backend-services), regarding the `backend applications` used in the `Starter Kit` tutorial). You can use `curl` to test (or you can use your web browser):
 
 ```shell
-curl -Li http://quote.starterkits.online/quote/
+curl -Li http://quote.starter-kit.online/quote/
 
-curl -Li http://quote.starterkits.online/echo/
+curl -Li http://quote.starter-kit.online/echo/
 ```
 
 ### Restoring the Ambassador Namespace Backup
@@ -344,9 +344,9 @@ replicaset.apps/ambassador-redis-64b7c668b9   1         1         1       18h
 Finally, after reconfiguring your `LoadBalancer` and DigitalOcean `domain` settings, please verify that the `echo` and `quote` backend services `endpoint` is `UP` (please refer to [Creating the Ambassador Edge Stack Backend Services](../03-setup-ingress-ambassador/README.md#step-5---creating-the-ambassador-edge-stack-backend-services), regarding the `backend applications` used in the `Starter Kit` tutorial). For example, you can use `curl` to test each endpoint:
 
 ```shell
-curl -Li http://quote.starterkits.online/quote/
+curl -Li http://quote.starter-kit.online/quote/
 
-curl -Li http://quote.starterkits.online/echo/
+curl -Li http://quote.starter-kit.online/echo/
 ```
 
 In the next step, you will simulate a disaster by intentionally deleting your `DOKS` cluster (the `Starter Kit` DOKS cluster).
@@ -428,9 +428,9 @@ kubectl get all --all-namespaces
 Finally, the `backend applications` should respond to `HTTP` requests as well (please refer to [Creating the Ambassador Edge Stack Backend Services](../03-setup-ingress-ambassador/README.md#step-5---creating-the-ambassador-edge-stack-backend-services), regarding the `backend applications` used in the `Starter Kit` tutorial):
 
 ```shell
-curl -Li http://quote.starterkits.online/quote/
+curl -Li http://quote.starter-kit.online/quote/
 
-curl -Li http://quote.starterkits.online/echo/
+curl -Li http://quote.starter-kit.online/echo/
 ```
 
 In the next step, you will learn how to perform scheduled backup and restore for your `DOKS` cluster applications.

@@ -394,7 +394,7 @@ If you call the service `2` times, you will see `4` responses being plotted. Thi
 `CLI` command used for testing the above scenario:
 
 ```shell
-curl -Lk https://quote.starterkits.online/quote/
+curl -Lk https://quote.starter-kit.online/quote/
 ```
 
 The output looks similar to the following:

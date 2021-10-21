@@ -6,5 +6,5 @@ metadata:
   namespace: ambassador
 spec:
   prefix: /echo/
-  host: echo.starterkits.online
+  host: echo.starter-kit.online
   service: echo.backend
