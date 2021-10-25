@@ -14,3 +14,9 @@ resources:
   requests:
     cpu: 200m
     memory: 200Mi
+
+# service:
+#   annotations:
+#     # You can keep your existing LB when migrating to a new DOKS cluster, or when reinstalling AES
+#     kubernetes.digitalocean.com/load-balancer-id: "<YOUR_DO_LB_ID_HERE>"
+#     service.kubernetes.io/do-loadbalancer-disown: false
