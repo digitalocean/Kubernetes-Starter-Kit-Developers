@@ -729,20 +729,20 @@ Next, change directory where the `Starter Kit` repository was cloned on your loc
 cd Kubernetes-Starter-Kit-Developers
 ```
 
-Then, open and inspect the `03-setup-ingress-ambassador/assets/manifests/cert-manager-ambassador-certificate.yaml` file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://code.visualstudio.com) (please replace the `<>` placeholders using a **valid e-mail address**):
+Then, open and inspect the `03-setup-ingress-ambassador/assets/manifests/cert-manager-ambassador-issuer.yaml` file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://code.visualstudio.com) (please replace the `<>` placeholders using a **valid e-mail address**):
 
 ```shell
-code 03-setup-ingress-ambassador/assets/manifests/cert-manager-ambassador-certificate.yaml
+code 03-setup-ingress-ambassador/assets/manifests/cert-manager-ambassador-issuer.yaml
 ```
 
 **Note:**
 
-Explanations for each of the important `Issuer` CRD fields, can be found inside the [cert-manager-ambassador-certificate.yaml](assets/manifests/cert-manager-ambassador-issuer.yaml) file.
+Explanations for each of the important `Issuer` CRD fields, can be found inside the [cert-manager-ambassador-issuer.yaml](assets/manifests/cert-manager-ambassador-issuer.yaml) file.
 
 Save the file and apply changes to your `Kubernetes` cluster using `kubectl`:
 
 ```shell
-kubectl apply -f 03-setup-ingress-ambassador/assets/manifests/cert-manager-ambassador-certificate.yaml
+kubectl apply -f 03-setup-ingress-ambassador/assets/manifests/cert-manager-ambassador-issuer.yaml
 ```
 
 Verify `Issuer` status using `kubectl`:
