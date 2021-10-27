@@ -37,6 +37,9 @@ After finishing this tutorial, you will be able to:
 - [Step 7 - Enabling Proxy Protocol](#step-7---enabling-proxy-protocol)
 - [Step 8 - Verifying the Ambassador Edge Stack Setup](#step-8---verifying-the-ambassador-edge-stack-setup)
 - [How To Guides](#how-to-guides)
+    - [Wildcard Certificates Support for the Ambassador Edge Stack](guides/wildcard_certificates.md)
+    - [Migrating DigitalOcean LoadBalancer for the Ambassador Edge Stack](guides/do_loadbalancer_migration.md)
+    - [Performance Considerations for the Ambassador Edge Stack](guides/performance_considerations.md)
 - [Conclusion](#conclusion)
 
 ## Prerequisites
