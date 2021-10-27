@@ -1,16 +1,16 @@
-# Migrating DigitalOcean LoadBalancer for the Ambassador Edge Stack
+# Migrating DigitalOcean Load Balancer for the Ambassador Edge Stack
 
 ## Table of Contents
 
 - [Introduction](#introduction)
 - [Prerequisites](#prerequisites)
-- [Preparing the DigitalOcean LoadBalancer for Migration](#preparing-the-digitalocean-loadbalancer-for-migration)
+- [Preparing the DigitalOcean Load Balancer for Migration](#preparing-the-digitalocean-load-balancer-for-migration)
 - [Simulate a Disaster by Uninstalling the Ambassador Edge Stack](#simulate-a-disaster-by-uninstalling-the-ambassador-edge-stack)
-- [Re-installing the Ambassador Edge Stack and Restoring CRDs](#re-installing-the-ambassador-edge-stack-and-restoring-crds)
+- [Re-installing the Ambassador Edge Stack and Load Balancer Migration](#re-installing-the-ambassador-edge-stack-and-load-balancer-migration)
 
 ## Introduction
 
-When you want to expose a `Kubernetes Service` to the outside world, you will use a `LoadBalancer` service type. But, it's not quite handy to have a separate `LoadBalancer` for each `service` that you want to make `public`. One of the main issues with this kind of setup is - `costs`. In order to reduce costs, you will want to minimize the number of `LoadBalancers` by using an `Ingress Controller`.
+When you want to expose a `Kubernetes Service` to the outside world, you will use a `LoadBalancer` service type. But, it's not quite handy to have a separate load balancer for each `service` that you want to make `public`. One of the main issues with this kind of setup is - `costs`. In order to reduce costs, you will want to minimize the number of load balancers by using an `Ingress Controller`.
 
 **Ingress is not a Kubernetes Service, and a Kubernetes Service is not Ingress!**
 
@@ -23,26 +23,26 @@ A `Kubernetes Service` is just a way to expose internal Kubernetes objects (like
 
 `Ambassador` abstracts the `Ingress` spec even more, thus making it `easier` to work with, and adds more functionality on top. So, for most use cases you don't need to use the `Ingress Controller` functionality of `AES`. The recommended way of using AES is via the CRDs, like `Hosts` and `Mappings`.
 
-You can expose `Ambassador Edge Stack` via the `LoadBalancer` service type, which is what happens in the default `Helm` installation used in the `Starter Kit` tutorial. But `Kubernetes` will set LoadBalancer `ownership` for the service in question. It means that, whenever the `LoadBalancer` service is `deleted` (e.g. when uninstalling `AES`), the `DigitalOcean LoadBalancer` is `deleted` as well. This is expected, and it's part of the Kubernetes `garbage collection` process.
+You can expose `Ambassador Edge Stack` via the `LoadBalancer` service type, which is what happens in the default `Helm` installation used in the `Starter Kit` tutorial. But `Kubernetes` will set load balancer `ownership` for the service in question. It means that, whenever the `LoadBalancer` service is `deleted` (e.g. when uninstalling `AES`), the `DigitalOcean` load balancer is `deleted` as well. This is expected, and it's part of the Kubernetes `garbage collection` process.
 
-What happens when you `reinstall` the `Ambassador Edge Stack`, or when you want to `migrate` to another `DOKS` cluster ? The answer is that, a `new LoadBalancer` will be created and a `new external IP` is assigned, thus rendering your `DNS records` unusable.
+What happens when you `reinstall` the `Ambassador Edge Stack`, or when you want to `migrate` to another `DOKS` cluster? The answer is that, a `new load balancer` will be created and a `new external IP` is assigned, thus rendering your `DNS records` unusable.
 
 What options are available and more important: can I preserve my original load balancer and external IP as well?
 
 Short answer is: **YES**.
 
-You can use the `DigitalOcean Cloud Controller` available features for `migrating` LoadBalancers. Two special `service annotations` are available:
+The component responsible with load balancer lifecycle management is the `Cloud Controller Manager`, which is part of the `Kubernetes Control Plane`. Every `cloud provider` has its own `implementation`, and [DigitalOcean Cloud Controller Manager](https://github.com/digitalocean/digitalocean-cloud-controller-manager) is no exception. You can use the `DigitalOcean Cloud Controller` available features for `migrating` load balancers. Two special `service annotations` are available:
 
-- `service.kubernetes.io/do-loadbalancer-disown`, for controlling ownership of load balancers.
-- `kubernetes.digitalocean.com/load-balancer-id`, for specifying the `LoadBalancer ID` you want to take ownership.
+- `service.kubernetes.io/do-loadbalancer-disown`, for controlling `ownership` of load balancers.
+- `kubernetes.digitalocean.com/load-balancer-id`, for specifying the load balancer `ID` you want to take ownership.
 
-In this guide, you will learn how to `migrate` an existing `DigitalOcean LoadBalancer` from a previous `Ambassador` stack installation to a new one.
+In this guide, you will learn how to `migrate` an existing `DigitalOcean` load balancer from a previous `Ambassador` installation to a new one.
 
 ## Prerequisites
 
 To follow this guide, you need to have the same [prerequisites](../README.md#prerequisites) list prepared, as explained in the main `Ambassador` tutorial from the `Starter Kit`. This guide also assumes that you have `AES` already `installed` and properly `configured`, along with your custom `DNS` records pointing to the `echo` and `quote` hosts.
 
-## Preparing the DigitalOcean LoadBalancer for Migration
+## Preparing the DigitalOcean Load Balancer for Migration
 
 First, check that the `echo` and `quote` service endpoints are working:
 
@@ -87,7 +87,7 @@ First, check that the `echo` and `quote` service endpoints are working:
     }
     ```
 
-Next, fetch the DO LoadBalancer `external IP` created by the `Ambassador Edge Stack` deployment (example below is assuming that the stack was deployed using the `ambassador` namespace):
+Next, fetch the DO load balancer `external IP` created by the `Ambassador Edge Stack` deployment (example below is assuming that the stack was deployed using the `ambassador` namespace):
 
 ```shell
 kubectl get svc -n ambassador
@@ -102,20 +102,20 @@ ambassador-admin   ClusterIP      10.245.76.186   <none>            8877/TCP,800
 ambassador-redis   ClusterIP      10.245.85.152   <none>            6379/TCP                     3d21h
 ```
 
-Then, list all `LoadBalancers` resources from your `DigitalOcean` account, and print the `IP` and `ID` columns only:
+Then, list all load balancer resources from your `DigitalOcean` account, and print the `IP` and `ID` columns only:
 
 ```shell
 doctl compute load-balancer list --format IP,ID
 ```
 
-The output looks similar to (search the LoadBalancer `ID` that matches your Ambassador external `IP`):
+The output looks similar to (search the load balancer `ID` that matches your Ambassador external `IP`):
 
 ```text
 IP                 ID
 143.244.204.197    e95433c3-ad00-4222-b0c3-5208e554e45a
 ```
 
-After successfully identifying the `LoadBalancer ID` used by your `Ambassador` deployment, please write it down because you will need it later. Before continuing with the next steps, please make sure that you `change directory` where the `Starter Kit` repository was `cloned` on your machine.
+After successfully identifying the load balancer `ID` used by your `Ambassador` deployment, please write it down because you will need it later. Before continuing with the next steps, please make sure that you `change directory` where the `Starter Kit` repository was `cloned` on your machine.
 
 Now, open and inspect the `03-setup-ingress-ambassador/assets/manifests/ambassador-values-v6.7.13.yaml` file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://code.visualstudio.com):
 
@@ -137,10 +137,10 @@ service:
 
 Explanations for the above configuration:
 
-- `kubernetes.digitalocean.com/load-balancer-id`: Tells DigitalOcean `Cloud Controller` what `LoadBalancer ID` to use for the `Ambassador` service.
-- `service.kubernetes.io/do-loadbalancer-disown`: Tells DigitalOcean `Cloud Controller` to disown the LoadBalancer ID pointed by `kubernetes.digitalocean.com/load-balancer-id`. If set to `true`, then whenever the `ambassador` service is deleted, the associated `LB` will **NOT** be deleted by `Kubernetes`.
+- `kubernetes.digitalocean.com/load-balancer-id`: Tells DigitalOcean `Cloud Controller` what load balancer `ID` to use for the `Ambassador` service.
+- `service.kubernetes.io/do-loadbalancer-disown`: Tells DigitalOcean `Cloud Controller` to disown the load balancer ID pointed by `kubernetes.digitalocean.com/load-balancer-id`. If set to `true`, then whenever the `ambassador` service is deleted, the associated `LB` will **NOT** be deleted by `Kubernetes`.
 
-Now, please replace the `<>` placeholders accordingly, using your `LoadBalancer ID` that you wrote down earlier. Also, set the `service.kubernetes.io/do-loadbalancer-disown` annotation value to `true`. The final configuration should look like this:
+Now, please replace the `<>` placeholders accordingly, using your load balancer `ID` that you wrote down earlier. Also, set the `service.kubernetes.io/do-loadbalancer-disown` annotation value to `true`. The final configuration should look like this:
 
 ```yaml
 service:
@@ -160,7 +160,7 @@ helm upgrade ambassador datawire/ambassador --version "$HELM_CHART_VERSION" \
   -f "03-setup-ingress-ambassador/assets/manifests/ambassador-values-v${HELM_CHART_VERSION}.yaml"
 ```
 
-At this point, the `LoadBalancer` is disowned from the `ambassador` service by the DigitalOcean `Cloud Controller`. It means, that you can migrate it to another `Ambassador` service, and change ownership. Notice that the `DNS records` for the `starter-kit.online` domain remain `intact`, and still point to the `original IP` of the `LoadBalancer` in question.
+At this point, the load balancer is `disowned` from the `ambassador` service by the DigitalOcean `Cloud Controller`. It means, that you can migrate it to another `Ambassador` service, and change ownership. Notice that the `DNS records` for the `starter-kit.online` domain remain `intact`, and still point to the `original IP` of the load balancer in question.
 
 **Important note:**
 
@@ -168,7 +168,7 @@ At this point, the `LoadBalancer` is disowned from the `ambassador` service by t
 
 ## Simulate a Disaster by Uninstalling the Ambassador Edge Stack
 
-Whenever you delete the `Ambassador` stack, or the default service (e.g. `ambassador`), the associated `DigitalOcean` load balancer is deleted as well as part of the `Kubernetes garbage collection` process. Because you `disowned` the `LoadBalancer` service from `Ambassador`, it will **NOT** be removed automatically anymore. In the next steps, you will uninstall `AES` and verify this feature offered by the DigitalOcean `Cloud Controller`.
+Whenever you delete the `Ambassador` stack, or the default service (e.g. `ambassador`), the associated `DigitalOcean` load balancer is deleted as well as part of the `Kubernetes garbage collection` process. Because you `disowned` the load balancer from `Ambassador`, it will **NOT** be removed automatically anymore. In the next steps, you will uninstall `AES` and verify this feature offered by the DigitalOcean `Cloud Controller`.
 
 **Notes:**
 
@@ -237,9 +237,9 @@ The output from both looks similar to:
 curl: (52) Empty reply from server
 ```
 
-## Re-installing the Ambassador Edge Stack and Restoring CRDs
+## Re-installing the Ambassador Edge Stack and Load Balancer Migration
 
-Having the `load balancer` and the original `external IP` preserved is great, but you need to set back `ownership` to `Ambassador` again by deploying a new release.
+Having the `load balancer` and the original `external IP` preserved is great, but you need to transfer load balancer `ownership` to the new release of `Ambassador`, after deployment is finished.
 
 In the previous section of this guide, you intentionally deleted the `Ambassador` stack release which is maybe a little bit more of a killer situation. In practice, a more `realistic` scenario is when you want to `migrate` from one `DOKS` cluster to another (assuming that both reside in the same `VPC`), and you want to preserve your `DNS` settings as well.
 
@@ -345,6 +345,6 @@ Finally, you can test the `echo` and `quote` backend services, which should be `
     }
     ```
 
-If everything looks as above, then you `migrated` the load `balancer resource` successfully. 
+If everything looks as above, then you `migrated` the `load balancer` resource successfully.
 
 For more information and updates on the topic, you can also visit the official [Load Balancers Migration](https://docs.digitalocean.com/products/kubernetes/how-to/migrate-load-balancers) guide from `DigitalOcean`.
