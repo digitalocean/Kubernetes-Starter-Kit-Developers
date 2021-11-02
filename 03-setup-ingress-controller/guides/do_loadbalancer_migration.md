@@ -117,12 +117,12 @@ IP                 ID
 
 After successfully identifying the load balancer `ID` used by your `Ambassador` deployment, please write it down because you will need it later. Before continuing with the next steps, please make sure that you `change directory` where the `Starter Kit` repository was `cloned` on your machine.
 
-Now, open and inspect the `03-setup-ingress-ambassador/assets/manifests/ambassador-values-v6.7.13.yaml` file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://code.visualstudio.com):
+Now, open and inspect the `03-setup-ingress-controller/assets/manifests/ambassador-values-v6.7.13.yaml` file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://code.visualstudio.com):
 
 ```shell
 HELM_CHART_VERSION="6.7.13"
 
-code "03-setup-ingress-ambassador/assets/manifests/ambassador-values-v${HELM_CHART_VERSION}.yaml"
+code "03-setup-ingress-controller/assets/manifests/ambassador-values-v${HELM_CHART_VERSION}.yaml"
 ```
 
 Next, please uncomment the `service.annotations` section. It should look like below:
@@ -157,7 +157,7 @@ HELM_CHART_VERSION="6.7.13"
 
 helm upgrade ambassador datawire/ambassador --version "$HELM_CHART_VERSION" \
   --namespace ambassador \
-  -f "03-setup-ingress-ambassador/assets/manifests/ambassador-values-v${HELM_CHART_VERSION}.yaml"
+  -f "03-setup-ingress-controller/assets/manifests/ambassador-values-v${HELM_CHART_VERSION}.yaml"
 ```
 
 At this point, the load balancer is `disowned` from the `ambassador` service by the DigitalOcean `Cloud Controller`. It means, that you can migrate it to another `Ambassador` service, and change ownership. Notice that the `DNS records` for the `starter-kit.online` domain remain `intact`, and still point to the `original IP` of the load balancer in question.
@@ -243,12 +243,12 @@ Having the `load balancer` and the original `external IP` preserved is great, bu
 
 In the previous section of this guide, you intentionally deleted the `Ambassador` stack release which is maybe a little bit more of a killer situation. In practice, a more `realistic` scenario is when you want to `migrate` from one `DOKS` cluster to another (assuming that both reside in the same `VPC`), and you want to preserve your `DNS` settings as well.
 
-First, open again the `03-setup-ingress-ambassador/assets/manifests/ambassador-values-v6.7.13.yaml` file you modified earlier in [Preparing the DigitalOcean LoadBalancer for Migration](#preparing-the-digitalocean-loadbalancer-for-migration) section. You can use [VS Code](https://code.visualstudio.com) for example:
+First, open again the `03-setup-ingress-controller/assets/manifests/ambassador-values-v6.7.13.yaml` file you modified earlier in [Preparing the DigitalOcean LoadBalancer for Migration](#preparing-the-digitalocean-loadbalancer-for-migration) section. You can use [VS Code](https://code.visualstudio.com) for example:
 
 ```shell
 HELM_CHART_VERSION="6.7.13"
 
-code "03-setup-ingress-ambassador/assets/manifests/ambassador-values-v${HELM_CHART_VERSION}.yaml"
+code "03-setup-ingress-controller/assets/manifests/ambassador-values-v${HELM_CHART_VERSION}.yaml"
 ```
 
 Then, go to the `service.annotations` section, making sure that `kubernetes.digitalocean.com/load-balancer-id` points to your original load balancer, and `service.kubernetes.io/do-loadbalancer-disown` value is set to **`false`** now:
@@ -271,7 +271,7 @@ HELM_CHART_VERSION="6.7.13"
 helm install ambassador datawire/ambassador --version "$HELM_CHART_VERSION" \
   --create-namespace \
   --namespace ambassador \
-  -f "03-setup-ingress-ambassador/assets/manifests/ambassador-values-v${HELM_CHART_VERSION}.yaml"
+  -f "03-setup-ingress-controller/assets/manifests/ambassador-values-v${HELM_CHART_VERSION}.yaml"
 ```
 
 After a while check the `Ambassador` services using `kubectl`:

@@ -777,7 +777,7 @@ Look for the `READY` column value - it should say `True`. Reconciliation status 
     flux logs --kind=HelmRelease
     ```
 
-Please refer to the [03-setup-ingress-ambassador](../03-setup-ingress-ambassador/README.md) tutorial, for more details about checking `Ambassador Edge Stack` deployment status and functionality.
+Please refer to the [03-setup-ingress-controller](../03-setup-ingress-controller/README.md) tutorial, for more details about checking `Ambassador Edge Stack` deployment status and functionality.
 
 Next, you're going to create `Flux CD` manifests for the `Prometheus` stack.
 

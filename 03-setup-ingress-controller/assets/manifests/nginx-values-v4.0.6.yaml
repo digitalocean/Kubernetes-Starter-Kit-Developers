@@ -1,0 +1,18 @@
+## Starter Kit nginx configuration
+## Ref: https://github.com/kubernetes/ingress-nginx/tree/helm-chart-4.0.6/charts/ingress-nginx
+##
+
+controller:
+  replicaCount: 1
+  resources:
+    requests:
+      cpu: 100m
+      memory: 90Mi
+  # service:
+  #   type: LoadBalancer
+  #   annotations:
+  #     # Enable proxy protocol
+  #     service.beta.kubernetes.io/do-loadbalancer-enable-proxy-protocol: true
+  #     # You can keep your existing LB when migrating to a new DOKS cluster, or when reinstalling AES
+  #     kubernetes.digitalocean.com/load-balancer-id: "<YOUR_DO_LB_ID_HERE>"
+  #     service.kubernetes.io/do-loadbalancer-disown: false

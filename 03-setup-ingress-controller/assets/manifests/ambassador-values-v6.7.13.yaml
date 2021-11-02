@@ -1,5 +1,5 @@
-##
 ## Starter Kit configuration for Ambassador stack
+## Ref: https://github.com/emissary-ingress/emissary/tree/chart-v6.7.13/charts/ambassador
 ##
 
 # Deployment replica count
@@ -16,6 +16,7 @@ resources:
     memory: 200Mi
 
 # service:
+#   type: LoadBalancer
 #   annotations:
 #     # You can keep your existing LB when migrating to a new DOKS cluster, or when reinstalling AES
 #     kubernetes.digitalocean.com/load-balancer-id: "<YOUR_DO_LB_ID_HERE>"

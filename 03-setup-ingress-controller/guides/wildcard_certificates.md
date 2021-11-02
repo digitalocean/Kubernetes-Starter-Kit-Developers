@@ -32,10 +32,10 @@ Next, please add the `Jetstack` Helm repository:
 helm repo add jetstack https://charts.jetstack.io
 ```
 
-Then, open and inspect the `03-setup-ingress-ambassador/assets/manifests/cert-manager-values-v1.5.4.yaml` file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://code.visualstudio.com):
+Then, open and inspect the `03-setup-ingress-controller/assets/manifests/cert-manager-values-v1.5.4.yaml` file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://code.visualstudio.com):
 
 ```shell
-code 03-setup-ingress-ambassador/assets/manifests/cert-manager-values-v1.5.4.yaml
+code 03-setup-ingress-controller/assets/manifests/cert-manager-values-v1.5.4.yaml
 ```
 
 Finally, you can install the `jetstack/cert-manager` chart using Helm:
@@ -46,7 +46,7 @@ CERT_MANAGER_HELM_CHART_VERSION="1.5.4"
 helm install cert-manager jetstack/cert-manager --version "$CERT_MANAGER_HELM_CHART_VERSION" \
   --namespace cert-manager \
   --create-namespace \
-  -f 03-setup-ingress-ambassador/assets/manifests/cert-manager-values-v1.5.4.yaml
+  -f 03-setup-ingress-controller/assets/manifests/cert-manager-values-v1.5.4.yaml
 ```
 
 Check Helm release status:
@@ -150,10 +150,10 @@ Next, change directory where the `Starter Kit` repository was cloned on your loc
 cd Kubernetes-Starter-Kit-Developers
 ```
 
-Then, open and inspect the `03-setup-ingress-ambassador/assets/manifests/cert-manager-ambassador-issuer.yaml` file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://code.visualstudio.com) (please replace the `<>` placeholders using a **valid e-mail address**):
+Then, open and inspect the `03-setup-ingress-controller/assets/manifests/cert-manager-ambassador-issuer.yaml` file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://code.visualstudio.com) (please replace the `<>` placeholders using a **valid e-mail address**):
 
 ```shell
-code 03-setup-ingress-ambassador/assets/manifests/cert-manager-ambassador-issuer.yaml
+code 03-setup-ingress-controller/assets/manifests/cert-manager-ambassador-issuer.yaml
 ```
 
 **Note:**
@@ -163,7 +163,7 @@ Explanations for each of the important `Issuer` CRD fields, can be found inside 
 Save the file and apply changes to your `Kubernetes` cluster using `kubectl`:
 
 ```shell
-kubectl apply -f 03-setup-ingress-ambassador/assets/manifests/cert-manager-ambassador-issuer.yaml
+kubectl apply -f 03-setup-ingress-controller/assets/manifests/cert-manager-ambassador-issuer.yaml
 ```
 
 Verify `Issuer` status using `kubectl`:
@@ -187,10 +187,10 @@ If the `Issuer` object reports a not ready state for some reason, then you can u
 kubectl describe issuer letsencrypt-ambassador -n ambassador
 ```
 
-Now, you must create a `Certificate` resource which is referencing the `Issuer` created previously. Open and inspect the `03-setup-ingress-ambassador/assets/manifests/cert-manager-ambassador-certificate.yaml` file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://code.visualstudio.com):
+Now, you must create a `Certificate` resource which is referencing the `Issuer` created previously. Open and inspect the `03-setup-ingress-controller/assets/manifests/cert-manager-ambassador-certificate.yaml` file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://code.visualstudio.com):
 
 ```shell
-code 03-setup-ingress-ambassador/assets/manifests/cert-manager-ambassador-certificate.yaml
+code 03-setup-ingress-controller/assets/manifests/cert-manager-ambassador-certificate.yaml
 ```
 
 **Notes:**
@@ -201,7 +201,7 @@ code 03-setup-ingress-ambassador/assets/manifests/cert-manager-ambassador-certif
 Next, create the `Certificate` resource in your `DOKS` cluster:
 
 ```shell
-kubectl apply -f 03-setup-ingress-ambassador/assets/manifests/cert-manager-ambassador-certificate.yaml
+kubectl apply -f 03-setup-ingress-controller/assets/manifests/cert-manager-ambassador-certificate.yaml
 ```
 
 Verify certificate status:
@@ -280,16 +280,16 @@ Explanations for the above configuration:
 - `spec.acmeProvider`: Authority is set to `none`, because you configured an `external` certificate management tool (`cert-manager`).
 - `spec.tlsSecret`: Reference to `Kubernetes Secret` containing your `TLS` certificate.
 
-Open and inspect the `03-setup-ingress-ambassador/assets/manifests/wildcard-host.yaml` file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://code.visualstudio.com):
+Open and inspect the `03-setup-ingress-controller/assets/manifests/wildcard-host.yaml` file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://code.visualstudio.com):
 
 ```shell
-code 03-setup-ingress-ambassador/assets/manifests/wildcard-host.yaml
+code 03-setup-ingress-controller/assets/manifests/wildcard-host.yaml
 ```
 
 Then, after adjusting accordingly, save the file and create the wildcard `Host` resource using `kubectl`:
 
 ```shell
-kubectl apply -f 03-setup-ingress-ambassador/assets/manifests/wildcard-host.yaml
+kubectl apply -f 03-setup-ingress-controller/assets/manifests/wildcard-host.yaml
 ```
 
 Check that the resource was created:
