@@ -527,7 +527,7 @@ You can further explore some of the concepts you learned so far, by following be
 - [Mapping](https://www.getambassador.io/docs/edge-stack/1.13/topics/using/intro-mappings/) resource: `routes` traffic from the `edge` of your cluster to a `Kubernetes` service
 - [Host](https://www.getambassador.io/docs/edge-stack/1.13/topics/running/host-crd/) resource: sets the `hostname` by which `Ambassador Edge Stack` will be accessed and secured with `TLS` certificates.
 
-In the next step, you will learn how to use the `DigitalOcean Proxy Protocol` with `AES`.
+In the next step, you will learn how to use the `DigitalOcean Proxy Protocol` with `Ambassador Edge Stack`.
 
 ## Step 7 - Enabling Proxy Protocol
 
