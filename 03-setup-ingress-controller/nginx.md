@@ -18,7 +18,7 @@ As with every Ingress Controller, `Nginx` allows you to define ingress objects. 
 After finishing this tutorial, you will be able to:
 
 - Create and manage `Nginx` Helm deployments.
-- Create and configure basic HTTP rules for `Nginx`, to route requests to your backend applications.
+- Create and configure basic `HTTP` rules for `Nginx`, to `route` requests to your `backend` applications.
 - Automatically configure `TLS` certificates for your `hosts`, thus having `TLS` termination.
 
 ### Starter Kit Nginx Setup Overview
@@ -28,13 +28,14 @@ After finishing this tutorial, you will be able to:
 ## Table of contents
 
 - [Introduction](#introduction)
+- [Table of contents](#table-of-contents)
 - [Prerequisites](#prerequisites)
 - [Step 1 - Installing the Nginx Ingress Controller](#step-1---installing-the-nginx-ingress-controller)
 - [Step 2 - Configuring the DigitalOcean Domain for Nginx Ingress Controller](#step-2---configuring-the-digitalocean-domain-for-nginx-ingress-controller)
 - [Step 3 - Creating the Nginx Backend Services](#step-3---creating-the-nginx-backend-services)
 - [Step 4 - Configuring Nginx Ingress Rules for Backend Services](#step-4---configuring-nginx-ingress-rules-for-backend-services)
-- [Step 5 - Enabling Proxy Protocol](#step-5---enabling-proxy-protocol)
-- [Step 6 - Verifying the Nginx Ingress Setup](#step-6---verifying-the-nginx-ingress-setup)
+- [Step 5 - Configuring Production Ready TLS Certificates for Nginx](#step-5---configuring-production-ready-tls-certificates-for-nginx)
+- [Step 6 - Enabling Proxy Protocol](#step-6---enabling-proxy-protocol)
 - [How To Guides](#how-to-guides)
 - [Conclusion](#conclusion)
 
@@ -475,7 +476,7 @@ If the output looks like above, then you configured `Nginx` ingress successfully
 
 In the next step, you will enable `Nginx` to use proper `TLS` termination. By default it comes with `self signed` certificates, for testing purpose only.
 
-## Step 5 - Configuring production ready TLS certificates for Nginx
+## Step 5 - Configuring Production Ready TLS Certificates for Nginx
 
 In the default setup, `Nginx` comes with `self signed` TLS certificates. For live environments you will want to enable `Nginx` to use `production` ready `TLS` certificates. The recommended way is via [Cert-Manager](https://cert-manager.io). In the next steps, you will learn how to quickly install `cert-manager` via `Helm`, and then configure it to issue `Let's Encrypt` certificates. Certificates `renewal` happen `automatically` via `cert-manager`.
 
