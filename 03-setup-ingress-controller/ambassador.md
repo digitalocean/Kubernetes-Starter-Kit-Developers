@@ -2,13 +2,13 @@
 
 ## Introduction
 
-In this tutorial, you will learn how to use the [Ambassador Edge Stack](https://www.getambassador.io) ingress. Then, you're going to discover how to have `TLS` certificates automatically deployed and configured for your hosts (thus enabling `TLS` termination), and `route` traffic to your `backend` applications.
+In this tutorial, you will learn how to use the [Ambassador Edge Stack](https://www.getambassador.io) ingress (`AES` for short) . Then, you're going to discover how to have `TLS` certificates automatically deployed and configured for your hosts (thus enabling `TLS` termination), and `route` traffic to your `backend` applications. It can function as an `API Gateway`, an `Ingress Controller` or a `Layer 7 Load Balancer`.
 
 Why use the `Ambassador Edge Stack`?
 
 Let us say you are exposing `REST` or `GRPC` APIs for different tasks (reading account info, writing orders, searching orders, etc.). Depending on the `API`, you will want to be able to route to a specific target. For this to happen, more functionality needs to be built inside the ingress proxy. That is `API Gateway`, and it is capable of doing more things besides routing traffic.
 
-`Ambassador` can be used to handle the functions of an `API Gateway`, a `Kubernetes Ingress Controller` and a `Layer 7 Load Balancer`.
+`Ambassador` abstracts the `Ingress` spec even more, thus making it `easier` to work with, and adds more functionality on top. So, for most use cases you don't need to use the `Ingress Controller` functionality of `AES`. The recommended way of using AES is via the CRDs, like `Hosts` and `Mappings`.
 
 After finishing this tutorial, you will be able to:
 
@@ -32,7 +32,7 @@ After finishing this tutorial, you will be able to:
 - [Step 8 - Verifying the Ambassador Edge Stack Setup](#step-8---verifying-the-ambassador-edge-stack-setup)
 - [How To Guides](#how-to-guides)
   - [Wildcard Certificates Support for the Ambassador Edge Stack](guides/wildcard_certificates.md)
-  - [Migrating DigitalOcean LoadBalancer for the Ambassador Edge Stack](guides/do_loadbalancer_migration.md)
+  - [Ingress Controller LoadBalancer Migration](guides/do_loadbalancer_migration.md)
   - [Performance Considerations for the Ambassador Edge Stack](guides/performance_considerations.md)
 - [Conclusion](#conclusion)
 
@@ -611,9 +611,9 @@ x-envoy-upstream-service-time: 0
 server: envoy
 
 {
-    "server": "avaricious-blackberry-5xw0vf5k",
-    "quote": "The last sentence you read is often sensible nonsense.",
-    "time": "2021-08-12T18:28:43.861400709Z"
+  "server": "avaricious-blackberry-5xw0vf5k",
+  "quote": "The last sentence you read is often sensible nonsense.",
+  "time": "2021-08-12T18:28:43.861400709Z"
 }
 ```
 
@@ -662,12 +662,12 @@ If everything looks like above, you configured the `Ambassador Edge Stack` succe
 ## How To Guides
 
 - [Wildcard Certificates Support for the Ambassador Edge Stack](guides/wildcard_certificates.md)
-- [Migrating DigitalOcean LoadBalancer for the Ambassador Edge Stack](guides/do_loadbalancer_migration.md)
+- [Ingress Controller LoadBalancer Migration](guides/do_loadbalancer_migration.md)
 - [Performance Considerations for the Ambassador Edge Stack](guides/performance_considerations.md)
 
 ## Conclusion
 
-In this tutorial, you learned how to set up an `Ingress` controller for your `DOKS` cluster, using the `Ambassador Edge Stack`. Then, you discovered how `AES` simplifies some of the common tasks, like: handling `TLS` certificates for your applications (thus enabling `TLS` termination), `routing` traffic to `backend` services, and `adjusting` resource `requests` and `limits` for the stack.
+In this tutorial you learned how to set up an `Ingress Controller` for your `DOKS` cluster using the `Ambassador Edge Stack`. Then, you discovered how `AES` simplifies some of the common tasks, like: handling `TLS` certificates for your applications (thus enabling `TLS` termination), `routing` traffic to `backend` services, and `adjusting` resource `requests` and `limits` for the stack.
 
 Next, `monitoring` plays a key role in every `production ready` system. In [Section 4 - Set up Prometheus Stack](../04-setup-prometheus-stack), you will learn how to enable monitoring for your `DOKS` cluster using `Prometheus`.
 

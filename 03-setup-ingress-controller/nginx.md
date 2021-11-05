@@ -37,6 +37,7 @@ After finishing this tutorial, you will be able to:
 - [Step 5 - Configuring Production Ready TLS Certificates for Nginx](#step-5---configuring-production-ready-tls-certificates-for-nginx)
 - [Step 6 - Enabling Proxy Protocol](#step-6---enabling-proxy-protocol)
 - [How To Guides](#how-to-guides)
+  - [Ingress Controller LoadBalancer Migration](guides/do_loadbalancer_migration.md)
 - [Conclusion](#conclusion)
 
 ## Prerequisites
@@ -100,9 +101,9 @@ Steps to follow:
     NGINX_CHART_VERSION="4.0.6"
 
     helm install ingress-nginx ingress-nginx/ingress-nginx --version "$NGINX_CHART_VERSION" \
-        --namespace ingress-nginx \
-        --create-namespace \
-        -f "03-setup-ingress-controller/assets/manifests/nginx-values-v${NGINX_CHART_VERSION}.yaml"
+      --namespace ingress-nginx \
+      --create-namespace \
+      -f "03-setup-ingress-controller/assets/manifests/nginx-values-v${NGINX_CHART_VERSION}.yaml"
     ```
 
     **Note:**
@@ -372,16 +373,16 @@ VERSION:  networking.k8s.io/v1
 FIELD:    ingressClassName <string>
 
 DESCRIPTION:
-   IngressClassName is the name of the IngressClass cluster resource. The
-   associated IngressClass defines which controller will implement the
-   resource. This replaces the deprecated `kubernetes.io/ingress.class`
-   annotation. For backwards compatibility, when that annotation is set, it
-   must be given precedence over this field. The controller may emit a warning
-   if the field and annotation have different values. Implementations of this
-   API should ignore Ingresses without a class specified. An IngressClass
-   resource may be marked as default, which can be used to set a default value
-   for this field. For more information, refer to the IngressClass
-   documentation.
+  IngressClassName is the name of the IngressClass cluster resource. The
+  associated IngressClass defines which controller will implement the
+  resource. This replaces the deprecated `kubernetes.io/ingress.class`
+  annotation. For backwards compatibility, when that annotation is set, it
+  must be given precedence over this field. The controller may emit a warning
+  if the field and annotation have different values. Implementations of this
+  API should ignore Ingresses without a class specified. An IngressClass
+  resource may be marked as default, which can be used to set a default value
+  for this field. For more information, refer to the IngressClass
+  documentation.
 ```
 
 You can define `multiple rules` for different `hosts` and `paths` in a single `ingress` resource. To keep things organized (and for better visibility), `Starter Kit` tutorial provides two ingress manifests for each host: [echo](assets/manifests/echo_host_nginx.yaml) and [quote](assets/manifests/quote_host_nginx.yaml).
@@ -466,9 +467,9 @@ Content-Length: 151
 Connection: keep-alive
 
 {
-    "server": "ellipsoidal-elderberry-7kwkpxz5",
-    "quote": "A late night does not make any sense.",
-    "time": "2021-11-04T15:48:20.198059817Z"
+  "server": "ellipsoidal-elderberry-7kwkpxz5",
+  "quote": "A late night does not make any sense.",
+  "time": "2021-11-04T15:48:20.198059817Z"
 }
 ```
 
@@ -766,9 +767,11 @@ For different `DigitalOcean` load balancer configurations, please refer to the e
 
 ## How To Guides
 
+- [Ingress Controller LoadBalancer Migration](guides/do_loadbalancer_migration.md)
+
 ## Conclusion
 
-In this tutorial, you learned how to set up an `Ingress` controller for your `DOKS` cluster, using `Nginx`. Then, you discovered how `cert-manager` simplifies `TLS` certificates management for your applications (thus enabling `TLS` termination).
+In this tutorial you learned how to set up an `Ingress Controller` for your `DOKS` cluster using `Nginx`. Then, you discovered how `cert-manager` simplifies `TLS` certificates management for your applications (thus enabling `TLS` termination).
 
 Next, `monitoring` plays a key role in every `production ready` system. In [Section 4 - Set up Prometheus Stack](../04-setup-prometheus-stack), you will learn how to enable monitoring for your `DOKS` cluster using `Prometheus`.
 

@@ -5,8 +5,8 @@
 - [Introduction](#introduction)
 - [Prerequisites](#prerequisites)
 - [Preparing the DigitalOcean Load Balancer for Migration](#preparing-the-digitalocean-load-balancer-for-migration)
-- [Simulate a Disaster by Uninstalling the Ambassador Edge Stack](#simulate-a-disaster-by-uninstalling-the-ambassador-edge-stack)
-- [Re-installing the Ambassador Edge Stack and Load Balancer Migration](#re-installing-the-ambassador-edge-stack-and-load-balancer-migration)
+- [Simulate a Disaster by Uninstalling Ingress Controller](#simulate-a-disaster-by-uninstalling-ingress-controller)
+- [Re-installing Ingress Controller and Load Balancer Migration](#re-installing-ingress-controller-and-load-balancer-migration)
 
 ## Introduction
 
@@ -19,13 +19,9 @@ A `Kubernetes Service` is just a way to expose internal Kubernetes objects (like
 
 `Ingress` acts like a small `router` inside your `Kubernetes` cluster. It's specialized in `HTTP` based path routing, thus operating at `layer 7`.
 
-`Ambassador Edge Stack` can function as a fully-fledged `Ingress Controller`, making it easy to work with other `Ingress-oriented` tools within the `Kubernetes` ecosystem. But this kind of setup is recommended for power users only, and for really special cases.
+You can expose your `Ingress Controller` via the `LoadBalancer` service type, which is what happens in the default `Helm` installation used in the `Starter Kit` tutorial. But `Kubernetes` will set load balancer `ownership` for the service in question. It means that, whenever the `LoadBalancer` service is `deleted` (e.g. when uninstalling `Nginx`), the `DigitalOcean` load balancer is `deleted` as well. This is expected, and it's part of the Kubernetes `garbage collection` process.
 
-`Ambassador` abstracts the `Ingress` spec even more, thus making it `easier` to work with, and adds more functionality on top. So, for most use cases you don't need to use the `Ingress Controller` functionality of `AES`. The recommended way of using AES is via the CRDs, like `Hosts` and `Mappings`.
-
-You can expose `Ambassador Edge Stack` via the `LoadBalancer` service type, which is what happens in the default `Helm` installation used in the `Starter Kit` tutorial. But `Kubernetes` will set load balancer `ownership` for the service in question. It means that, whenever the `LoadBalancer` service is `deleted` (e.g. when uninstalling `AES`), the `DigitalOcean` load balancer is `deleted` as well. This is expected, and it's part of the Kubernetes `garbage collection` process.
-
-What happens when you `reinstall` the `Ambassador Edge Stack`, or when you want to `migrate` to another `DOKS` cluster? The answer is that, a `new load balancer` will be created and a `new external IP` is assigned, thus rendering your `DNS records` unusable.
+What happens when you `reinstall` the `Ingress Controller`, or when you want to `migrate` to another `DOKS` cluster? The answer is that, a `new load balancer` will be created and a `new external IP` is assigned, thus rendering your `DNS records` unusable.
 
 What options are available and more important: can I preserve my original load balancer and external IP as well?
 
@@ -36,11 +32,17 @@ The component responsible with load balancer lifecycle management is the `Cloud 
 - `service.kubernetes.io/do-loadbalancer-disown`, for controlling `ownership` of load balancers.
 - `kubernetes.digitalocean.com/load-balancer-id`, for specifying the load balancer `ID` you want to take ownership.
 
-In this guide, you will learn how to `migrate` an existing `DigitalOcean` load balancer from a previous `Ambassador` installation to a new one.
+In this guide, you will learn how to `migrate` an existing `DigitalOcean` load balancer from a previous `Ambassador` or `Nginx` installation to a new one. Side by side examples will be provided for both `Ambassador` and `Nginx`.
 
 ## Prerequisites
 
-To follow this guide, you need to have the same [prerequisites](../README.md#prerequisites) list prepared, as explained in the main `Ambassador` tutorial from the `Starter Kit`. This guide also assumes that you have `AES` already `installed` and properly `configured`, along with your custom `DNS` records pointing to the `echo` and `quote` hosts.
+To complete this guide, you will need:
+
+1. A [Git](https://git-scm.com/downloads) client, to clone the `Starter Kit` repository.
+2. [Helm](https://www.helms.sh), for managing `Ambassdor/Nginx` releases and upgrades.
+3. [Doctl](https://github.com/digitalocean/doctl/releases), for `DigitalOcean` API interaction.
+4. [Kubectl](https://kubernetes.io/docs/tasks/tools), for `Kubernetes` interaction.
+5. [Curl](https://curl.se/download.html), for testing the examples (backend applications).
 
 ## Preparing the DigitalOcean Load Balancer for Migration
 
@@ -87,20 +89,36 @@ First, check that the `echo` and `quote` service endpoints are working:
     }
     ```
 
-Next, fetch the DO load balancer `external IP` created by the `Ambassador Edge Stack` deployment (example below is assuming that the stack was deployed using the `ambassador` namespace):
+Next, fetch the `DigitalOcean` load balancer `external IP` created by your `Ingress Controller` (please pick only one option, depending on the installed `Ingress Controller`):
 
-```shell
-kubectl get svc -n ambassador
-```
+- `Ambasador Edge Stack` ingress:
 
-The output looks similar to (notice the `EXTERNAL-IP` column value for the `ambassador` service):
+  ```shell
+  kubectl get svc -n ambassador
+  ```
 
-```text
-NAME               TYPE           CLUSTER-IP      EXTERNAL-IP       PORT(S)                      AGE
-ambassador         LoadBalancer   10.245.116.70   143.244.204.197   80:31237/TCP,443:32540/TCP   3d21h
-ambassador-admin   ClusterIP      10.245.76.186   <none>            8877/TCP,8005/TCP            3d21h
-ambassador-redis   ClusterIP      10.245.85.152   <none>            6379/TCP                     3d21h
-```
+  The output looks similar to (notice the `EXTERNAL-IP` column value for the `ambassador` service):
+
+  ```text
+  NAME               TYPE           CLUSTER-IP      EXTERNAL-IP       PORT(S)                      AGE
+  ambassador         LoadBalancer   10.245.116.70   143.244.204.197   80:31237/TCP,443:32540/TCP   3d21h
+  ambassador-admin   ClusterIP      10.245.76.186   <none>            8877/TCP,8005/TCP            3d21h
+  ambassador-redis   ClusterIP      10.245.85.152   <none>            6379/TCP                     3d21h
+  ```
+
+- `Nginx` ingress:
+  
+  ```shell
+  kubectl get svc -n ingress-nginx
+  ```
+
+  The output looks similar to (notice the `EXTERNAL-IP` column value for the `ingress-nginx-controller` service):
+
+  ```text
+  NAME                                 TYPE           CLUSTER-IP     EXTERNAL-IP       PORT(S)                      AGE
+  ingress-nginx-controller             LoadBalancer   10.245.27.99   143.244.204.126   80:32462/TCP,443:31385/TCP   2d23h
+  ingress-nginx-controller-admission   ClusterIP      10.245.44.60   <none>            443/TCP                      2d23h 
+  ```
 
 Then, list all load balancer resources from your `DigitalOcean` account, and print the `IP` and `ID` columns only:
 
@@ -108,22 +126,32 @@ Then, list all load balancer resources from your `DigitalOcean` account, and pri
 doctl compute load-balancer list --format IP,ID
 ```
 
-The output looks similar to (search the load balancer `ID` that matches your Ambassador external `IP`):
+The output looks similar to (search the load balancer `ID` that matches your `Ambassador` or `Nginx` external `IP`):
 
 ```text
 IP                 ID
 143.244.204.197    e95433c3-ad00-4222-b0c3-5208e554e45a
 ```
 
-After successfully identifying the load balancer `ID` used by your `Ambassador` deployment, please write it down because you will need it later. Before continuing with the next steps, please make sure that you `change directory` where the `Starter Kit` repository was `cloned` on your machine.
+After successfully identifying the load balancer `ID` used by your `Ingress Controller` deployment, please write it down because you will need it later. Before continuing with the next steps, please make sure that you `change directory` where the `Starter Kit` repository was `cloned` on your machine.
 
-Now, open and inspect the `03-setup-ingress-controller/assets/manifests/ambassador-values-v6.7.13.yaml` file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://code.visualstudio.com):
+Now, open and inspect the `Helm` values file for your running `Ingress Controller` provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://code.visualstudio.com). Please pick only one option, depending on the installed `Ingress Controller`:
 
-```shell
-HELM_CHART_VERSION="6.7.13"
+- `Ambassador Edge Stack` ingress:
 
-code "03-setup-ingress-controller/assets/manifests/ambassador-values-v${HELM_CHART_VERSION}.yaml"
-```
+  ```shell
+  HELM_CHART_VERSION="6.7.13"
+
+  code "03-setup-ingress-controller/assets/manifests/ambassador-values-v${HELM_CHART_VERSION}.yaml"
+  ```
+
+- `Nginx` ingress:
+
+  ```shell
+  NGINX_CHART_VERSION="4.0.6"
+
+  code "03-setup-ingress-controller/assets/manifests/nginx-values-v${NGINX_CHART_VERSION}.yaml"
+  ```
 
 Next, please uncomment the `service.annotations` section. It should look like below:
 
@@ -137,8 +165,8 @@ service:
 
 Explanations for the above configuration:
 
-- `kubernetes.digitalocean.com/load-balancer-id`: Tells DigitalOcean `Cloud Controller` what load balancer `ID` to use for the `Ambassador` service.
-- `service.kubernetes.io/do-loadbalancer-disown`: Tells DigitalOcean `Cloud Controller` to disown the load balancer ID pointed by `kubernetes.digitalocean.com/load-balancer-id`. If set to `true`, then whenever the `ambassador` service is deleted, the associated `LB` will **NOT** be deleted by `Kubernetes`.
+- `kubernetes.digitalocean.com/load-balancer-id`: Tells DigitalOcean `Cloud Controller` what load balancer `ID` to use for the `Ingress Controller` service.
+- `service.kubernetes.io/do-loadbalancer-disown`: Tells DigitalOcean `Cloud Controller` to disown the load balancer ID pointed by `kubernetes.digitalocean.com/load-balancer-id`. If set to `true`, then whenever `Ambasador` or `Nginx` service is deleted, the associated `LB` will **NOT** be deleted by `Kubernetes`.
 
 Now, please replace the `<>` placeholders accordingly, using your load balancer `ID` that you wrote down earlier. Also, set the `service.kubernetes.io/do-loadbalancer-disown` annotation value to `true`. The final configuration should look like this:
 
@@ -150,65 +178,77 @@ service:
     service.kubernetes.io/do-loadbalancer-disown: true
 ```
 
-Finally, save the values file, and apply changes for `Ambassador` using `Helm`:
+Finally, save the `Helm` values file, and apply changes for your `Ingress Controller` using `Helm` (please pick only one option, depending on the installed `Ingress Controller`):
 
-```shell
-HELM_CHART_VERSION="6.7.13"
+- `Ambassador Edge Stack` ingress:
 
-helm upgrade ambassador datawire/ambassador --version "$HELM_CHART_VERSION" \
-  --namespace ambassador \
-  -f "03-setup-ingress-controller/assets/manifests/ambassador-values-v${HELM_CHART_VERSION}.yaml"
-```
+  ```shell
+  HELM_CHART_VERSION="6.7.13"
 
-At this point, the load balancer is `disowned` from the `ambassador` service by the DigitalOcean `Cloud Controller`. It means, that you can migrate it to another `Ambassador` service, and change ownership. Notice that the `DNS records` for the `starter-kit.online` domain remain `intact`, and still point to the `original IP` of the load balancer in question.
+  helm upgrade ambassador datawire/ambassador --version "$HELM_CHART_VERSION" \
+    --namespace ambassador \
+    -f "03-setup-ingress-controller/assets/manifests/ambassador-values-v${HELM_CHART_VERSION}.yaml"
+  ```
+
+- `Nginx` ingress:
+
+  ```shell
+  NGINX_CHART_VERSION="4.0.6"
+
+  helm upgrade ingress-nginx ingress-nginx/ingress-nginx --version "$NGINX_CHART_VERSION" \
+    --namespace ingress-nginx \
+    -f "03-setup-ingress-controller/assets/manifests/nginx-values-v${NGINX_CHART_VERSION}.yaml"
+  ```
+
+At this point, the load balancer is `disowned` from the `Ambassador` or `Nginx` service by the DigitalOcean `Cloud Controller`. It means, that you can migrate it to another `Ingress Controller` service, and change ownership. Notice that the `DNS records` for the `starter-kit.online` domain remain `intact`, and still point to the `original IP` of the load balancer in question.
 
 **Important note:**
 
 **The new service’s cluster must reside in the `same VPC` as the `original service` for the load balancer `ownership` to be transferred successfully.**
 
-## Simulate a Disaster by Uninstalling the Ambassador Edge Stack
+## Simulate a Disaster by Uninstalling Ingress Controller
 
-Whenever you delete the `Ambassador` stack, or the default service (e.g. `ambassador`), the associated `DigitalOcean` load balancer is deleted as well as part of the `Kubernetes garbage collection` process. Because you `disowned` the load balancer from `Ambassador`, it will **NOT** be removed automatically anymore. In the next steps, you will uninstall `AES` and verify this feature offered by the DigitalOcean `Cloud Controller`.
+Whenever you delete the `Ambassador` or `Nginx` service, the associated `DigitalOcean` load balancer resource is deleted as well as part of the `Kubernetes garbage collection` process. Because you `disowned` the load balancer from your `Ingress Controller`, it will **NOT** be removed automatically anymore. In the next steps, you will uninstall your `Ingress Controller` and verify this feature offered by the DigitalOcean `Cloud Controller`.
 
 **Notes:**
 
-- **`Helm will not delete CRD's` from your cluster, unless you tell it to do so. It means that your `Hosts`, `Mappings` and other custom resources you created for `Ambassador` will be `preserved` if redeploying AES in the `same DOKS` cluster !**
-- Before taking the next steps, it's best practice to have a backup somewhere for all your Ambassador `Host` and `Mapping` resources. To re-create the `AES` custom resources for the `Starter Kit` tutorial, you can always find the manifests at this [location](../assets/manifests) in the `Git` repository. You can also learn how to do it manually, via:
-
-  ```shell
-  # Create directory to store backups for custom resources
-  mkdir ambassador-backups
-
-  # Backup Host resources for the `echo` and `quote` services
-  kubectl get host echo-host -n ambassador -o yaml > ambassador-backups/echo-host.yaml
-
-  kubectl get host quote-host -n ambassador -o yaml > ambassador-backups/quote-host.yaml
-
-  # Backup Mapping resources for the `echo` and `quote` services
-  kubectl get mapping echo-backend -n ambassador -o yaml > ambassador-backups/echo-backend-mapping.yaml
-
-  kubectl get mapping quote-backend -n ambassador -o yaml > ambassador-backups/quote-backend-mapping.yaml
-  ```
-
+- **`Helm will not delete CRD's` from your cluster, unless you tell it to do so. It means that your `Hosts`, `Mappings` or other custom resources you created for `Ambassador/Nginx` will be `preserved` if redeploying using the `same DOKS` cluster !**
+- Before taking the next steps, it's best practice to have a backup somewhere for all your `Ingress Controller CRDs`. To re-create the `AES` custom resources for the `Starter Kit` tutorial, you can always find the manifests at this [location](../assets/manifests) in the `Git` repository.
 - From a `production environment` standpoint, please bear in mind that the disaster scenario presented in this guide will imply `downtime` for your `backend services`.
 
-First, uninstall the `Ambassador` stack using `Helm`:
+First, uninstall `Ingress Controller` using `Helm` (please pick only one option, depending on the installed `Ingress Controller`):
 
-```shell
-helm delete ambassador -n ambassador
-```
+- `Ambassador Edge Stack` ingress:
 
-Then, check if `Helm` deleted the `release` (there should be no `ambassador` listing):
+  ```shell
+  helm delete ambassador -n ambassador
+  ```
+
+- `Nginx` ingress:
+
+  ```shell
+  helm delete ingress-nginx -n ingress-nginx
+  ```
+
+Then, check if `Helm` deleted the `release` (there should be no `ambassador` or `ingress-nginx` listing):
 
 ```shell
 helm ls -A
 ```
 
-Next, verify that all `Ambassador` resources were deleted (after the command gets executed, you should see this message: `No resources found in ambassador namespace`):
+Next, verify that all `Ingress Controller` resources were deleted (please pick only one option, depending on the installed `Ingress Controller`):
 
-```shell
-kubectl get all -n ambassador
-```
+- `Ambassador Edge Stack` ingress (should report `No resources found in ambassador namespace`):
+
+  ```shell
+  kubectl get all -n ambassador
+  ```
+
+- `Nginx` ingress (should report `No resources found in ingress-nginx namespace`):
+
+  ```shell
+  kubectl get all -n ingress-nginx
+  ```
 
 Now, list all `load balancers` from your `DigitalOcean` account, and print the `IP` and `ID` columns only:
 
@@ -237,19 +277,29 @@ The output from both looks similar to:
 curl: (52) Empty reply from server
 ```
 
-## Re-installing the Ambassador Edge Stack and Load Balancer Migration
+## Re-installing Ingress Controller and Load Balancer Migration
 
-Having the `load balancer` and the original `external IP` preserved is great, but you need to transfer load balancer `ownership` to the new release of `Ambassador`, after deployment is finished.
+Having the `load balancer` and the original `external IP` preserved is great, but you need to transfer load balancer `ownership` to the new deployment of `Ingress Controller`, after installation is finished.
 
-In the previous section of this guide, you intentionally deleted the `Ambassador` stack release which is maybe a little bit more of a killer situation. In practice, a more `realistic` scenario is when you want to `migrate` from one `DOKS` cluster to another (assuming that both reside in the same `VPC`), and you want to preserve your `DNS` settings as well.
+In the previous section of this guide, you intentionally deleted the `Ingress Controller` which is a little bit overkill, but this is only for demonstration purposes. In practice, a more `realistic` scenario is when you want to `migrate` from one `DOKS` cluster to another (assuming that both reside in the same `VPC`), and you want to preserve your `DNS` settings as well.
 
-First, open again the `03-setup-ingress-controller/assets/manifests/ambassador-values-v6.7.13.yaml` file you modified earlier in [Preparing the DigitalOcean LoadBalancer for Migration](#preparing-the-digitalocean-loadbalancer-for-migration) section. You can use [VS Code](https://code.visualstudio.com) for example:
+First, open again the `Helm` values file you modified earlier in [Preparing the DigitalOcean LoadBalancer for Migration](#preparing-the-digitalocean-loadbalancer-for-migration) section (you can use [VS Code](https://code.visualstudio.com), for example). Please pick only one option, depending on the installed `Ingress Controller`:
 
-```shell
-HELM_CHART_VERSION="6.7.13"
+- `Ambassador Edge Stack` ingress:
 
-code "03-setup-ingress-controller/assets/manifests/ambassador-values-v${HELM_CHART_VERSION}.yaml"
-```
+  ```shell
+  HELM_CHART_VERSION="6.7.13"
+
+  code "03-setup-ingress-controller/assets/manifests/ambassador-values-v${HELM_CHART_VERSION}.yaml"
+  ```
+
+- `Nginx` ingress:
+
+  ```shell
+  NGINX_CHART_VERSION="4.0.6"
+
+  code "03-setup-ingress-controller/assets/manifests/nginx-values-v${NGINX_CHART_VERSION}.yaml"
+  ```
 
 Then, go to the `service.annotations` section, making sure that `kubernetes.digitalocean.com/load-balancer-id` points to your original load balancer, and `service.kubernetes.io/do-loadbalancer-disown` value is set to **`false`** now:
 
@@ -261,33 +311,62 @@ service:
     service.kubernetes.io/do-loadbalancer-disown: false
 ```
 
-What the above configuration does is, to set back `ownership` for the `Ambassador` service, by re-using your original load balancer `ID`.
+What the above configuration does is, to set back `ownership` for the `Ambassador` or `Nginx` service, by re-using your original load balancer `ID`.
 
-Next, save the values file, and `re-install` Ambassador using `Helm`:
+Next, save the values file, and `re-install` your `Ingress Controller` of choice using `Helm`. Please pick only one option, depending on the installation:
 
-```shell
-HELM_CHART_VERSION="6.7.13"
+- `Ambassador Edge Stack` ingress:
 
-helm install ambassador datawire/ambassador --version "$HELM_CHART_VERSION" \
-  --create-namespace \
-  --namespace ambassador \
-  -f "03-setup-ingress-controller/assets/manifests/ambassador-values-v${HELM_CHART_VERSION}.yaml"
-```
+  ```shell
+  HELM_CHART_VERSION="6.7.13"
 
-After a while check the `Ambassador` services using `kubectl`:
+  helm install ambassador datawire/ambassador --version "$HELM_CHART_VERSION" \
+    --create-namespace \
+    --namespace ambassador \
+    -f "03-setup-ingress-controller/assets/manifests/ambassador-values-v${HELM_CHART_VERSION}.yaml"
+  ```
 
-```shell
-kubectl get svc -n ambassador
-```
+- `Nginx` ingress:
 
-The output looks similar to (notice that the `ambassador` service took `ownership`, and the same `EXTERNAL-IP` is used):
+  ```shell
+  NGINX_CHART_VERSION="4.0.6"
 
-```text
-NAME               TYPE           CLUSTER-IP       EXTERNAL-IP       PORT(S)                      AGE
-ambassador         LoadBalancer   10.245.32.232    143.244.204.197   80:30134/TCP,443:30180/TCP   4m27s
-ambassador-admin   ClusterIP      10.245.113.172   <none>            8877/TCP,8005/TCP            4m27s
-ambassador-redis   ClusterIP      10.245.54.242    <none>            6379/TCP                     4m27s
-```
+  helm install ingress-nginx ingress-nginx/ingress-nginx --version "$NGINX_CHART_VERSION" \
+      --namespace ingress-nginx \
+      --create-namespace \
+      -f "03-setup-ingress-controller/assets/manifests/nginx-values-v${NGINX_CHART_VERSION}.yaml"
+  ```
+
+After a while check `Ingress Controller` service using `kubectl`. Please pick only one option, depending on the installation:
+
+- `Ambassador Edge Stack` ingress:
+
+  ```shell
+  kubectl get svc -n ambassador
+  ```
+
+  The output looks similar to (notice that the `ambassador` service took `ownership`, and the same `EXTERNAL-IP` is used):
+
+  ```text
+  NAME               TYPE           CLUSTER-IP       EXTERNAL-IP       PORT(S)                      AGE
+  ambassador         LoadBalancer   10.245.32.232    143.244.204.197   80:30134/TCP,443:30180/TCP   4m27s
+  ambassador-admin   ClusterIP      10.245.113.172   <none>            8877/TCP,8005/TCP            4m27s
+  ambassador-redis   ClusterIP      10.245.54.242    <none>            6379/TCP                     4m27s
+  ```
+
+- `Nginx` ingress:
+
+  ```shell
+  kubectl get svc -n ingress-nginx
+  ```
+
+  The output looks similar to (notice the `EXTERNAL-IP` column value for the `ingress-nginx-controller` service):
+
+  ```text
+  NAME                                 TYPE           CLUSTER-IP     EXTERNAL-IP       PORT(S)                      AGE
+  ingress-nginx-controller             LoadBalancer   10.245.27.99   143.244.204.126   80:32462/TCP,443:31385/TCP   2dm3s
+  ingress-nginx-controller-admission   ClusterIP      10.245.44.60   <none>            443/TCP                      2m23s 
+  ```
 
 Then, after a few minutes, verify if the `load balancer` is `healthy` again:
 
@@ -345,6 +424,6 @@ Finally, you can test the `echo` and `quote` backend services, which should be `
     }
     ```
 
-If everything looks as above, then you `migrated` the `load balancer` resource successfully.
+If everything looks as above, then you `migrated` your `load balancer` resource successfully.
 
 For more information and updates on the topic, you can also visit the official [Load Balancers Migration](https://docs.digitalocean.com/products/kubernetes/how-to/migrate-load-balancers) guide from `DigitalOcean`.
