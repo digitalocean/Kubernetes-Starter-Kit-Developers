@@ -1,0 +1,32 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-backend
+  namespace: backend
+spec:
+  tls:
+    - hosts:
+        - "*.starter-kit.online"
+      secretName: starter-kit.online
+  rules:
+    - host: echo.starter-kit.online
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: echo
+                port:
+                  number: 8080
+    - host: quote.starter-kit.online
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: quote
+                port:
+                  number: 8080
+  ingressClassName: nginx

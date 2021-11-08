@@ -32,7 +32,7 @@ The component responsible with load balancer lifecycle management is the `Cloud 
 - `service.kubernetes.io/do-loadbalancer-disown`, for controlling `ownership` of load balancers.
 - `kubernetes.digitalocean.com/load-balancer-id`, for specifying the load balancer `ID` you want to take ownership.
 
-In this guide, you will learn how to `migrate` an existing `DigitalOcean` load balancer from a previous `Ambassador` or `Nginx` installation to a new one. Side by side examples will be provided for both `Ambassador` and `Nginx`.
+In this guide, you will learn how to `migrate` an existing `DigitalOcean` load balancer from a previous `Ambassador/Nginx` installation to a new one. Side by side examples will be provided for both `Ambassador` and `Nginx`.
 
 ## Prerequisites
 
@@ -126,7 +126,7 @@ Then, list all load balancer resources from your `DigitalOcean` account, and pri
 doctl compute load-balancer list --format IP,ID
 ```
 
-The output looks similar to (search the load balancer `ID` that matches your `Ambassador` or `Nginx` external `IP`):
+The output looks similar to (search the load balancer `ID` that matches your `Ambassador/Nginx` external `IP`):
 
 ```text
 IP                 ID
@@ -166,7 +166,7 @@ service:
 Explanations for the above configuration:
 
 - `kubernetes.digitalocean.com/load-balancer-id`: Tells DigitalOcean `Cloud Controller` what load balancer `ID` to use for the `Ingress Controller` service.
-- `service.kubernetes.io/do-loadbalancer-disown`: Tells DigitalOcean `Cloud Controller` to disown the load balancer ID pointed by `kubernetes.digitalocean.com/load-balancer-id`. If set to `true`, then whenever `Ambasador` or `Nginx` service is deleted, the associated `LB` will **NOT** be deleted by `Kubernetes`.
+- `service.kubernetes.io/do-loadbalancer-disown`: Tells DigitalOcean `Cloud Controller` to disown the load balancer ID pointed by `kubernetes.digitalocean.com/load-balancer-id`. If set to `true`, then whenever `Ambasador/Nginx` service is deleted, the associated `LB` will **NOT** be deleted by `Kubernetes`.
 
 Now, please replace the `<>` placeholders accordingly, using your load balancer `ID` that you wrote down earlier. Also, set the `service.kubernetes.io/do-loadbalancer-disown` annotation value to `true`. The final configuration should look like this:
 
@@ -200,7 +200,7 @@ Finally, save the `Helm` values file, and apply changes for your `Ingress Contro
     -f "03-setup-ingress-controller/assets/manifests/nginx-values-v${NGINX_CHART_VERSION}.yaml"
   ```
 
-At this point, the load balancer is `disowned` from the `Ambassador` or `Nginx` service by the DigitalOcean `Cloud Controller`. It means, that you can migrate it to another `Ingress Controller` service, and change ownership. Notice that the `DNS records` for the `starter-kit.online` domain remain `intact`, and still point to the `original IP` of the load balancer in question.
+At this point, the load balancer is `disowned` from the `Ambassador/Nginx` service by the DigitalOcean `Cloud Controller`. It means, that you can migrate it to another `Ingress Controller` service, and change ownership. Notice that the `DNS records` for the `starter-kit.online` domain remain `intact`, and still point to the `original IP` of the load balancer in question.
 
 **Important note:**
 
@@ -208,7 +208,7 @@ At this point, the load balancer is `disowned` from the `Ambassador` or `Nginx` 
 
 ## Simulate a Disaster by Uninstalling Ingress Controller
 
-Whenever you delete the `Ambassador` or `Nginx` service, the associated `DigitalOcean` load balancer resource is deleted as well as part of the `Kubernetes garbage collection` process. Because you `disowned` the load balancer from your `Ingress Controller`, it will **NOT** be removed automatically anymore. In the next steps, you will uninstall your `Ingress Controller` and verify this feature offered by the DigitalOcean `Cloud Controller`.
+Whenever you delete the `Ambassador/Nginx` service, the associated `DigitalOcean` load balancer resource is deleted as well as part of the `Kubernetes garbage collection` process. Because you `disowned` the load balancer from your `Ingress Controller`, it will **NOT** be removed automatically anymore. In the next steps, you will uninstall your `Ingress Controller` and verify this feature offered by the DigitalOcean `Cloud Controller`.
 
 **Notes:**
 
@@ -311,7 +311,7 @@ service:
     service.kubernetes.io/do-loadbalancer-disown: false
 ```
 
-What the above configuration does is, to set back `ownership` for the `Ambassador` or `Nginx` service, by re-using your original load balancer `ID`.
+What the above configuration does is, to set back `ownership` for the `Ambassador/Nginx` service, by re-using your original load balancer `ID`.
 
 Next, save the values file, and `re-install` your `Ingress Controller` of choice using `Helm`. Please pick only one option, depending on the installation:
 

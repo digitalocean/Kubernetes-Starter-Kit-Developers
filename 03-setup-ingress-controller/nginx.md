@@ -28,7 +28,6 @@ After finishing this tutorial, you will be able to:
 ## Table of contents
 
 - [Introduction](#introduction)
-- [Table of contents](#table-of-contents)
 - [Prerequisites](#prerequisites)
 - [Step 1 - Installing the Nginx Ingress Controller](#step-1---installing-the-nginx-ingress-controller)
 - [Step 2 - Configuring the DigitalOcean Domain for Nginx Ingress Controller](#step-2---configuring-the-digitalocean-domain-for-nginx-ingress-controller)
@@ -37,7 +36,8 @@ After finishing this tutorial, you will be able to:
 - [Step 5 - Configuring Production Ready TLS Certificates for Nginx](#step-5---configuring-production-ready-tls-certificates-for-nginx)
 - [Step 6 - Enabling Proxy Protocol](#step-6---enabling-proxy-protocol)
 - [How To Guides](#how-to-guides)
-  - [Ingress Controller LoadBalancer Migration](guides/do_loadbalancer_migration.md)
+  - [Setting up Ingress to use Wildcard Certificates](guides/wildcard_certificates.md)
+  - [Ingress Controller LoadBalancer Migration](guides/ingress_loadbalancer_migration.md)
 - [Conclusion](#conclusion)
 
 ## Prerequisites
@@ -767,7 +767,8 @@ For different `DigitalOcean` load balancer configurations, please refer to the e
 
 ## How To Guides
 
-- [Ingress Controller LoadBalancer Migration](guides/do_loadbalancer_migration.md)
+- [Setting up Ingress to use Wildcard Certificates](guides/wildcard_certificates.md)
+- [Ingress Controller LoadBalancer Migration](guides/ingress_loadbalancer_migration.md)
 
 ## Conclusion
 

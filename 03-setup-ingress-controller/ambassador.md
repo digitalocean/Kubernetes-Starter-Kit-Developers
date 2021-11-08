@@ -25,15 +25,15 @@ After finishing this tutorial, you will be able to:
 - [Step 1 - Ambassador Edge Stack Overview](#step-1---ambassador-edge-stack-overview)
 - [Step 2 - Installing the Ambassador Edge Stack](#step-2---installing-the-ambassador-edge-stack)
 - [Step 3 - Defining the Hosts for Ambassador Edge Stack](#step-3---defining-the-hosts-for-ambassador-edge-stack)
-- [Step 4 - Configuring the DO Domain for Ambassador Edge Stack](#step-4---configuring-the-do-domain-for-ambassador-edge-stack)
+- [Step 4 - Configuring the DigitalOcean Domain for Ambassador Edge Stack](#step-4---configuring-the-digitalocean-domain-for-ambassador-edge-stack)
 - [Step 5 - Creating the Ambassador Edge Stack Backend Services](#step-5---creating-the-ambassador-edge-stack-backend-services)
 - [Step 6 - Configuring the Ambassador Edge Stack Mappings for Hosts](#step-6---configuring-the-ambassador-edge-stack-mappings-for-hosts)
 - [Step 7 - Enabling Proxy Protocol](#step-7---enabling-proxy-protocol)
 - [Step 8 - Verifying the Ambassador Edge Stack Setup](#step-8---verifying-the-ambassador-edge-stack-setup)
 - [How To Guides](#how-to-guides)
-  - [Wildcard Certificates Support for the Ambassador Edge Stack](guides/wildcard_certificates.md)
-  - [Ingress Controller LoadBalancer Migration](guides/do_loadbalancer_migration.md)
-  - [Performance Considerations for the Ambassador Edge Stack](guides/performance_considerations.md)
+  - [Setting up Ingress to use Wildcard Certificates](guides/wildcard_certificates.md)
+  - [Ingress Controller LoadBalancer Migration](guides/ingress_loadbalancer_migration.md)
+  - [Performance Considerations for the Ambassador Edge Stack](guides/aes_performance_considerations.md)
 - [Conclusion](#conclusion)
 
 ## Prerequisites
@@ -296,7 +296,7 @@ Events:
 
 As seen above, the last `event` tells that there's no `A` record to point to the `echo` host for the `starter-kit.online` domain, which results in a lookup failure. You will learn how to fix this issue, in the next step of the tutorial.
 
-## Step 4 - Configuring the DO Domain for Ambassador Edge Stack
+## Step 4 - Configuring the DigitalOcean Domain for Ambassador Edge Stack
 
 In this step, you will configure the `DigitalOcean` domain for `AES`, using `doctl`. Then, you will create the domain `A` records for each host: `echo` and `quote`. Please bear in mind that `DigitalOcean` is not a domain name registrar. You need to buy a domain name first from [Google](https://domains.google), [GoDaddy](https://uk.godaddy.com), etc.
 
@@ -661,9 +661,9 @@ If everything looks like above, you configured the `Ambassador Edge Stack` succe
 
 ## How To Guides
 
-- [Wildcard Certificates Support for the Ambassador Edge Stack](guides/wildcard_certificates.md)
-- [Ingress Controller LoadBalancer Migration](guides/do_loadbalancer_migration.md)
-- [Performance Considerations for the Ambassador Edge Stack](guides/performance_considerations.md)
+- [Setting up Ingress to use Wildcard Certificates](guides/wildcard_certificates.md)
+- [Ingress Controller LoadBalancer Migration](guides/ingress_loadbalancer_migration.md)
+- [Performance Considerations for the Ambassador Edge Stack](guides/aes_performance_considerations.md)
 
 ## Conclusion
 
