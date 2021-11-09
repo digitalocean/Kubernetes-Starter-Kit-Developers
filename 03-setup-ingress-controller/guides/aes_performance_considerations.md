@@ -3,6 +3,7 @@
 ## Table of contents
 
 - [Introduction](#introduction)
+- [Prerequisites](#prerequisites)
 - [Adjusting Deployment Replica Count](#adjusting-deployment-replica-count)
 - [Adjusting Resource Requests](#adjusting-resource-requests)
 
@@ -27,6 +28,14 @@ Talking about resource usage limits, `Kubernetes` will generally kill an `Ambass
 In general you should try to keep AES `memory usage` below `50%` of the pod's `limit`. This may seem like a generous safety margin, but when reconfiguration occurs, `Ambassador Edge Stack` requires `additional memory to avoid disrupting active connections`.
 
 Going further, what you can do on the `Kubernetes` side, is to adjust deployment `replica count`, and resource `requests` for pods.
+
+## Prerequisites
+
+To complete this guide, you will need:
+
+1. A [Git](https://git-scm.com/downloads) client, to clone the `Starter Kit` repository.
+2. [Helm](https://www.helms.sh), for managing `Ambassador` releases and upgrades.
+3. [Kubectl](https://kubernetes.io/docs/tasks/tools), for `Kubernetes` interaction.
 
 ## Adjusting Deployment Replica Count
 

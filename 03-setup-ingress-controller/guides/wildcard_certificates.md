@@ -3,6 +3,7 @@
 ## Table of contents
 
 - [Introduction](#introduction)
+- [Prerequisites](#prerequisites)
 - [Installing Cert-Manager](#installing-cert-manager)
 - [Configuring Wildcard Certificates via Cert-Manager](#configuring-wildcard-certificates-via-cert-manager)
   - [DNS-01 Challenge Overview](#dns-01-challenge-overview)
@@ -20,6 +21,15 @@ So far you configured `Ingress` resources to use the `HTTP-01` challenge only, w
 For the `DNS-01` challenge type to work, the certificate management tool needs to be able to handle DNS `TXT records` for your cloud provider - `DigitalOcean` in this case. `Cert-Manager` is able to perform this kind of operation via the built-in [DigitalOcean Provider](https://cert-manager.io/docs/configuration/acme/dns01/digitalocean).
 
 For more information on how the `DNS-01` challenge works, please read the [DNS-01](https://letsencrypt.org/docs/challenge-types/#dns-01-challenge) article from `Let's Encrypt`.
+
+## Prerequisites
+
+To complete this guide, you will need:
+
+1. A [Git](https://git-scm.com/downloads) client, to clone the `Starter Kit` repository.
+2. [Helm](https://www.helms.sh), for managing `Cert-Manager` releases and upgrades.
+3. [Kubectl](https://kubernetes.io/docs/tasks/tools), for `Kubernetes` interaction.
+4. [Curl](https://curl.se/download.html), for testing the examples (backend applications).
 
 ## Installing Cert-Manager
 
@@ -113,6 +123,8 @@ issuers.cert-manager.io               2021-10-20T09:13:18Z
 orders.acme.cert-manager.io           2021-10-20T09:13:18Z
 ```
 
+Now that `Cert-Manager` is installed and working properly, next it's time to configure required `CRDs` to tell it how to fetch `TLS` certificates from a known `CA` such as `Let's Encrypt`.
+
 ## Configuring Wildcard Certificates via Cert-Manager
 
 `Cert-Manager` relies on `three` important `CRDs` to issue certificates from a `Certificate Authority` (such as `Let's Encrypt`):
@@ -165,6 +177,8 @@ Create the `Kubernetes` secret containing the `DigitalOcean API` token, using th
 
 - The secret must be created in the **same namespace** where the `Issuer` CRD is located.
 - Please make sure to set `RBAC` properly for the namespace where your `Kubernetes Secrets` are stored, to `restrict` unauthorized users and applications.
+
+Next, you will configure the `Issuer` CRD, responsible with `solving` the `DNS-01` challenge.
 
 ### Configuring Issuer CRD
 
@@ -262,7 +276,7 @@ Verify `Issuer` status using `kubectl` (please pick only one option, depending o
 
 **Note:**
 
-If the `Issuer` object gets in a not ready state for some reason, then you can use `kubectl describe` and inspect the `Status` section from the output. It should tell you the main reason why the `Issuer` failed.
+If the `Issuer` object transitions to a `Not Ready` state for some reason, then you can use `kubectl describe` and inspect the `Status` section from the output. It should tell you the main reason why the `Issuer` failed after inspecting the `Status` and `Events` fields from the `YAML` output.
 
 For `Ambassador Edge Stack` ingress:
 
@@ -273,8 +287,37 @@ kubectl describe issuer letsencrypt-ambassador-wcard -n ambassador
 For `Nginx` ingress:
 
 ```shell
-kubectl describe issuer letsencrypt-nginx-wcard -n ingress-nginx
+kubectl describe issuer letsencrypt-nginx-wcard -n backend
 ```
+
+The output is the same for `Ambassador` or `Nginx`, and it looks similar to (`Metadata` and `Spec` fields value is hidden for simplicity):
+
+```yaml
+Name:         letsencrypt-nginx-wcard
+Namespace:    backend
+Labels:       <none>
+Annotations:  <none>
+API Version:  cert-manager.io/v1
+Kind:         Issuer
+Metadata:
+  ...
+Spec:
+  ...
+Status:
+  Acme:
+    Last Registered Email:  my.email@gmail.com
+    Uri:                    https://acme-v02.api.letsencrypt.org/acme/acct/272672270
+  Conditions:
+    Last Transition Time:  2021-11-08T15:24:51Z
+    Message:               The ACME account was registered with the ACME server
+    Observed Generation:   1
+    Reason:                ACMEAccountRegistered
+    Status:                True
+    Type:                  Ready
+Events:                    <none>
+```
+
+Having the `Issuer` resource configured and working properly, next it's time to configure the `Certificate` CRD. If everything goes well, the final wildcard `TLS` certificate will be created as a `Kubernetes Secret`, ready to be used by your `ingress` resources.
 
 ### Configuring Certificate CRD
 
@@ -427,6 +470,13 @@ Finally, you can verify the `Kubernetes` secret which contains your `TLS` certif
   tls.crt:  5632 bytes
   tls.key:  1679 bytes
   ```
+
+Having a `Certificate` configured and working, ensures that the wildcard `TLS` certificate is always available for your `ingress resources` to use. Even more, it will be renewed automatically before it expires.
+
+Next, please pick one ingress to configure and enable wildcard certificates for, based on your setup:
+
+- [Configure Ambassador to use Wildcard Certificates](#setting-up-ambassador-to-use-wildcard-certificates)
+- [Configure Nginx to use Wildcard Certificates](#setting-up-nginx-to-use-wildcard-certificates)
 
 ### Setting up Ambassador to use Wildcard Certificates
 

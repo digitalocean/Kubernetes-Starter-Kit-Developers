@@ -39,7 +39,7 @@ In this guide, you will learn how to `migrate` an existing `DigitalOcean` load b
 To complete this guide, you will need:
 
 1. A [Git](https://git-scm.com/downloads) client, to clone the `Starter Kit` repository.
-2. [Helm](https://www.helms.sh), for managing `Ambassdor/Nginx` releases and upgrades.
+2. [Helm](https://www.helms.sh), for managing `Ambassador/Nginx` releases and upgrades.
 3. [Doctl](https://github.com/digitalocean/doctl/releases), for `DigitalOcean` API interaction.
 4. [Kubectl](https://kubernetes.io/docs/tasks/tools), for `Kubernetes` interaction.
 5. [Curl](https://curl.se/download.html), for testing the examples (backend applications).

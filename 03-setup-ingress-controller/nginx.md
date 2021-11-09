@@ -38,6 +38,7 @@ After finishing this tutorial, you will be able to:
 - [How To Guides](#how-to-guides)
   - [Setting up Ingress to use Wildcard Certificates](guides/wildcard_certificates.md)
   - [Ingress Controller LoadBalancer Migration](guides/ingress_loadbalancer_migration.md)
+  - [Performance Considerations for Nginx](guides/nginx_performance_considerations.md)
 - [Conclusion](#conclusion)
 
 ## Prerequisites
@@ -769,6 +770,7 @@ For different `DigitalOcean` load balancer configurations, please refer to the e
 
 - [Setting up Ingress to use Wildcard Certificates](guides/wildcard_certificates.md)
 - [Ingress Controller LoadBalancer Migration](guides/ingress_loadbalancer_migration.md)
+- [Performance Considerations for Nginx](guides/nginx_performance_considerations.md)
 
 ## Conclusion
 
