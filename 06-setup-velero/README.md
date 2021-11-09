@@ -282,7 +282,7 @@ Next, check that the namespace was deleted (namespaces listing should not print 
 kubectl get namespaces
 ```
 
-Finally, verify that the `echo` and `quote` backend services `endpoint` is `DOWN` (please refer to [Creating the Ambassador Edge Stack Backend Services](../03-setup-ingress-controller/README.md#step-5---creating-the-ambassador-edge-stack-backend-services), regarding the `backend applications` used in the `Starter Kit` tutorial). You can use `curl` to test (or you can use your web browser):
+Finally, verify that the `echo` and `quote` backend services `endpoint` is `DOWN` (please refer to [Creating the Ambassador Edge Stack Backend Services](../03-setup-ingress-controller/ambassador.md#step-4---creating-the-ambassador-edge-stack-backend-services) or [Creating the Nginx Backend Services](#step-3---creating-the-nginx-backend-services), regarding the `backend applications` used in the `Starter Kit` tutorial). You can use `curl` to test (or you can use your web browser):
 
 ```shell
 curl -Li http://quote.starter-kit.online/quote/
@@ -341,12 +341,12 @@ replicaset.apps/ambassador-agent-bcdd8ccc8    1         1         1       18h
 replicaset.apps/ambassador-redis-64b7c668b9   1         1         1       18h
 ```
 
-Finally, after reconfiguring your `LoadBalancer` and DigitalOcean `domain` settings, please verify that the `echo` and `quote` backend services `endpoint` is `UP` (please refer to [Creating the Ambassador Edge Stack Backend Services](../03-setup-ingress-controller/README.md#step-5---creating-the-ambassador-edge-stack-backend-services), regarding the `backend applications` used in the `Starter Kit` tutorial). For example, you can use `curl` to test each endpoint:
+Finally, after reconfiguring your `LoadBalancer` and DigitalOcean `domain` settings, please verify that the `echo` and `quote` backend services `endpoint` is `UP` (please refer to [Creating the Ambassador Edge Stack Backend Services](../03-setup-ingress-controller/ambassador.md#step-4---creating-the-ambassador-edge-stack-backend-services) or [Creating the Nginx Backend Services](#step-3---creating-the-nginx-backend-services), regarding the `backend applications` used in the `Starter Kit` tutorial). For example, you can use `curl` to test each endpoint:
 
 ```shell
-curl -Li http://quote.starter-kit.online/quote/
+curl -Li https://quote.starter-kit.online/
 
-curl -Li http://quote.starter-kit.online/echo/
+curl -Li https://echo.starter-kit.online/
 ```
 
 In the next step, you will simulate a disaster by intentionally deleting your `DOKS` cluster (the `Starter Kit` DOKS cluster).
@@ -425,7 +425,7 @@ Now, verify all cluster `Kubernetes` resources (you should have everything in pl
 kubectl get all --all-namespaces
 ```
 
-Finally, the `backend applications` should respond to `HTTP` requests as well (please refer to [Creating the Ambassador Edge Stack Backend Services](../03-setup-ingress-controller/README.md#step-5---creating-the-ambassador-edge-stack-backend-services), regarding the `backend applications` used in the `Starter Kit` tutorial):
+Finally, the `backend applications` should respond to `HTTP` requests as well (please refer to [Creating the Ambassador Edge Stack Backend Services](../03-setup-ingress-controller/ambassador.md#step-4---creating-the-ambassador-edge-stack-backend-services) or [Creating the Nginx Backend Services](#step-3---creating-the-nginx-backend-services), regarding the `backend applications` used in the `Starter Kit` tutorial):
 
 ```shell
 curl -Li http://quote.starter-kit.online/quote/

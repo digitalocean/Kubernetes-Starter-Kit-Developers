@@ -135,7 +135,7 @@ In the following steps, you will learn how to configure `Ambassador` (or `Nginx`
 
 **Important note:**
 
-Before continuing with the steps, please make sure that your `DO` domain is set up correctly as explained for [Ambassador Edge Stack](../ambassador.md##step-4---configuring-the-digitalocean-domain-for-ambassador-edge-stack) or [Nginx Ingress Controller](../nginx.md#step-2---configuring-the-digitalocean-domain-for-nginx-ingress-controller).
+Before continuing with the steps, please make sure that `DNS` is set up correctly as explained for [Ambassador Edge Stack](../ambassador.md#step-3---configuring-dns-for-ambassador-edge-stack) or [Nginx Ingress Controller](../nginx.md#step-2---configuring-dns-for-nginx-ingress-controller).
 
 First, you need to create a `Kubernetes Secret` for the [DigitalOcean Provider](https://cert-manager.io/docs/configuration/acme/dns01/digitalocean) that `cert-manager` is going to use to perform the `DNS-01` challenge. The secret must contain your `DigitalOcean API token`, which is needed by the provider to create `DNS` records on your behalf during the `DNS-01` challenge. This step is required, so that the `CA` knows that the `domain` in question is really owned by you.
 

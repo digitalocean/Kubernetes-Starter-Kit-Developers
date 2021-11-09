@@ -8,7 +8,7 @@
 
 ## Introduction
 
-The performance of `Ambassador Edge Stack's` control plane can be characterized along a number of different `dimensions`. The following list contains each `dimension` that has an impact at the application level:
+The performance of `Ambassador Edge Stack` control plane can be characterized along a number of different `dimensions`. The following list contains each `dimension` that has an impact at the application level:
 
 - The number of `TLSContext` resources.
 - The number of `Host` resources.

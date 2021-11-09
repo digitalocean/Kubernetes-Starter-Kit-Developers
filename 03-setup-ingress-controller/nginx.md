@@ -30,7 +30,7 @@ After finishing this tutorial, you will be able to:
 - [Introduction](#introduction)
 - [Prerequisites](#prerequisites)
 - [Step 1 - Installing the Nginx Ingress Controller](#step-1---installing-the-nginx-ingress-controller)
-- [Step 2 - Configuring the DigitalOcean Domain for Nginx Ingress Controller](#step-2---configuring-the-digitalocean-domain-for-nginx-ingress-controller)
+- [Step 2 - Configuring DNS for Nginx Ingress Controller](#step-2---configuring-dns-for-nginx-ingress-controller)
 - [Step 3 - Creating the Nginx Backend Services](#step-3---creating-the-nginx-backend-services)
 - [Step 4 - Configuring Nginx Ingress Rules for Backend Services](#step-4---configuring-nginx-ingress-rules-for-backend-services)
 - [Step 5 - Configuring Production Ready TLS Certificates for Nginx](#step-5---configuring-production-ready-tls-certificates-for-nginx)
@@ -161,11 +161,11 @@ IP                 ID                                      Name                 
 143.244.204.126    0471a318-a98d-49e3-aaa1-ccd855831447    acdc25c5cfd404fd68cd103be95af8ae    active
 ```
 
-In the next step, you will learn how to create and configure the DigitalOcean `domain` for your `Nginx Ingress Controller`.
+In the next step, you will prepare `DNS` for your `Nginx Ingress Controller` setup.
 
-## Step 2 - Configuring the DigitalOcean Domain for Nginx Ingress Controller
+## Step 2 - Configuring DNS for Nginx Ingress Controller
 
-In this step, you will configure the `DigitalOcean` domain for `Nginx` Ingress Controller, using `doctl`. Then, you will create the domain `A` records for each host: `echo` and `quote`. Please bear in mind that `DigitalOcean` is not a domain name registrar. You need to buy a domain name first from [Google](https://domains.google), [GoDaddy](https://uk.godaddy.com), etc.
+In this step, you will configure `DNS` within your `DigitalOcean` account, using a `domain` that you own. Then, you will create the domain `A` records for each host: `echo` and `quote`. Please bear in mind that `DigitalOcean` is not a domain name registrar. You need to buy a domain name first from [Google](https://domains.google), [GoDaddy](https://uk.godaddy.com), etc.
 
 First, please issue the below command to create a new `domain` (`starter-kit.online`, in this example):
 
