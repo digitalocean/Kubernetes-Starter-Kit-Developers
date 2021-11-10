@@ -52,14 +52,14 @@ Steps to follow:
    code 03-setup-ingress-controller/assets/manifests/ambassador-values-v6.7.13.yaml
    ```
 
-3. Then, apply changes using a `Helm` upgrade:
+3. Then, apply changes using `Helm` upgrade:
 
     ```shell
-    HELM_CHART_VERSION="6.7.13"
+    AMBASSADOR_CHART_VERSION="6.7.13"
 
-    helm upgrade ambassador datawire/ambassador --version "$HELM_CHART_VERSION" \
+    helm upgrade ambassador datawire/ambassador --version "$AMBASSADOR_CHART_VERSION" \
         --namespace ambassador \
-        -f "03-setup-ingress-controller/assets/manifests/ambassador-values-v${HELM_CHART_VERSION}.yaml"
+        -f "03-setup-ingress-controller/assets/manifests/ambassador-values-v${AMBASSADOR_CHART_VERSION}.yaml"
     ```
 
 4. Finally, check the `ambassador` deployment `replica count` (it should scale to `2`):

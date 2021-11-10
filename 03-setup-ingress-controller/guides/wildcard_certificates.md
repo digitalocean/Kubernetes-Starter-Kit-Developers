@@ -33,6 +33,10 @@ To complete this guide, you will need:
 
 ## Installing Cert-Manager
 
+**Note:**
+
+**You can skip this step, if `Cert-Manager` is already installed in your `DOKS` cluster.**
+
 Installing `Cert-Manager` is possible in many [ways](https://docs.cert-manager.io/en/latest/getting-started/install.html). In this tutorial, you will use `Helm` to accomplish the task.
 
 First, change directory (if not already) where you cloned the `Starter Kit` repository:
