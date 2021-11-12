@@ -25,8 +25,9 @@ controller:
 
   # Will add custom configuration options to Nginx https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/configmap/
   # config:
-  #   "keep-alive-requests": "10000"
-  #   "upstream-keepalive-requests": "1000"
-  #   "worker_processes": "auto"
-  #   "worker_connections": "65535"
+  #   keep-alive-requests: "10000"
+  #   upstream-keepalive-requests: "1000"
+  #   worker-processes: "auto"
+  #   max-worker-connections: "65535"
+  #   use-gzip: "true"
 

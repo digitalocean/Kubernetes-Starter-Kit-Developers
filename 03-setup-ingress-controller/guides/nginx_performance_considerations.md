@@ -25,7 +25,10 @@ On the other hand, application level tuning (`Nginx`) deals with setting proper 
 - [Tuning Nginx Configuration](#tuning-nginx-configuration)
   - [Keepalive Connections](#keepalive-connections)
   - [Worker Processes](#worker-processes)
+  - [Caching and Compression](#caching-and-compression)
 - [Using Wrk2 for HTTP Benchmarking](#using-wrk2-for-http-benchmarking)
+  - [Web Performance Optimization Concepts](#web-performance-optimization-concepts)
+  - [Basic Usage](#basic-usage)
 
 ## Prerequisites
 
@@ -34,7 +37,7 @@ To complete this guide, you will need:
 1. A [Git](https://git-scm.com/downloads) client, to clone the `Starter Kit` repository.
 2. [Helm](https://www.helms.sh), for managing `Nginx` releases and upgrades.
 3. [Kubectl](https://kubernetes.io/docs/tasks/tools), for `Kubernetes` interaction.
-4. [WRK2](https://github.com/giltene/wrk2), for `HTTP` benchmarking.
+4. [Wrk2](https://github.com/giltene/wrk2), for `HTTP` benchmarking.
 
 ## Tuning Linux Kernel Parameters
 
@@ -119,7 +122,7 @@ Following steps are required to change `fs.file-max` for `Nginx` via `Pod Securi
     code 03-setup-ingress-controller/assets/manifests/nginx-values-v4.0.6.yaml
     ```
 
-3. Then, uncomment `sysctl` section. It should look like below:
+3. Then, uncomment the `sys.fs.file-max` parameter from `sysctls` section. It should look like below:
 
     ```yaml
     sysctls:
@@ -235,7 +238,7 @@ Following steps are required to change `net.core.somaxconn` for `Nginx` via `Pod
     code 03-setup-ingress-controller/assets/manifests/nginx-values-v4.0.6.yaml
     ```
 
-3. Then, uncomment `sysctl` section. It should look like below:
+3. Then, uncomment the `net.core.somaxconn` parameter from `sysctls` section. It should look like below:
 
     ```yaml
     sysctls:
@@ -349,7 +352,7 @@ Following steps are required to change `net.ipv4.ip_local_port_range` for `Nginx
     code 03-setup-ingress-controller/assets/manifests/nginx-values-v4.0.6.yaml
     ```
 
-3. Then, uncomment `sysctl` section. It should look like below:
+3. Then, uncomment the `net.ipv4.ip_local_port_range` parameter from `sysctls` section. It should look like below:
 
     ```yaml
     sysctls:
@@ -486,15 +489,15 @@ Please follow below steps, to set `keep-alive-requests` and `upstream-keepalive-
     code 03-setup-ingress-controller/assets/manifests/nginx-values-v4.0.6.yaml
     ```
 
-3. Then, uncomment `config` section. It should look like below:
+3. Then, uncomment the `keep-alive-requests` and `upstream-keepalive-requests` parameters from `config` section. It should look like below:
 
     ```yaml
     config:
-      "keep-alive-requests": "10000"
-      "upstream-keepalive-requests": "1000"
+      keep-alive-requests: "10000"
+      upstream-keepalive-requests: "1000"
     ```
 
-4. Now, save the values file and apply changes using `Helm` upgrade:
+4. Finally, save the values file and apply changes using `Helm` upgrade:
 
     ```shell
     NGINX_CHART_VERSION="4.0.6"
@@ -504,33 +507,57 @@ Please follow below steps, to set `keep-alive-requests` and `upstream-keepalive-
       -f "03-setup-ingress-controller/assets/manifests/nginx-values-v${NGINX_CHART_VERSION}.yaml"
     ```
 
-5. Finally, check if the `Nginx ConfigMap` was updated:
+**Observation and results:**
 
-    ```shell
-    kubectl get cm ingress-nginx-controller -n ingress-nginx -o yaml
-    ```
+Check if `Nginx ConfigMap` was updated:
 
-    The output looks similar to (notice the `data` field which should contain new settings for `keep-alive-requests` and `upstream-keepalive-requests`):
+```shell
+kubectl get cm ingress-nginx-controller -n ingress-nginx -o yaml
+```
 
-    ```yaml
-    apiVersion: v1
-    data:
-      allow-snippet-annotations: "true"
-      keep-alive-requests: "10000"
-      upstream-keepalive-requests: "1000"
-    kind: ConfigMap
-    metadata:
-      ...
-    ```
+The output looks similar to (notice the `data` field which should contain new settings for `keep-alive-requests` and `upstream-keepalive-requests`):
 
-Please make sure to check `Nginx` Ingress Controller `Pods` state via: `kubectl get pods -n ingress-nginx`, after performing this change. Should be in a `healthy` state.
+```yaml
+apiVersion: v1
+data:
+  allow-snippet-annotations: "true"
+  keep-alive-requests: "10000"
+  upstream-keepalive-requests: "1000"
+kind: ConfigMap
+metadata:
+...
+```
+
+Verify if `Nginx` loaded new configuration successfully:
+
+```shell
+# List available Pods first, from ingress-nginx namespace:
+
+kubectl get pods -n ingress-nginx
+
+# Sample output:
+#
+# NAME                                        READY   STATUS     RESTARTS   AGE
+# ingress-nginx-controller-5c8d66c76d-25685   1/1     Running    0          3h17m
+
+# Test Nginx configuration and print `keepalive_requests` parameter value:
+kubectl exec -it ingress-nginx-controller-5c8d66c76d-25685 -n ingress-nginx -- nginx -T | grep keepalive_requests
+```
+
+The output looks similar to:
+
+```text
+keepalive_requests 10000;
+```
+
+If the output looks like above, then you configured the new value for `keepalive_requests` successfully.
 
 ### Worker Processes
 
 `Nginx` can run multiple worker processes, each capable of processing a large number of simultaneous connections. You can control the number of worker processes and how they handle connections with the following directives:
 
 - `worker_processes`: The number of NGINX worker processes - defaults to `auto`. When using the `auto` value, then `one worker` is created `per CPU` which is sufficient in most of the cases. `Number` of `workers` can be `increased` in some situations, such as when dealing with a lot of `disk I/O`.
-- `worker_connections`: The maximum number of connections that each worker process can handle simultaneously - defaults to `512`. We recommend setting this value to `65535` when `high concurrency` is needed (like in `production` systems).
+- `max_worker_connections`: The maximum number of connections that each worker process can handle simultaneously - defaults to `512`. We recommend setting this value to `65535` when `high concurrency` is needed (like in `production` systems).
 
 Steps required to change `worker processes` configuration:
 
@@ -541,15 +568,15 @@ Steps required to change `worker processes` configuration:
     code 03-setup-ingress-controller/assets/manifests/nginx-values-v4.0.6.yaml
     ```
 
-3. Then, uncomment `config` section. It should look like below:
+3. Then, uncomment the `worker-processes` and `max-worker-connections` parameters from `config` section. It should look like below:
 
     ```yaml
     config:
-      "worker_processes": "auto"
-      "worker_connections": "65535"
+      worker-processes: "auto"
+      max-worker-connections: "65535"
     ```
 
-4. Now, save the values file and apply changes using `Helm` upgrade:
+4. Finally, save the values file and apply changes using `Helm` upgrade:
 
     ```shell
     NGINX_CHART_VERSION="4.0.6"
@@ -559,25 +586,212 @@ Steps required to change `worker processes` configuration:
       -f "03-setup-ingress-controller/assets/manifests/nginx-values-v${NGINX_CHART_VERSION}.yaml"
     ```
 
-5. Finally, check if the `Nginx ConfigMap` was updated:
+**Observation and results:**
+
+Check if `Nginx ConfigMap` was updated:
+
+```shell
+kubectl get cm ingress-nginx-controller -n ingress-nginx -o yaml
+```
+
+The output looks similar to (notice the `data` field which should contain new settings for `max-worker-connections` and `worker-processes`):
+
+```yaml
+apiVersion: v1
+data:
+  allow-snippet-annotations: "true"
+  keep-alive-requests: "10000"
+  upstream-keepalive-requests: "1000"
+  max-worker-connections: "65535"
+  worker-processes: "auto"
+kind: ConfigMap
+metadata:
+...
+```
+
+Verify if `Nginx` loaded new configuration successfully:
+
+```shell
+# List available Pods first, from ingress-nginx namespace:
+
+kubectl get pods -n ingress-nginx
+
+# Sample output:
+#
+# NAME                                        READY   STATUS     RESTARTS   AGE
+# ingress-nginx-controller-5c8d66c76d-25685   1/1     Running    0          3h17m
+
+# Test Nginx configuration and print `worker_connections` parameter value:
+kubectl exec -it ingress-nginx-controller-5c8d66c76d-25685 -n ingress-nginx -- nginx -T | grep worker_connections
+```
+
+The output looks similar to:
+
+```text
+worker_connections  65535;
+```
+
+If the output looks like above, then you configured the new value for `worker_connections` successfully.
+
+### Caching and Compression
+
+Enabling `compression` can improve `performance` for `slow connection` clients and reduce network transfers, thus saving `bandwidth`. Every time a client makes a request to a HTTP server that has compression support enabled, the server will compress the content before serving the client (this works only if the client supports compression, which happens in most of the cases nowadays). The downside is that on high concurrency environments it can induce some CPU penalty, due to the fact that Nginx needs to deal with lots of operations which imply compression.
+
+`Compression` is really `useful` when you want to `reduce` network `bandwidth`. It is important to note that you `should not enable compression` for objects that are already compressed, such as `JPEG` files.
+
+To enable `compression` for `Nginx`, you must configure the `use-gzip` parameter:
+
+1. First, change directory where the `Starter Kit` Git repository was cloned.
+2. Next, open and inspect the `controller.config` section, from the Nginx `Helm` values file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support). It has the required values already set for you to use. For example, you can use [VS Code](https://code.visualstudio.com):
 
     ```shell
-    kubectl get cm ingress-nginx-controller -n ingress-nginx -o yaml
+    code 03-setup-ingress-controller/assets/manifests/nginx-values-v4.0.6.yaml
     ```
 
-    The output looks similar to (notice the `data` field which should contain new settings for `worker_connections` and `worker_processes`):
+3. Then, uncomment the `use-gzip` parameter from `config` section. It should look like below:
 
     ```yaml
-    apiVersion: v1
-    data:
-      allow-snippet-annotations: "true"
-      keep-alive-requests: "10000"
-      upstream-keepalive-requests: "1000"
-      worker_connections: "65535"
-      worker_processes: auto
-    kind: ConfigMap
-    metadata:
-      ...
+    config:
+      use-gzip: "true"
     ```
 
+4. Finally, save the values file and apply changes using `Helm` upgrade:
+
+    ```shell
+    NGINX_CHART_VERSION="4.0.6"
+
+    helm upgrade ingress-nginx ingress-nginx/ingress-nginx --version "$NGINX_CHART_VERSION" \
+      --namespace ingress-nginx \
+      -f "03-setup-ingress-controller/assets/manifests/nginx-values-v${NGINX_CHART_VERSION}.yaml"
+    ```
+
+**Observation and results:**
+
+Check if `Nginx ConfigMap` was updated:
+
+```shell
+kubectl get cm ingress-nginx-controller -n ingress-nginx -o yaml
+```
+
+The output looks similar to (notice the `data` field which should contain new settings for `use-gzip`):
+
+```yaml
+apiVersion: v1
+data:
+  allow-snippet-annotations: "true"
+  keep-alive-requests: "10000"
+  upstream-keepalive-requests: "1000"
+  max-worker-connections: "65535"
+  worker-processes: "auto"
+  use-gzip: "true"
+kind: ConfigMap
+metadata:
+...
+```
+
+Verify if `Nginx` loaded new configuration successfully:
+
+```shell
+# List available Pods first, from ingress-nginx namespace:
+
+kubectl get pods -n ingress-nginx
+
+# Sample output:
+#
+# NAME                                        READY   STATUS     RESTARTS   AGE
+# ingress-nginx-controller-5c8d66c76d-25685   1/1     Running    0          3h17m
+
+# Test Nginx configuration and print `worker_connections` parameter value:
+kubectl exec -it ingress-nginx-controller-5c8d66c76d-25685 -n ingress-nginx -- nginx -T | grep gzip
+```
+
+The output looks similar to:
+
+```text
+gzip on;
+```
+
+If the output looks like above, then you configured the new value for `gzip` parameter successfully.
+
+`Caching` static content is another feature of a `HTTP` server which can improve performance, by reducing disk `I/O` traffic, as well as `load` on the `backend` servers. When a client request arrives at your site the cached version will be served up unless it has changed since the last cache.
+
+For more information about the available options for `caching` and `compression`, please visit below links:
+
+- [Nginx Web Server Compression](https://docs.nginx.com/nginx/admin-guide/web-server/compression)
+- [Nginx Content Caching](https://docs.nginx.com/nginx/admin-guide/content-cache/content-caching/)
+
+To learn more about all the available options for the `Nginx Ingress Controller` please visit the [Nginx ConfigMap](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/configmap) official documentation page.
+
+Next, the `wrk2` performance tool will be introduced along with some `HTTP benchmarking` results, to compare outputs between different `Nginx` configuration options presented in this guide.
+
 ## Using Wrk2 for HTTP Benchmarking
+
+[Wrk2](https://github.com/giltene/wrk2) is a modern `HTTP benchmarking` tool capable of generating significant load when run on a single multi-core `CPU`. It can produce a constant throughput load, and accurate latency details to the high 9s (i.e. can produce accurate 99.9999%'ile when run long enough). `Wrk2` can provide detailed `latency statistics` and is `scriptable` with the `Lua` programming language.
+
+### Web Performance Optimization Concepts
+
+Before proceeding it's important to understand some basic concepts related to `web performance optimization` in general:
+
+- `Latency` is a measure of how fast a server responds to requests from the client. Typically measured in milliseconds (ms), latency is often referred to as response time. Lower numbers indicate faster responses. Latency is measured on the client side, from the time the request is sent until the response is received. Network overhead is included in this number.
+- `Throughput` is how many requests the server can handle during a specific time interval, usually reported as requests per second.
+- `Percentiles` are a way of grouping results by their percentage of the whole sample set. If your 50th percentile response time is 100ms, that means 50% of the requests were returned in 100ms or less. The graph below shows why it’s useful to look at your measurements by percentile:
+
+### Basic Usage
+
+Typical `wrk2` CLI usage looks like below:
+
+```shell
+wrk2 -t4 -c100 -d30s -R100 --latency https://quote.starter-kit.online/
+```
+
+Explanation for the above command:
+
+- `-t4`: How many `threads` to use when running the benchmark (you should use the `number` of `processor cores` on your `machine`).
+- `-c100`: Number of `concurrent requests` or connections (`100` in this example).
+- `-d30`: Test period (`30 seconds` in this example).
+- `-R100`: Request rate (`100 requests per second` in this example).
+- `--latency`: Print detailed latency output.
+
+The output looks similar to:
+
+```text
+Running 30s test @ https://quote.starter-kit.online/
+  4 threads and 100 connections
+...
+Latency Distribution (HdrHistogram - Recorded Latency)
+50.000%   70.85ms
+75.000%   79.29ms
+90.000%   88.70ms
+99.000%  110.59ms
+99.900%  119.68ms
+99.990%  144.00ms
+99.999%  144.00ms
+100.000%  144.00ms
+
+Detailed Percentile spectrum:
+  Value   Percentile   TotalCount 1/(1-Percentile)
+
+  43.519     0.000000            1         1.00
+  53.919     0.100000          192         1.11
+  59.135     0.200000          385         1.25
+  63.295     0.300000          575         1.43
+  67.839     0.400000          765         1.67
+...
+```
+
+As seen above, it prints detailed information about latency and percentile after the benchmark is finished. You can also redirect the output to a file, and plot the output using [HdrHistogram](https://hdrhistogram.github.io/HdrHistogram).
+
+Steps to follow for plotting benchmark results using `HdrHistogram`:
+
+1. First, run `wrk2` using your service under test endpoint (e.g. `https://quote.starter-kit.online/`), and redirect output to a file (`quote-benchmark.out`):
+
+    ```shell
+    wrk2 -t4 -c100 -d30s -R100 --latency https://quote.starter-kit.online/ > quote-benchmark.out
+    ```
+
+2. Then open a web browser and navigate to the [HdrHistogram Plotter](http://hdrhistogram.github.io/HdrHistogram/plotFiles.html) page.
+3. Hit the `Choose files` button, and upload the output file from `Step 1.`
+
+After finishing the above steps, you should get a nice `histogram` that can be `downloaded` to your `PC`. It looks similar to:
+
+![Histogram Plotting](../assets/images/demo_histogram.png)
