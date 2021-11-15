@@ -1,4 +1,4 @@
-# Starter kit for TrilioVault for Kubernetes (TVK)
+# How to protect your applications using TrilioVault for Kubernetes (TVK) in one-click
 
 **tvk-oneclick** is a kubectl plugin which installs,configures and tests the 
 TrilioVault for Kuberentes (TVK).
