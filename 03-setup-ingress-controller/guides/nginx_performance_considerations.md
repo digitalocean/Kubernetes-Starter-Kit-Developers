@@ -6,12 +6,16 @@ This guide is meant to give you a brief overview on the important steps involved
 
 When we talk about performance in general, there are two key points that need to be addressed:
 
-- Operating System level tuning.
-- Application level tuning.
+- `Operating System` level tuning.
+- `Application` level tuning.
 
 Operating system level tuning deals with configuring best values for parameters that affect the kernel, like: open file descriptors limit, network stack buffers, etc.
 
 On the other hand, application level tuning (`Nginx`) deals with setting proper values for parameters that affect application performance directly, like: worker processes, caching, compression, etc.
+
+### Nginx Load Testing Setup
+
+![Nginx Load Testing Setup](../assets/images/nginx_load_testing_overview.png)
 
 ## Table of contents
 
@@ -29,6 +33,10 @@ On the other hand, application level tuning (`Nginx`) deals with setting proper 
 - [Using Wrk2 for HTTP Benchmarking](#using-wrk2-for-http-benchmarking)
   - [Web Performance Optimization Concepts](#web-performance-optimization-concepts)
   - [Basic Usage](#basic-usage)
+  - [HTTP Benchmark Suite 1: Default Nginx Configuration](#http-benchmark-suite-1-default-nginx-configuration)
+  - [HTTP Benchmark Suite 2: Nginx Keep Alive Connection Parameters Tuning](#http-benchmark-suite-2-nginx-keep-alive-connection-parameters-tuning)
+  - [HTTP Benchmark Suite 3: Backlog Queue Tuning](#http-benchmark-suite-3-backlog-queue-tuning)
+- [Conclusion](#conclusion)
 
 ## Prerequisites
 
@@ -732,9 +740,9 @@ Next, the `wrk2` performance tool will be introduced along with some `HTTP bench
 
 Before proceeding it's important to understand some basic concepts related to `web performance optimization` in general:
 
-- `Latency` is a measure of how fast a server responds to requests from the client. Typically measured in milliseconds (ms), latency is often referred to as response time. Lower numbers indicate faster responses. Latency is measured on the client side, from the time the request is sent until the response is received. Network overhead is included in this number.
-- `Throughput` is how many requests the server can handle during a specific time interval, usually reported as requests per second.
-- `Percentiles` are a way of grouping results by their percentage of the whole sample set. If your 50th percentile response time is 100ms, that means 50% of the requests were returned in 100ms or less. The graph below shows why it’s useful to look at your measurements by percentile:
+- `Latency` is a measure of how `fast` a `server` responds to `requests` from the `client`. Typically measured in `milliseconds` (ms), latency is often referred to as response time. `Lower` numbers indicate `faster` responses. Latency is measured on the client side, from the time the request is sent until the response is received. Network overhead is included in this number.
+- `Throughput` is how many `requests` the `server` can `handle` during a specific `time interval`, usually reported as `requests per second`.
+- `Percentiles` are a way of `grouping results` by their `percentage` of the whole sample set. If your `50th` percentile response time is `100ms`, that means `50%` of the `requests` were returned in `100ms` or less.
 
 ### Basic Usage
 
@@ -798,7 +806,7 @@ After finishing the above steps, you should get a nice `histogram` that can be `
 
 Next, a series of `HTTP benchmarks` were run directly on one of the `DOKS` worker nodes, using the `ClusterIP` endpoint of the `Nginx Ingress Controller`. The main idea is that you will want to eliminate components that introduce latency, such as the the Internet facing `Load Balancer` and possible ones coming from your `ISP`. The `quote` service endpoint was used as a reference.
 
-Each benchmark is linearly increasing number of `concurrent connections` (aka number of `concurrent users`), and `RPS` (or `Requests Per Second`). The range chosen is from `100` to `1000`, using a step size of `100`. Before running each set of tests, one parameter was changed to
+Each benchmark is linearly increasing number of `concurrent connections` (aka number of `concurrent users`), and `RPS` (or `Requests Per Second`). The range chosen is from `100` to `1000`, using a step size of `100`.
 
 ### HTTP Benchmark Suite 1: Default Nginx Configuration
 
@@ -808,11 +816,11 @@ Scenario setup:
 - Number of requests per second: `100 - 1000` (step size: `100`).
 - Original Nginx configuration (nothing was altered).
 
-Results are as follows:
+Results are as follows (each line from the plot represents number of concurrent requests: `c100` means `100` concurrent requests, `c200` means `200` concurrent requests, etc):
 
 ![HTTP Benchmark Original Config](../assets/images/http_benchmark_original_config.png)
 
-As you can see in the above plot, the `average` value for `latency` is around `200-300ms`, and it's fairly constant. Then, degradations starts at around `900 - 1000` concurrent connections and `RPS`, with spikes around `1000ms`, which is a little bit too much.
+As you can see in the above plot, the `average` value for `latency` is around `200-300ms`, and it's fairly constant. Then, degradations starts at around `900 - 1000` concurrent connections, where the `99th percentile` spikes around `1000ms`.
 
 ### HTTP Benchmark Suite 2: Nginx Keep Alive Connection Parameters Tuning
 
@@ -821,25 +829,25 @@ Scenario setup:
 - Number of concurrent connections: `100 - 1000` (step size: `100`).
 - Number of requests per second: `100 - 1000` (step size: `100`).
 - Nginx keep alive parameters changed:
-  - `keep-alive-requests` set to `10000`
-  - `upstream-keepalive-requests` set to `1000`
+  - `keep-alive-requests` set to `10000`.
+  - `upstream-keepalive-requests` set to `1000`.
 
-Results are as follows:
+Results are as follows (each line from the plot represents number of concurrent requests: `c100` means `100` concurrent requests, `c200` means `200` concurrent requests, etc):
 
 ![HTTP Benchmark Keepalive Config](../assets/images/http_benchmark_keepalive_config.png)
 
-The results are mostly the same as in the original Nginx configuration, so changing keep alive parameters doesn't seem to improve things.
+The results are mostly the same as with the untouched Nginx configuration, so changing keep alive parameters doesn't seem to improve things too much.
 
-### HTTP Benchmark Suite 3: Kernel Network Buffers Tuning (net.core.somaxconn)
+### HTTP Benchmark Suite 3: Backlog Queue Tuning
 
 Scenario setup:
 
 - Number of concurrent connections: `100 - 1000` (step size: `100`).
 - Number of requests per second: `100 - 1000` (step size: `100`).
 - Kernel parameters changed:
-  - `net.core.somaxconn` modified from `128` to `32768`
+  - `net.core.somaxconn` modified from `128` to `32768`.
 
-Results are as follows:
+Results are as follows (each line from the plot represents number of concurrent requests: `c100` means `100` concurrent requests, `c200` means `200` concurrent requests, etc):
 
 ![HTTP Benchmark Kernel net.core.somaxconn](../assets/images/http_benchmark_somaxconn_config.png)
 
@@ -847,7 +855,7 @@ Now, that's a big improvement when tuning network buffers setting for the Linux 
 
 ## Conclusion
 
-This guide is to give you a starting point when it comes to web performance tuning. It doesn't cover all the aspects when it comes to load testing and such. And a simple web service was used (the `quote`, example), which is just a simple one.
+This guide is to give you a starting point when it comes to web performance tuning. It doesn't cover all the aspects when it comes to load testing and such. And a simple web service was used ([datawire-quote](https://github.com/datawire/quote)), which is just a quick example to get you started.
 
 Further references to read:
 
