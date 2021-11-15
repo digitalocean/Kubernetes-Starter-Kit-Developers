@@ -51,10 +51,12 @@ Next, please add the `Jetstack` Helm repository:
 helm repo add jetstack https://charts.jetstack.io
 ```
 
-Then, open and inspect the `03-setup-ingress-controller/assets/manifests/cert-manager-values-v1.5.4.yaml` file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://code.visualstudio.com):
+Then, open and inspect the `Helm` values file for `Cert-Manager` provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://code.visualstudio.com):
 
 ```shell
-code 03-setup-ingress-controller/assets/manifests/cert-manager-values-v1.5.4.yaml
+CERT_MANAGER_HELM_CHART_VERSION="1.5.4"
+
+code 03-setup-ingress-controller/assets/manifests/cert-manager-values-v${CERT_MANAGER_HELM_CHART_VERSION}.yaml
 ```
 
 Finally, you can install the `jetstack/cert-manager` chart using Helm:
@@ -65,7 +67,7 @@ CERT_MANAGER_HELM_CHART_VERSION="1.5.4"
 helm install cert-manager jetstack/cert-manager --version "$CERT_MANAGER_HELM_CHART_VERSION" \
   --namespace cert-manager \
   --create-namespace \
-  -f 03-setup-ingress-controller/assets/manifests/cert-manager-values-v1.5.4.yaml
+  -f 03-setup-ingress-controller/assets/manifests/cert-manager-values-v${CERT_MANAGER_HELM_CHART_VERSION}.yaml
 ```
 
 Check Helm release status:

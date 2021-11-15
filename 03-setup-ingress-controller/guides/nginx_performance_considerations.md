@@ -795,3 +795,61 @@ Steps to follow for plotting benchmark results using `HdrHistogram`:
 After finishing the above steps, you should get a nice `histogram` that can be `downloaded` to your `PC`. It looks similar to:
 
 ![Histogram Plotting](../assets/images/demo_histogram.png)
+
+Next, a series of `HTTP benchmarks` were run directly on one of the `DOKS` worker nodes, using the `ClusterIP` endpoint of the `Nginx Ingress Controller`. The main idea is that you will want to eliminate components that introduce latency, such as the the Internet facing `Load Balancer` and possible ones coming from your `ISP`. The `quote` service endpoint was used as a reference.
+
+Each benchmark is linearly increasing number of `concurrent connections` (aka number of `concurrent users`), and `RPS` (or `Requests Per Second`). The range chosen is from `100` to `1000`, using a step size of `100`. Before running each set of tests, one parameter was changed to
+
+### HTTP Benchmark Suite 1: Default Nginx Configuration
+
+Scenario setup:
+
+- Number of concurrent connections: `100 - 1000` (step size: `100`).
+- Number of requests per second: `100 - 1000` (step size: `100`).
+- Original Nginx configuration (nothing was altered).
+
+Results are as follows:
+
+![HTTP Benchmark Original Config](../assets/images/http_benchmark_original_config.png)
+
+As you can see in the above plot, the `average` value for `latency` is around `200-300ms`, and it's fairly constant. Then, degradations starts at around `900 - 1000` concurrent connections and `RPS`, with spikes around `1000ms`, which is a little bit too much.
+
+### HTTP Benchmark Suite 2: Nginx Keep Alive Connection Parameters Tuning
+
+Scenario setup:
+
+- Number of concurrent connections: `100 - 1000` (step size: `100`).
+- Number of requests per second: `100 - 1000` (step size: `100`).
+- Nginx keep alive parameters changed:
+  - `keep-alive-requests` set to `10000`
+  - `upstream-keepalive-requests` set to `1000`
+
+Results are as follows:
+
+![HTTP Benchmark Keepalive Config](../assets/images/http_benchmark_keepalive_config.png)
+
+The results are mostly the same as in the original Nginx configuration, so changing keep alive parameters doesn't seem to improve things.
+
+### HTTP Benchmark Suite 3: Kernel Network Buffers Tuning (net.core.somaxconn)
+
+Scenario setup:
+
+- Number of concurrent connections: `100 - 1000` (step size: `100`).
+- Number of requests per second: `100 - 1000` (step size: `100`).
+- Kernel parameters changed:
+  - `net.core.somaxconn` modified from `128` to `32768`
+
+Results are as follows:
+
+![HTTP Benchmark Kernel net.core.somaxconn](../assets/images/http_benchmark_somaxconn_config.png)
+
+Now, that's a big improvement when tuning network buffers setting for the Linux Kernel - at least from a consistency point of view. Results are almost flat, and settle around `200-250ms`.
+
+## Conclusion
+
+This guide is to give you a starting point when it comes to web performance tuning. It doesn't cover all the aspects when it comes to load testing and such. And a simple web service was used (the `quote`, example), which is just a simple one.
+
+Further references to read:
+
+- [Official Nginx Tunning Guide](https://www.nginx.com/blog/tuning-nginx)
+- [DigitalOcean Introduction to Load Testing](https://www.digitalocean.com/community/tutorials/an-introduction-to-load-testing)
