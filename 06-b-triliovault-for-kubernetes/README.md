@@ -40,7 +40,7 @@ Arch:
 - Target Creation:
 	Creates and validate the target where backups are stored. Users can create S3 (DigitalOCean Spaces / AWS S3) or NFS based target.  
 - Run Sample Tests of Backup and Restore:
-        Run sample tests for ['Label_based','Namespace_based','Operator_based','Helm_based'] applications. By default, 'Label_based' backup tests are run against a MySQL Database application, 'Namespace_based' tests against a Wordpress application, 'Operator_based' tests against Postgress operator application,'Helm_based' tests against a Mongo Database helm based application.
+        Run sample tests for ['Label_based','Namespace_based','Operator_based','Helm_based'] applications. By default, 'Label_based' backup tests are run against a MySQL Database application, 'Namespace_based' tests against a Wordpress application, 'Operator_based' tests against MySQL Database operator application,'Helm_based' tests against a Mongo Database helm based application.
 
 
 ## Installation, Upgrade, Removal of Plugins :
@@ -100,12 +100,15 @@ kubectl tvk-oneclick -c -t -s
 ```
 
 **2. Non-interactive**:
-	TVK-OneClick can be executed in a non-interactive method by leveraging values from an input_config file. To use the plugin in a non-interactive way, create an input_config (URL) file. After creating the input config file, run the following command to execute the plugin in a non-interactive fashion. The non-interative method will perform preflight checks, installation, configuration (Management Console and Target) as well as run sample backup and restore tests similar to the interactive mode but in a single workflow.
-	Sample input_config file can be found here:
-        https://github.com/bhagirathhapse/Kubernetes-Starter-Kit-Developers/blob/main/06-b-triliovault-for-kubernetes/input_config
-	This sample_config input file leverages your DO credentials and DO DNS information to create/configure a target within DO Spaces, and to configure the management console leveraging a Kubernetes LoadBalancer.
-	The user has to provide their DO credentials (Access key and Secret key) as mandatory inputs and DNS information as Optional inputs if using LoadBalancers for setting up the Management Console. 
-	
+	TVK-OneClick can be executed in a non-interactive method by leveraging values from an input_config file. To use the plugin in a non-interactive way, create an input_config (https://github.com/digitalocean/Kubernetes-Starter-Kit-Developers/blob/main/06-b-triliovault-for-kubernetes/input_config) file. After creating the input config file, run the following command to execute the plugin in a non-interactive fashion. The non-interative method will perform preflight checks, installation, configuration (Management Console and Target) as well as run sample backup and restore tests similar to the interactive mode but in a single workflow.
+
+Sample input_config file can be found here:
+https://github.com/digitalocean/Kubernetes-Starter-Kit-Developers/blob/main/06-b-triliovault-for-kubernetes/input_config
+
+This sample_config input file leverages your DO credentials and DO DNS information to create/configure a target within DO Spaces, and to configure the management console leveraging a Kubernetes LoadBalancer.
+
+The user has to provide their DO credentials (Access key and Secret key) as mandatory inputs and DNS information as Optional inputs if using LoadBalancers for setting up the Management Console. 
+
 ```shell script
 kubectl tvk-oneclick -n
 ```
