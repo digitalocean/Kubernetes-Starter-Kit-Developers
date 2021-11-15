@@ -1,23 +1,20 @@
-# How to protect your applications using TrilioVault for Kubernetes (TVK) in one-click
+# How to deploy and protect your applications using the TrilioVault for Kubernetes OneClick plugin
 
-**tvk-oneclick** is a kubectl plugin which installs,configures and tests the 
-TrilioVault for Kuberentes (TVK).
-It installs TVK operator,TVK application/manager, configures TVK UI, and 
-executes some sample backup and restore for a sample application.
+**tvk-oneclick** is a kubectl plugin which installs, configures, and test the TrilioVault for Kuberentes (TVK).
+It installs the TVK Operator, the TVM Application, configures the TVK Management Console, and executes sample backup and restore operations.
 
 ## Pre-requisites:
 
-User need to run a script **install_prereq.sh** to install the pre-requisites.
+Users need to run a script **install_prereq.sh** to install the pre-requisites required for TVK-OneClick plugin.
 
-**NOTE:** User should have root previledges to run the install_prereq.sh script. 
-If any of the prerequisite fails to install due to environment or network 
-access issues, you can install them individually before running tvk-oneclick.
+**NOTE:** Users should have **root** previledges to run the **install_prereq.sh** script. 
+If any of the prerequisites fail to install due to environment or network access issues, they can be installed individually before running the TVK-OneClick plugin.
 
 1. krew - kubectl-plugin manager. Install from [here](https://krew.sigs.k8s.io/docs/user-guide/setup/install/)
 2. kubectl - kubernetes command-line tool. Install from [here](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
 3. Helm (version >= 3)
 4. Python3(version >= 3.9, with requests package installed - pip3 install requests)
-5. S3cmd. Install s3cmd from [here](https://acloud24.com/blog/installation-and-configuration-of-s3cmd-under-linux/)
+5. S3cmd. Install from [here](https://acloud24.com/blog/installation-and-configuration-of-s3cmd-under-linux/)
 6. yq(version >= 4). Information can be found @[here](https://github.com/mikefarah/yq) 
 
 
@@ -32,36 +29,88 @@ Arch:
 - x86
 
 
-## TVK on-click plugin Performs below tasks
+## TVK-OneClick plugin performs the following tasks:
 
 - Preflight check:
-	It does preflight checks to ensure that all requirements are satisfied.
-- TVK Installation:
-	It installs TVK operator and manager.
-- TVK UI Configuration:
-        It configures TVK UI for user. User has option to select the way in which
-        UI should be configured. User can select one from ['Loadbalancer','Nodeport','PortForwarding']
-- Target creation:
-	In order to perform sample test, user would require to create target.
-        So this option allows user to create S3 or NFS based target.
-- Run Sample Test of Backup and Restore:
-        Plugin allow user to run some sample test. This includes ['Label_based','Namespace_based','Operator_based','Helm_based']
-        backup. By default, 'Label_based' backup tests on Mysql application,'Namespace_based' tests on
-        wordpress, 'Operator_based' tests on postgress operator,'Helm_based' tests using mongodb application.
+	Performs preflight checks to ensure that all requirements are satisfied.
+- **TVK Installation and Management Console Configuration**:
+	**TVK installation, Management Console configuration and License installation is done from DO Marketplace (https://marketplace.digitalocean.com/apps/triliovault-for-kubernetes)** 
+- TVK Management Console Configuration:
+        Even after above configuation, users has an option to choose from ['Loadbalancer','Nodeport','PortForwarding'] to access the console using TVK-OneClick plugin.
+- Target Creation:
+	Creates and validate the target where backups are stored. Users can create S3 (DigitalOCean Spaces / AWS S3) or NFS based target.  
+- Run Sample Tests of Backup and Restore:
+        Run sample tests for ['Label_based','Namespace_based','Operator_based','Helm_based'] applications. By default, 'Label_based' backup tests are run against a MySQL Database application, 'Namespace_based' tests against a Wordpress application, 'Operator_based' tests against Postgress operator application,'Helm_based' tests against a Mongo Database helm based application.
 
-## Ways in which plugin can be executed
 
-- Interactive:
-        Plugin asks various input that requires it to perform the mentioned operations 
-        as and when plugin proceeds.
-- Non-interactive:
-	In this plugin would expect user to provide path and name of config file at the
-        start of plugin.
- 	sample config file can be found @
+## Installation, Upgrade, Removal of Plugins :
+
+- Add TVK custom plugin index of krew:
+
+  ```
+  kubectl krew index add tvk-plugins https://github.com/trilioData/tvk-plugins.git
+  ```
+
+- Installation:
+
+  ```
+  kubectl krew install tvk-plugins/tvk-oneclick
+  ```  
+
+- Upgrade:
+
+  ```
+  kubectl krew upgrade tvk-oneclick
+  ```  
+
+- Removal:
+
+  ```
+  kubectl krew uninstall tvk-oneclick
+  ```  
+
+## Usage
+
+There are two way to use the TVK-OneClick plugin:
+1. Interactive
+2. Non-interactive
+
+
+## Ways to execute the plugin
+
+**1. Interactive**:
+        The plugin asks for various inputs that enable it to perform installation and deployment operations. 
+        For interactive installation of TVK operator and manager, configure TVK UI, create a target and run samepl backup restore, run below command:
+
+kubectl tvk-oneclick [options] 
+
+Flags:
+
+| Parameter                     | Description   
+| :---------------------------- |:-------------:
+| -n, --noninteractive          | Run script in non-interactive mode.for this you need to provide config file
+| -i, --install_tvk             | Installs TVK and it's free trial license.
+| -c, --configure_ui            | Configures TVK UI.
+| -t, --target                  | Create Target for backup and restore jobs
+| -s, --sample_test		| Create sample backup and restore jobs
+| --preflight		        | Checks if all the pre-requisites are satisfied
+
+```shell script
+kubectl tvk-oneclick -c -t -s
+```
+
+**2. Non-interactive**:
+	TVK-OneClick can be executed in a non-interactive method by leveraging values from an input_config file. To use the plugin in a non-interactive way, create an input_config (URL) file. After creating the input config file, run the following command to execute the plugin in a non-interactive fashion. The non-interative method will perform preflight checks, installation, configuration (Management Console and Target) as well as run sample backup and restore tests similar to the interactive mode but in a single workflow.
+	Sample input_config file can be found here:
         https://github.com/bhagirathhapse/Kubernetes-Starter-Kit-Developers/blob/main/06-b-triliovault-for-kubernetes/input_config
+	This sample_config input file leverages your DO credentials and DO DNS information to create/configure a target within DO Spaces, and to configure the management console leveraging a Kubernetes LoadBalancer.
+	The user has to provide their DO credentials (Access key and Secret key) as mandatory inputs and DNS information as Optional inputs if using LoadBalancers for setting up the Management Console. 
+	
+```shell script
+kubectl tvk-oneclick -n
+```
 
-
-## 'input_config'/input parameter details
+## 'input_config' /input parameter details
 
 - **PREFLIGHT**:
 	This parameter is to check whether or not preflight should be executed.It accepts one of the value from [True, False]
@@ -150,66 +199,3 @@ Arch:
 	Specify the name for the restore. Default value is 'tvk-restore'.
 - **restore_namespace**:
 	Specify the namespace in which backup should be restored. Default value is 'tvk-restore'.
-
-
-
-## Installation, Upgrade, Removal of Plugins :
-
-- Add TVK custom plugin index of krew:
-
-  ```
-  kubectl krew index add tvk-plugins https://github.com/trilioData/tvk-plugins.git
-  ```
-
-- Installation:
-
-  ```
-  kubectl krew install tvk-plugins/tvk-oneclick
-  ```  
-
-- Upgrade:
-
-  ```
-  kubectl krew upgrade tvk-oneclick
-  ```  
-
-- Removal:
-
-  ```
-  kubectl krew uninstall tvk-oneclick
-  ```  
-
-## Usage
-
-tvk-oneclick - Installs, Configures UI, Create sample backup/restore test
-
-Usage:
-
-kubectl tvk-oneclick [options] 
-
-Flags:
-
-| Parameter                     | Description   
-| :---------------------------- |:-------------:
-| -n, --noninteractive          | Run script in non-interactive mode.for this you need to provide config file
-| -i, --install_tvk             | Installs TVK and it's free trial license.
-| -c, --configure_ui            | Configures TVK UI.
-| -t, --target                  | Create Target for backup and restore jobs
-| -s, --sample_test		| Create sample backup and restore jobs
-| --preflight		        | Checks if all the pre-requisites are satisfied
-
-
-## Examples
-
-- For non-interactive installation of TVK operator and manager, configure TVK UI, Create a target and run sample backup and restore, update `input_config` file:
-
-```shell script
-kubectl tvk-oneclick -n
-```
-
-- For interactive installation of TVK operator and manager, configure TVK UI, create a target and run samepl backup restore, run below command:
-
-```shell script
-kubectl tvk-oneclick -i -c -t -s
-```
-
