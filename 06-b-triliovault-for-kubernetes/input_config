@@ -1,0 +1,78 @@
+PREFLIGHT=False  				#Whether or not preflight should be executed [True, False].
+
+proceed_even_PREFLIGHT_fail='Y' 		#Allowedvalues=[Y,y,n,N]
+
+TVK_INSTALL=True 				#Whether or not TVK should be installed [True, False]
+
+CONFIGURE_UI=True 				#Whether or not TVK UI should be configured [True, False]
+
+TARGET=True 					#Whether or not TVK Target should be created [True, False]
+
+SAMPLE_TEST=True 				#Whether or not sample test should be executed [True, False]
+
+storage_class=   				#Specify storage class name to be used for pvc to be created
+
+operator_version= 				#Specify TVK operator version
+
+triliovault_manager_version='v2.6.1' 	        #Specify TVK Manager version
+
+tvk_ns='tvk'				        #Specify namespace name in which TVK should get install.
+
+if_resource_exists_still_proceed='y'   		#Specify if plugin should proceed even if resource exists
+
+ui_access_type='Loadbalancer' 			#Specify the way in which TVK UI should be configured['Loadbalancer','Nodeport','PortForwarding']
+
+domain='domainname'   				#Specify the domain name, this should be present or added in DNS server
+
+tvkhost_name='tvk-demo'	      			#Specify TVK host name
+
+cluster_name='trilio-demo-cluster'   		#Specify cluster name
+
+vendor_type='Digital_Ocean'      		#Specify vendor name for s3 bucket ['Digital_Ocean','Amazon_AWS']
+
+doctl_token=''					#Spevify Digital Ocean token [ https://cloud.digitalocean.com/account/api/tokens. ]
+
+target_type='S3'				#Specify Target type ['NFS','S3']
+
+access_key='Bogus-Access-Key'			#Specify Access key to create a space/storage bucket on DO space or S3 storage
+
+secret_key='Bogus-Secret-Key'			#Specify Secret key to create a space/storage bucket on DO space or S3 storage
+
+host_base=''					#Specify host_base for s3cmd command [know more - https://linux.die.net/man/1/s3cmd ]
+
+host_bucket=''					#Specify host_bucket for s3cmd command [know more - https://linux.die.net/man/1/s3cmd ]
+
+gpg_passphrase='trilio'				#Specify gpg_passphrase [know more - https://linux.die.net/man/1/s3cmd ]
+
+bucket_location='us-east-1'			#Specify the bucket location(this parameter is specific to AWS['us-east-1', 'us-west-1', 'us-west-2', 'eu-west-1', 'eu-central-1', 'ap-northeast-1', 'ap-southeast-1', 'ap-southeast-2', 'sa-east-1']
+
+bucket_name='tvk-backup-bucket'			#Specify  bucket/space name
+
+target_name='tvk-target'			#Specify Target name
+
+target_namespace='tvk'			        #Specify Namepsace name where the target should be created
+
+nfs_server=					#Specify NSF server name/address
+
+nfs_path=					#Specify exported path
+
+nfs_options=					#Specify more NFS option to be provided like: 'nfsvers=4'
+
+thresholdCapacity='100Gi'			#Specify thresholdcapacity for target.Units supported - [Mi,Gi,Ti]
+
+bk_plan_name='trilio-test-backup'		#Specify backup plan name
+
+bk_plan_namespae='trilio-test-backup'		#Specify backupplan name space
+
+backup_name='trilio-test-backup'		#Specify backup name
+
+backup_namespace='trilio-test-backup'		#Specify backup namespace [Note: currently backupplan and backup should be in same namespace]
+
+backup_way='Label_based'			#Specify the way in which backup should be taken ['Label_based','Namespace_based','Operator_based','Helm_based']
+
+restore=True					#Whether or not restore should be Performed [True, False]
+
+restore_name='tvk-restore' 			#Specify TVK restore name
+
+restore_namespace='tvk-restore' 		#Specify Restore namespace
+
