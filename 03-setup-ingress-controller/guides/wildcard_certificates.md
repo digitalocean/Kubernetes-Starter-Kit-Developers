@@ -270,7 +270,7 @@ Verify `Issuer` status using `kubectl` (please pick only one option, depending o
 - `Nginx` ingress:
 
   ```shell
-  kubectl get issuer letsencrypt-nginx-wcard -n ingress-nginx
+  kubectl get issuer letsencrypt-nginx-wcard -n backend
   ```
 
   The output looks similar to (notice the `READY` column value - should be `True`):
@@ -398,7 +398,7 @@ Verify certificate status (please pick only one option, depending on the install
 - `Nginx` ingress:
 
   ```shell
-  kubectl get certificate starter-kit.online -n ingress-nginx
+  kubectl get certificate starter-kit.online -n backend
   ```
 
 The output looks similar to (notice the `READY` column value - should be `True`, and the `SECRET` name):
@@ -451,14 +451,14 @@ Finally, you can verify the `Kubernetes` secret which contains your `TLS` certif
 - `Nginx` ingress:
 
   ```shell
-  kubectl describe secret starter-kit.online -n ingress-nginx
+  kubectl describe secret starter-kit.online -n backend
   ```
 
   The output looks similar to (notice that it contains the `wildcard` certificate `private` and `public` keys):
 
   ```text
   Name:         starter-kit.online
-  Namespace:    ingress-nginx
+  Namespace:    backend
   Labels:       <none>
   Annotations:  cert-manager.io/alt-names: *.starter-kit.online,starter-kit.online
                 cert-manager.io/certificate-name: starter-kit.online

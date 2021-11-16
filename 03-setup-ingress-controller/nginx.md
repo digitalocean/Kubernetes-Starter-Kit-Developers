@@ -46,7 +46,7 @@ After finishing this tutorial, you will be able to:
 To complete this tutorial, you will need:
 
 1. A [Git](https://git-scm.com/downloads) client, to clone the `Starter Kit` repository.
-2. [Helm](https://www.helms.sh), for managing `Nginx` releases and upgrades.
+2. [Helm](https://www.helm.sh), for managing `Nginx` releases and upgrades.
 3. [Doctl](https://github.com/digitalocean/doctl/releases), for `DigitalOcean` API interaction.
 4. [Kubectl](https://kubernetes.io/docs/tasks/tools), for `Kubernetes` interaction.
 5. [Curl](https://curl.se/download.html), for testing the examples (backend applications).
