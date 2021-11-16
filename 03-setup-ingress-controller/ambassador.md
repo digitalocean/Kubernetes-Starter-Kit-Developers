@@ -1,60 +1,8 @@
-# How to Configure Ingress using Ambassador
+# How to Install and Configure Ingress using Ambassador
 
 ## Introduction
 
-In this tutorial, you will learn how to use the [Ambassador Edge Stack](https://www.getambassador.io). Then, you're going to discover how to have `SSL` certificates automatically deployed and configured for your hosts, enable `TLS` termination, and `route` traffic to your `backend` applications.
-
-In most of the cases, you will use the `Load Balancer` that is made available by the `Cloud` provider of your choice. In case of `DigitalOcean` when you configure a service as a `Load Balancer`, `DOKS` automatically provisions one in your account. Now, the `service` is exposed to the outside world and can be accessed via the `Load Balancer` endpoint. In a real world scenario, you do not want to use one `Load Balancer` per service, so you need a `proxy` inside the cluster. That is `Ingress`.
-
-When an `Ingress Proxy` is installed, it creates a service and exposes it as a `Load Balancer`. Now, you can have as many services behind the ingress and all accessible through a single endpoint. Ingress operates at the `HTTP` layer.
-
-Let us say you are exposing `REST` or `GRPC` APIs for different tasks (reading account info, writing orders, searching orders, etc.). Depending on the `API`, you will want to be able to route to a specific target. For this to happen, more functionality needs to be built inside the ingress proxy. That is `API Gateway`, and it is capable of doing more things besides routing traffic. For this tutorial, you are going to pick an ingress that can do both `HTTP` routing and `API Gateway`.
-
-As there are many vendors, `Kubernetes API` has an `Ingress` spec. The idea is that developers should be able to use the `Ingress API` and it should work with any vendor. That works well, but has limited capability in the current version. The new version of ingress is called `Gateway API` and is currently in alpha. The idea is the same - users should be able to provide a rich set of ingress configuration using the `Gateway API` syntax. As long as the vendor supports it, users will be able to manage the ingress in a vendor-agnostic way.
-
-Why use the `Ambassador Edge Stack`?
-
-`Ambassador Edge Stack` gives platform engineers a comprehensive, self-service edge stack for managing the boundary between `end-users` and `Kubernetes`. Built on the `Envoy Proxy` and fully `Kubernetes-native`, `Ambassador Edge Stack` is made to support multiple, independent teams that need to rapidly publish, monitor, and update services for end-users. A true edge stack, `Ambassador Edge Stack` can also be used to handle the functions of an `API Gateway`, a `Kubernetes ingress controller` and a `layer 7 load balancer`.
-
-After finishing this tutorial, you will be able to:
-
-- Create and manage `Ambassador Edge Stack` Helm deployments.
-- Create and configure the `Ambassador Edge Stack` domain and hosts.
-- Automatically configure `SSL` certificates for your `hosts`, thus having `TLS` termination.
-- Create and configure `Ambassador Edge Stack` host mappings.
-- Know about `Ambassador Edge Stack` resource usage in your `DOKS` cluster.
-
-## Table of contents
-
-- [Introduction](#introduction)
-- [Prerequisites](#prerequisites)
-- [Step 1 - Ambassador Edge Stack Overview](#step-1---ambassador-edge-stack-overview)
-- [Step 2 - Installing the Ambassador Edge Stack](#step-2---installing-the-ambassador-edge-stack)
-- [Step 3 - Defining the Domain and Hosts for Ambassador Edge Stack](#step-3---defining-the-domain-and-hosts-for-ambassador-edge-stack)
-- [Step 4 - Configuring the DO Domain for Ambassador Edge Stack](#step-4---configuring-the-do-domain-for-ambassador-edge-stack)
-- [Step 5 - Creating the Ambassador Edge Stack Backend Services](#step-5---creating-the-ambassador-edge-stack-backend-services)
-- [Step 6 - Configuring the Ambassador Edge Stack Mappings for Hosts](#step-6---configuring-the-ambassador-edge-stack-mappings-for-hosts)
-- [Step 7 - Enabling Proxy Protocol](#step-7---enabling-proxy-protocol)
-- [Step 8 - Verifying the Ambassador Edge Stack Setup](#step-8---verifying-the-ambassador-edge-stack-setup)
-- [How To Guides](#how-to-guides)
-  - [Wildcard Certificates Support for the Ambassador Edge Stack](guides/wildcard_certificates.md)
-  - [Migrating DigitalOcean LoadBalancer for the Ambassador Edge Stack](guides/do_loadbalancer_migration.md)
-  - [Performance Considerations for the Ambassador Edge Stack](guides/performance_considerations.md)
-- [Conclusion](#conclusion)
-
-## Prerequisites
-
-To complete this tutorial, you will need:
-
-1. A [Git](https://git-scm.com/downloads) client, to clone the `Starter Kit` repository.
-2. [Helm](https://www.helms.sh), for managing `AES` releases and upgrades.
-3. [Doctl](https://github.com/digitalocean/doctl/releases), for `DigitalOcean` API interaction.
-4. [Kubectl](https://kubernetes.io/docs/tasks/tools), for `Kubernetes` interaction.
-5. [Curl](https://curl.se/download.html), for testing the examples (backend applications).
-
-Please make sure that `doctl` and `kubectl` context is configured to point to your `Kubernetes` cluster - refer to [Step 2 - Authenticating to DigitalOcean API](../01-setup-DOKS/README.md#step-2---authenticating-to-digitalocean-api) and [Step 3 - Creating the DOKS Cluster](../01-setup-DOKS/README.md#step-3---creating-the-doks-cluster) from the `DOKS` setup tutorial.
-
-## Step 1 - Ambassador Edge Stack Overview
+In this tutorial, you will learn how to use the [Ambassador Edge Stack](https://www.getambassador.io) ingress (`AES` for short) . Then, you're going to discover how to have `TLS` certificates automatically deployed and configured for your hosts (thus enabling `TLS` termination), and `route` traffic to your `backend` applications. It can function as an `API Gateway`, an `Ingress Controller` or a `Layer 7 Load Balancer`.
 
 The `Ambassador Edge Stack` or `AES` for short, is a specialized [Control Plane](https://blog.getambassador.io/the-importance-of-control-planes-with-service-meshes-and-front-proxies-665f90c80b3d) for the `Envoy Proxy`. In this architecture, `Ambassador Edge Stack` translates configuration (in the form of `Kubernetes Custom Resources`) to `Envoy` configuration. All the actual traffic is directly handled by the high-performance [Envoy Proxy](https://www.envoyproxy.io).
 
@@ -66,15 +14,54 @@ At a very high level, `AES` works as follows:
 4. The new configuration is passed to `Envoy` via the `gRPC-based Aggregated Discovery Service (ADS) API`.
 5. Traffic flows through the reconfigured `Envoy`, without dropping any connections.
 
-For more details, please visit: [The Ambassador Edge Stack Architecture](https://www.getambassador.io/docs/edge-stack/2.0/topics/concepts/architecture).
+Why use the `Ambassador Edge Stack`?
+
+Let us say you are exposing `REST` or `GRPC` APIs for different tasks (reading account info, writing orders, searching orders, etc.). Depending on the `API`, you will want to be able to route to a specific target. For this to happen, more functionality needs to be built inside the ingress proxy. That is `API Gateway`, and it is capable of doing more things besides routing traffic.
+
+`Ambassador` abstracts the `Ingress` spec even more, thus making it `easier` to work with, and adds more functionality on top. So, for most use cases you don't need to use the `Ingress Controller` functionality of `AES`. The recommended way of using AES is via the CRDs, like `Hosts` and `Mappings`.
 
 ### Starter Kit AES Setup Overview
 
 ![Starter Kit AES Setup Overview](assets/images/starter_kit_aes_setup_overview.png)
 
-In the next step, you will learn how to deploy the `Ambassador Edge Stack`, using the `Helm` package manager for `Kubernetes`.
+After finishing this tutorial, you will be able to:
 
-## Step 2 - Installing the Ambassador Edge Stack
+- Create and manage `Ambassador Edge Stack` releases via `Helm`.
+- Create and configure the `Ambassador Edge Stack` domain and hosts.
+- Automatically configure `TLS` certificates for your `Hosts`, thus having `TLS` termination.
+- Create and configure `Ambassador Edge Stack` host `Mappings`.
+- Know about `Ambassador Edge Stack` resource usage in your `DOKS` cluster ([Performance Considerations](guides/aes_performance_considerations.md) guide).
+
+## Table of contents
+
+- [Introduction](#introduction)
+- [Prerequisites](#prerequisites)
+- [Step 1 - Installing the Ambassador Edge Stack](#step-1---installing-the-ambassador-edge-stack)
+- [Step 2 - Defining the Hosts for Ambassador Edge Stack](#step-2---defining-the-hosts-for-ambassador-edge-stack)
+- [Step 3 - Configuring DNS for Ambassador Edge Stack](#step-3---configuring-dns-for-ambassador-edge-stack)
+- [Step 4 - Creating the Ambassador Edge Stack Backend Services](#step-4---creating-the-ambassador-edge-stack-backend-services)
+- [Step 5 - Configuring the Ambassador Edge Stack Mappings for Hosts](#step-5---configuring-the-ambassador-edge-stack-mappings-for-hosts)
+- [Step 6 - Enabling Proxy Protocol](#step-6---enabling-proxy-protocol)
+- [Step 7 - Verifying the Ambassador Edge Stack Setup](#step-7---verifying-the-ambassador-edge-stack-setup)
+- [How To Guides](#how-to-guides)
+  - [Setting up Ingress to use Wildcard Certificates](guides/wildcard_certificates.md)
+  - [Ingress Controller LoadBalancer Migration](guides/ingress_loadbalancer_migration.md)
+  - [Performance Considerations for the Ambassador Edge Stack](guides/aes_performance_considerations.md)
+- [Conclusion](#conclusion)
+
+## Prerequisites
+
+To complete this tutorial, you will need:
+
+1. A [Git](https://git-scm.com/downloads) client, to clone the `Starter Kit` repository.
+2. [Helm](https://www.helms.sh), for managing `Ambassador Edge Stack` releases and upgrades.
+3. [Doctl](https://github.com/digitalocean/doctl/releases), for `DigitalOcean` API interaction.
+4. [Kubectl](https://kubernetes.io/docs/tasks/tools), for `Kubernetes` interaction.
+5. [Curl](https://curl.se/download.html), for testing the examples (backend applications).
+
+Please make sure that `doctl` and `kubectl` context is configured to point to your `Kubernetes` cluster - refer to [Step 2 - Authenticating to DigitalOcean API](../01-setup-DOKS/README.md#step-2---authenticating-to-digitalocean-api) and [Step 3 - Creating the DOKS Cluster](../01-setup-DOKS/README.md#step-3---creating-the-doks-cluster) from the `DOKS` setup tutorial.
+
+## Step 1 - Installing the Ambassador Edge Stack
 
 In this step, you will deploy the `Ambassador Edge Stack` to your `DOKS` cluster, via `Helm`.
 
@@ -108,16 +95,16 @@ Steps to follow:
     **Note:**
 
     The chart of interest is `datawire/ambassador`, which will install `Ambassador Edge Stack` on the cluster. Please visit the [ambassador-chart](https://github.com/datawire/ambassador-chart) page, for more details about this chart.
-3. Then, open and inspect the `03-setup-ingress-ambassador/assets/manifests/ambassador-values-v6.7.13.yaml` file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://code.visualstudio.com):
+3. Then, open and inspect the `03-setup-ingress-controller/assets/manifests/ambassador-values-v6.7.13.yaml` file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://code.visualstudio.com):
 
-   ```shell
-   code 03-setup-ingress-ambassador/assets/manifests/ambassador-values-v6.7.13.yaml
-   ```
+    ```shell
+    code 03-setup-ingress-controller/assets/manifests/ambassador-values-v6.7.13.yaml
+    ```
 
-   **Note:**
+    **Note:**
 
     There are times when you want to re-use the existing `Load Balancer`. This is for preserving your `DNS` settings and other `Load Balancer` configurations. If so, make sure to modify the `ambassador-values-v6.7.13.yaml` file, and add the annotation for your existing `Load Balancer`. Likewise, you can enable `Proxy Protocol` as part of modules section in the `ambassador-values-v6.7.13.yaml` file. Please refer to the `DigitalOcean Kubernetes` guide - [How To Migrate Load Balancers](https://docs.digitalocean.com/products/kubernetes/how-to/migrate-load-balancers) for more details.
-4. Finally, finish the installation (a dedicated `ambassador` namespace will be created as well):
+4. Finally, install `Ambassador Edge Stack` using `Helm` (a dedicated `ambassador` namespace will be created as well):
 
     ```shell
     HELM_CHART_VERSION="6.7.13"
@@ -125,14 +112,75 @@ Steps to follow:
     helm install ambassador datawire/ambassador --version "$HELM_CHART_VERSION" \
         --namespace ambassador \
         --create-namespace \
-        -f "03-setup-ingress-ambassador/assets/manifests/ambassador-values-v${HELM_CHART_VERSION}.yaml"
+        -f "03-setup-ingress-controller/assets/manifests/ambassador-values-v${HELM_CHART_VERSION}.yaml"
     ```
 
     **Note:**
 
-    A `specific` version for the `Helm` chart is used. In this case `6.7.13` was picked, which maps to the `1.13.10` release of `AES` (see the output from `Step 2.`). It’s good practice in general, to lock on a specific version. This helps to have predictable results, and allows versioning control via `Git`.
+    A `specific` version for the ambassador `Helm` chart is used. In this case `6.7.13` was picked, which maps to the `1.13.10` release of `Ambassador Edge Stack` (see the output from `Step 2.`). It’s good practice in general, to lock on a specific version. This helps to have predictable results, and allows versioning control via `Git`.
 
-## Step 3 - Defining the Domain and Hosts for Ambassador Edge Stack
+**Observations and results:**
+
+You can verify Ambassador deployment status via:
+
+```shell
+helm ls -n ambassador
+```
+
+The output looks similar to (notice that the `STATUS` column value is `deployed`):
+
+```text
+NAME         NAMESPACE   REVISION  UPDATED                                STATUS      CHART               APP VERSION
+ambassador   ambassador  1         2021-09-11 15:49:03.499499 +0200 EET   deployed    ambassador-6.7.13   1.13.0
+```
+
+Next check Kubernetes resources created for the `ambassador` namespace (notice the `deployment` and `replicaset` resources which should be healthy, as well as the `LoadBalancer` resource having an `external IP` assigned):
+
+```shell
+kubectl get all -n ambassador
+```
+
+The output looks similar to:
+
+```text
+NAME                                    READY   STATUS    RESTARTS   AGE
+pod/ambassador-5bdc64f9f6-hhwdc         1/1     Running   0          6m14s
+pod/ambassador-5bdc64f9f6-xz9jl         1/1     Running   0          6m14s
+pod/ambassador-agent-bcdd8ccc8-m9blv    1/1     Running   0          6m14s
+pod/ambassador-redis-64b7c668b9-69c5p   1/1     Running   0          6m14s
+
+NAME                       TYPE           CLUSTER-IP       EXTERNAL-IP       PORT(S)                      AGE
+service/ambassador         LoadBalancer   10.245.189.240   68.183.252.190    80:30323/TCP,443:30510/TCP   6m14s
+service/ambassador-admin   ClusterIP      10.245.170.181   <none>            8877/TCP,8005/TCP            6m14s
+service/ambassador-redis   ClusterIP      10.245.205.49    <none>            6379/TCP                     6m14s
+
+NAME                               READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/ambassador         2/2     2            2           6m14s
+deployment.apps/ambassador-agent   1/1     1            1           6m14s
+deployment.apps/ambassador-redis   1/1     1            1           6m14s
+
+NAME                                          DESIRED   CURRENT   READY   AGE
+replicaset.apps/ambassador-5bdc64f9f6         2         2         2       6m14s
+replicaset.apps/ambassador-agent-bcdd8ccc8    1         1         1       6m14s
+replicaset.apps/ambassador-redis-64b7c668b9   1         1         1       6m14s
+```
+
+Finally, list all load balancer resources from your `DigitalOcean` account, and print the `IP`, `ID`, `Name` and `Status`:
+
+```shell
+doctl compute load-balancer list --format IP,ID,Name,Status
+```
+
+The output looks similar to (should contain the new `load balancer` resource created for `Ambassador Edge Stack` in a healthy state):
+
+```text
+IP                 ID                                      Name                                Status
+68.183.252.190     0471a318-a98d-49e3-aaa1-ccd855831447    acdc25c5cfd404fd68cd103be95af8ae    active
+```
+
+In the next step, you will learn how to create the `Host` CRDs which tell `Ambassador` how to expose backend hosts (services) to the outside world.
+
+## Step 2 - Defining the Hosts for Ambassador Edge Stack
 
 In a real world scenario each `host` maps to a `service`, so you need a way to tell `AES` about your intentions - meet the [Host](https://www.getambassador.io/docs/edge-stack/1.13/topics/running/host-crd/) CRD. The `Host` CRD can handle `TLS termination` automatically, by using `HTTP-01` ACME challenge to request `TLS certificates` from a well known `Certificate Authority` (like [Let's Encrypt](https://letsencrypt.org/)). Certificates creation and renewal happens automatically once you configure and enable this feature in the `Host` CRD.
 
@@ -190,9 +238,9 @@ Steps to follow:
 2. Then, apply the manifests:
 
     ```shell
-    kubectl apply -f 03-setup-ingress-ambassador/assets/manifests/echo_host.yaml
+    kubectl apply -f 03-setup-ingress-controller/assets/manifests/echo_host.yaml
 
-    kubectl apply -f 03-setup-ingress-ambassador/assets/manifests/quote_host.yaml
+    kubectl apply -f 03-setup-ingress-controller/assets/manifests/quote_host.yaml
     ```
 
 3. Finally, inspect the `AES` hosts:
@@ -241,9 +289,9 @@ Events:
 
 As seen above, the last `event` tells that there's no `A` record to point to the `echo` host for the `starter-kit.online` domain, which results in a lookup failure. You will learn how to fix this issue, in the next step of the tutorial.
 
-## Step 4 - Configuring the DO Domain for Ambassador Edge Stack
+## Step 3 - Configuring DNS for Ambassador Edge Stack
 
-In this step, you will configure the `DigitalOcean` domain for `AES`, using `doctl`. Then, you will create the domain `A` records for each host: `echo` and `quote`.
+In this step, you will configure `DNS` within your `DigitalOcean` account, using a `domain` that you own. Then, you will create the domain `A` records for each host: `echo` and `quote`. Please bear in mind that `DigitalOcean` is not a domain name registrar. You need to buy a domain name first from [Google](https://domains.google), [GoDaddy](https://uk.godaddy.com), etc.
 
 First, please issue the below command to create a new `domain` (`starter-kit.online`, in this example):
 
@@ -262,23 +310,32 @@ starter-kit.online    0
 
 **YOU NEED TO ENSURE THAT YOUR DOMAIN REGISTRAR IS CONFIGURED TO POINT TO DIGITALOCEAN NAME SERVERS**. More information on how to do that is available [here](https://www.digitalocean.com/community/tutorials/how-to-point-to-digitalocean-nameservers-from-common-domain-registrars).
 
-Next, you will add required `A` records for the `hosts` you created earlier. First, you need to identify the `Load Balancer` IP that points to your `Kubernetes` cluster (the `Ambassador Edge Stack` deployed earlier creates one for you). Pick the one that matches your configuration from the list:
+Next, you will add required `A` records for the `hosts` you created earlier. First, you need to identify the load balancer `external IP` created by the `Ambassador Edge Stack` deployment:
 
 ```shell
-doctl compute load-balancer list
+kubectl get svc -n ambassador
+```
+
+The output looks similar to (notice the `EXTERNAL-IP` column value for the `ambassador` service):
+
+```text
+NAME               TYPE           CLUSTER-IP       EXTERNAL-IP       PORT(S)                      AGE
+ambassador         LoadBalancer   10.245.189.240   68.183.252.190    80:30323/TCP,443:30510/TCP   6m14s
+ambassador-admin   ClusterIP      10.245.170.181   <none>            8877/TCP,8005/TCP            6m14s
+ambassador-redis   ClusterIP      10.245.205.49    <none>            6379/TCP                     6m14s
 ```
 
 Then, add the records (please replace the `<>` placeholders accordingly). You can change the `TTL` value as per your requirement:
 
 ```shell
-doctl compute domain records create starter-kit.online --record-type "A" --record-name "echo" --record-data "<your_lb_ip_address>" --record-ttl "30"
+doctl compute domain records create starter-kit.online --record-type "A" --record-name "echo" --record-data "<YOUR_LB_IP_ADDRESS>" --record-ttl "30"
 
-doctl compute domain records create starter-kit.online --record-type "A" --record-name "quote" --record-data "<your_lb_ip_address>" --record-ttl "30"
+doctl compute domain records create starter-kit.online --record-type "A" --record-name "quote" --record-data "<YOUR_LB_IP_ADDRESS>" --record-ttl "30"
 ```
 
 **Hint:**
 
-If you have only one `LB` in your account, then please use the following snippet:
+If you have only `one load balancer` in your account, then please use the following snippet:
 
 ```shell
 LOAD_BALANCER_IP=$(doctl compute load-balancer list --format IP --no-header)
@@ -332,11 +389,11 @@ Please visit the [How to Create, Edit and Delete DNS Records](https://docs.digit
 
 In the next step, you will create two simple `backend` services, to help you test the `Ambassador Edge Stack` setup.
 
-## Step 5 - Creating the Ambassador Edge Stack Backend Services
+## Step 4 - Creating the Ambassador Edge Stack Backend Services
 
 In this step, you will deploy two example `backend` services (applications), named `echo` and `quote` to test the `Ambassador Edge Stack` setup.
 
-You can have multiple `TLS` enabled `hosts` on the same cluster. On the other hand, you can have multiple `deployments` and `services` as well. So for each `backend` application, a corresponding `Kubernetes Deployment` and `Service` has to be created.
+You can have multiple `TLS` enabled `hosts` on the same cluster. On the other hand, you can have multiple `deployments` and `services` as well. So for each `backend` application, a corresponding Kubernetes `Deployment` and `Service` has to be created.
 
 First, you define a new `namespace` for the `quote` and `echo` backend applications. This is good practice in general, because you don't want to pollute the `AES` namespace (or any other), with application specific stuff.
 
@@ -357,17 +414,17 @@ Steps to follow:
 3. Then, create the [echo](assets/manifests/echo_deployment.yaml) and [quote](assets/manifests/quote_deployment.yaml) deployments:
 
     ```shell
-    kubectl apply -f 03-setup-ingress-ambassador/assets/manifests/echo_deployment.yaml
+    kubectl apply -f 03-setup-ingress-controller/assets/manifests/echo_deployment.yaml
 
-    kubectl apply -f 03-setup-ingress-ambassador/assets/manifests/quote_deployment.yaml
+    kubectl apply -f 03-setup-ingress-controller/assets/manifests/quote_deployment.yaml
     ```
 
 4. Finally, create the corresponding `services`:
 
     ```shell
-    kubectl apply -f 03-setup-ingress-ambassador/assets/manifests/echo_service.yaml
+    kubectl apply -f 03-setup-ingress-controller/assets/manifests/echo_service.yaml
 
-    kubectl apply -f 03-setup-ingress-ambassador/assets/manifests/quote_service.yaml
+    kubectl apply -f 03-setup-ingress-controller/assets/manifests/quote_service.yaml
     ```
 
 **Observation and results:**
@@ -400,9 +457,23 @@ quote   ClusterIP   10.245.158.116   <none>        80/TCP    2m33s
 
 In the next step, you will create the AES `Mappings` for the `quote` and `echo` backend applications.
 
-## Step 6 - Configuring the Ambassador Edge Stack Mappings for Hosts
+## Step 5 - Configuring the Ambassador Edge Stack Mappings for Hosts
 
 In this step, you will learn how to create the `Ambassador Edge Stack` mappings, so that your `backend` applications are ready for inbound/outbound `traffic`. The main goal here is to have a basic understanding on how the `AES` stack will `route` requests to each `application`, by introducing a new custom `AES` resource. Meet the [Mapping]((https://www.getambassador.io/docs/edge-stack/1.13/topics/using/intro-mappings)) CRD.
+
+A typical `Mapping` definition looks like below:
+
+```yaml
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: quote-backend
+  namespace: ambassador
+spec:
+  prefix: /quote/
+  host: quote.starter-kit.online
+  service: quote.backend
+```
 
 What a `Mapping` does, is to manage traffic routing for the `quote` and `echo` services. Each mapping has a set of fields, described below:
 
@@ -419,9 +490,9 @@ cd Kubernetes-Starter-Kit-Developers
 Next, create a `Mapping` for [echo](assets/manifests/echo_mapping.yaml) and [quote](assets/manifests/quote_mapping.yaml) backend applications:
 
 ```shell
-kubectl apply -f 03-setup-ingress-ambassador/assets/manifests/echo_mapping.yaml
+kubectl apply -f 03-setup-ingress-controller/assets/manifests/echo_mapping.yaml
 
-kubectl apply -f 03-setup-ingress-ambassador/assets/manifests/quote_mapping.yaml
+kubectl apply -f 03-setup-ingress-controller/assets/manifests/quote_mapping.yaml
 ```
 
 **Observation and results:**
@@ -449,9 +520,9 @@ You can further explore some of the concepts you learned so far, by following be
 - [Mapping](https://www.getambassador.io/docs/edge-stack/1.13/topics/using/intro-mappings/) resource: `routes` traffic from the `edge` of your cluster to a `Kubernetes` service
 - [Host](https://www.getambassador.io/docs/edge-stack/1.13/topics/running/host-crd/) resource: sets the `hostname` by which `Ambassador Edge Stack` will be accessed and secured with `TLS` certificates.
 
-In the next step, you will learn how to use the `DigitalOcean Proxy Protocol` with `AES`.
+In the next step, you will learn how to use the `DigitalOcean Proxy Protocol` with `Ambassador Edge Stack`.
 
-## Step 7 - Enabling Proxy Protocol
+## Step 6 - Enabling Proxy Protocol
 
 A `L4` load balancer replaces the original `client IP` with its `own IP` address. This is a problem, as you will lose the `client IP` visibility in the application, so you need to enable `proxy protocol`. Proxy protocol enables a `L4 Load Balancer` to communicate the `original` client `IP`. For this to work, you need to configure both `DigitalOcean Load Balancer` and `AES`. After deploying the [AES Backend Services](#step-5---creating-the-ambassador-edge-stack-backend-services), and manually enabling the `proxy protocol`, you need to configure `Ambassador Module` to enable `AES` to use the `proxy protocol`.
 
@@ -467,18 +538,18 @@ You can enable proxy support in the `Ambassador` stack via the [aes_proxy_module
 Change directory where the `Starter Kit` repository was cloned and:
 
 ```shell
-kubectl apply -f 03-setup-ingress-ambassador/assets/manifests/aes_proxy_module.yaml
+kubectl apply -f 03-setup-ingress-controller/assets/manifests/aes_proxy_module.yaml
 ```
 
 Please note that module configuration is a `global` option (enable/disable) for `AES`.
 
-In the next step, you will test the `AES` mappings configuration, and perform HTTP requests on the backend services using `curl`.
+In the next step, you will test the `AES` mappings configuration, and perform `HTTP` requests on the backend services using `curl`.
 
-## Step 8 - Verifying the Ambassador Edge Stack Setup
+## Step 7 - Verifying the Ambassador Edge Stack Setup
 
-In the current setup, you have two hosts configured with `TLS` termination and `ACME` protocol: `quote.starter-kit.online` and `echo.starter-kit.online`. By creating AES `Mappings` it's very easy to have `TLS` termination support and `API Gateway` capabilities.
+In the current setup, you have two hosts configured with `TLS` termination: `quote.starter-kit.online` and `echo.starter-kit.online`. By creating AES `Mappings` it's very easy to have `TLS` termination support and `API Gateway` capabilities.
 
-If pinging `quote.starter-kit.online` or `echo.starter-kit.online` in the terminal you can see that packets are being sent to the `AES` external `IP`. Then, `AES` is using the mapping feature to reach the endpoints. Next, you're going to verify if service mappings are working.
+If pinging `quote.starter-kit.online` or `echo.starter-kit.online` in the terminal, you can see that packets are being sent to the `AES` external `IP`. Then, `AES` is using the mapping feature to reach the endpoints. Next, you're going to verify if service mappings are working.
 
 First, inspect the `Ambassador` services:
 
@@ -533,9 +604,9 @@ x-envoy-upstream-service-time: 0
 server: envoy
 
 {
-    "server": "avaricious-blackberry-5xw0vf5k",
-    "quote": "The last sentence you read is often sensible nonsense.",
-    "time": "2021-08-12T18:28:43.861400709Z"
+  "server": "avaricious-blackberry-5xw0vf5k",
+  "quote": "The last sentence you read is often sensible nonsense.",
+  "time": "2021-08-12T18:28:43.861400709Z"
 }
 ```
 
@@ -583,14 +654,14 @@ If everything looks like above, you configured the `Ambassador Edge Stack` succe
 
 ## How To Guides
 
-- [Wildcard Certificates Support for the Ambassador Edge Stack](guides/wildcard_certificates.md)
-- [Migrating DigitalOcean LoadBalancer for the Ambassador Edge Stack](guides/do_loadbalancer_migration.md)
-- [Performance Considerations for the Ambassador Edge Stack](guides/performance_considerations.md)
+- [Setting up Ingress to use Wildcard Certificates](guides/wildcard_certificates.md)
+- [Ingress Controller LoadBalancer Migration](guides/ingress_loadbalancer_migration.md)
+- [Performance Considerations for the Ambassador Edge Stack](guides/aes_performance_considerations.md)
 
 ## Conclusion
 
-In this tutorial, you learned how to set up an `Ingress` controller for your `DOKS` cluster, using the `Ambassador Edge Stack`. Then, you discovered how `AES` simplifies some of the common tasks, like: handling `SSL` certificates for your applications (thus enabling `TLS` termination), `routing` traffic to `backend` services, and `adjusting` resource `requests` and `limits` for the stack.
+In this tutorial you learned how to set up an `Ingress Controller` for your `DOKS` cluster using the `Ambassador Edge Stack`. Then, you discovered how `AES` simplifies some of the common tasks, like: handling `TLS` certificates for your applications (thus enabling `TLS` termination), `routing` traffic to `backend` services, and `adjusting` resource `requests` and `limits` for the stack.
 
-Next, `monitoring` plays a key role in every `production ready` system. In [Section 4 - Set up Prometheus Stack](../04-setup-prometheus-stack), you will learn how to enable monitoring for your `DOKS` cluster, as well as for the `AES` stack, using `Prometheus`.
+Next, `monitoring` plays a key role in every `production ready` system. In [Section 4 - Set up Prometheus Stack](../04-setup-prometheus-stack), you will learn how to enable monitoring for your `DOKS` cluster using `Prometheus`.
 
 Go to [Section 4 - Set up Prometheus Stack](../04-setup-prometheus-stack/README.md).

@@ -167,7 +167,7 @@ In the next part, you will discover how to set up `Prometheus` to discover targe
 
 You already deployed `Prometheus` and `Grafana` into the cluster. In this step, you will learn how to use a `ServiceMonitor`. A `ServiceMonitor` is one of the preferred ways to tell `Prometheus` how to discover a new target for monitoring.
 
-The [Ambassador Edge Stack Deployment](../03-setup-ingress-ambassador/README.md#ambassador-edge-stack-deployment) created earlier in the tutorial, provides the `/metrics` endpoint by default on port `8877` via a `Kubernetes` service.
+The [Ambassador Edge Stack Deployment](../03-setup-ingress-controller/ambassador.md#step-1---installing-the-ambassador-edge-stack) created earlier in the tutorial, provides the `/metrics` endpoint by default on port `8877` via a `Kubernetes` service.
 
 Next, you will discover the `Ambassador` service responsible with exposing metrics data for `Prometheus` to consume. The service in question is called `ambassador-admin` (note that it's using the `ambassador` namespace):
 
@@ -385,7 +385,7 @@ After clicking `Import`, it will create the following dashboard, as seen below:
 
 ![Grafana Ambassador Dashboard](assets/images/amb_grafana_dashboard.png)
 
-In the next step, you're going to monitor the number of `API` calls for the `quote` backend service created using the [Ambassador Edge Stack Backend Services](../03-setup-ingress-ambassador/README.md##step-5---creating-the-ambassador-edge-stack-backend-services) step, from the Ambassador Edge Stack `Starter Kit` tutorial.
+In the next step, you're going to monitor the number of `API` calls for the `quote` backend service created using the [Ambassador Edge Stack Backend Services](../03-setup-ingress-controller/ambassador.md##step-4---creating-the-ambassador-edge-stack-backend-services) step, from the Ambassador Edge Stack `Starter Kit` tutorial (or [Nginx Backend Services](#step-3---creating-the-nginx-backend-services), for `Nginx`).
 
 The graph of interest is: `API Response Codes`.
 

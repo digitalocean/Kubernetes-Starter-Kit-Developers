@@ -3,12 +3,13 @@
 ## Table of contents
 
 - [Introduction](#introduction)
+- [Prerequisites](#prerequisites)
 - [Adjusting Deployment Replica Count](#adjusting-deployment-replica-count)
 - [Adjusting Resource Requests](#adjusting-resource-requests)
 
 ## Introduction
 
-The performance of `Ambassador Edge Stack's` control plane can be characterized along a number of different `dimensions`. The following list contains each `dimension` that has an impact at the application level:
+The performance of `Ambassador Edge Stack` control plane can be characterized along a number of different `dimensions`. The following list contains each `dimension` that has an impact at the application level:
 
 - The number of `TLSContext` resources.
 - The number of `Host` resources.
@@ -28,6 +29,14 @@ In general you should try to keep AES `memory usage` below `50%` of the pod's `l
 
 Going further, what you can do on the `Kubernetes` side, is to adjust deployment `replica count`, and resource `requests` for pods.
 
+## Prerequisites
+
+To complete this guide, you will need:
+
+1. A [Git](https://git-scm.com/downloads) client, to clone the `Starter Kit` repository.
+2. [Helm](https://www.helms.sh), for managing `Ambassador` releases and upgrades.
+3. [Kubectl](https://kubernetes.io/docs/tasks/tools), for `Kubernetes` interaction.
+
 ## Adjusting Deployment Replica Count
 
 Based on our findings, a value of `2` should suffice in case of small `development` environments.
@@ -37,20 +46,20 @@ Next, you're going to scale the `Ambassador Edge Stack` deployment, and adjust t
 Steps to follow:
 
 1. First, change directory where the `Starter Kit` Git repository was cloned.
-2. Next, open and inspect the `replicaCount` section, from the `03-setup-ingress-ambassador/assets/manifests/ambassador-values-v6.7.13.yaml` file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support). It has the required values already set for you to use. For example, you can use [VS Code](https://code.visualstudio.com):
+2. Next, open and inspect the `replicaCount` section, from the `03-setup-ingress-controller/assets/manifests/ambassador-values-v6.7.13.yaml` file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support). It has the required values already set for you to use. For example, you can use [VS Code](https://code.visualstudio.com):
 
    ```shell
-   code 03-setup-ingress-ambassador/assets/manifests/ambassador-values-v6.7.13.yaml
+   code 03-setup-ingress-controller/assets/manifests/ambassador-values-v6.7.13.yaml
    ```
 
-3. Then, apply changes using a `Helm` upgrade:
+3. Then, apply changes using `Helm` upgrade:
 
     ```shell
-    HELM_CHART_VERSION="6.7.13"
+    AMBASSADOR_CHART_VERSION="6.7.13"
 
-    helm upgrade ambassador datawire/ambassador --version "$HELM_CHART_VERSION" \
+    helm upgrade ambassador datawire/ambassador --version "$AMBASSADOR_CHART_VERSION" \
         --namespace ambassador \
-        -f "03-setup-ingress-ambassador/assets/manifests/ambassador-values-v${HELM_CHART_VERSION}.yaml"
+        -f "03-setup-ingress-controller/assets/manifests/ambassador-values-v${AMBASSADOR_CHART_VERSION}.yaml"
     ```
 
 4. Finally, check the `ambassador` deployment `replica count` (it should scale to `2`):
@@ -77,10 +86,10 @@ Based on our findings, the memory requests should be adjusted to a value of `200
 Steps to follow:
 
 1. First, change directory where the `Starter Kit` Git repository was cloned.
-2. Next, open and inspect the `resources` section, from the `03-setup-ingress-ambassador/assets/manifests/ambassador-values-v6.7.13.yaml` file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support). It has the required values already set for you to use. For example, you can use [VS Code](https://code.visualstudio.com):
+2. Next, open and inspect the `resources` section, from the `03-setup-ingress-controller/assets/manifests/ambassador-values-v6.7.13.yaml` file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support). It has the required values already set for you to use. For example, you can use [VS Code](https://code.visualstudio.com):
 
    ```shell
-   code 03-setup-ingress-ambassador/assets/manifests/ambassador-values-v6.7.13.yaml
+   code 03-setup-ingress-controller/assets/manifests/ambassador-values-v6.7.13.yaml
    ```
 
 3. Then, run a `Helm` upgrade to apply changes:
@@ -90,7 +99,7 @@ Steps to follow:
 
     helm upgrade ambassador datawire/ambassador --version "$HELM_CHART_VERSION" \
         --namespace ambassador \
-        -f "03-setup-ingress-ambassador/assets/manifests/ambassador-values-v${HELM_CHART_VERSION}.yaml"
+        -f "03-setup-ingress-controller/assets/manifests/ambassador-values-v${HELM_CHART_VERSION}.yaml"
     ```
 
 4. Finally, check the `memory requests` new `value` - it should say `200Mi` (look in the `Containers` section, from below command output):

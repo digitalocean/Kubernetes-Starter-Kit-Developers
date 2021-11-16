@@ -24,7 +24,7 @@ Below is a diagram that gives a high-level overview of the `Starter Kit` setup, 
 1. [Scope](#scope)
 2. [Set up DO Kubernetes](01-setup-DOKS/README.md)
 3. [Set up DO Container Registry](02-setup-DOCR/README.md)
-4. [Ingress Using Ambassador](03-setup-ingress-ambassador/README.md)
+4. [Set up Ingress Controller](03-setup-ingress-controller/README.md)
 5. [Prometheus Monitoring Stack](04-setup-prometheus-stack/README.md)
 6. [Logs Aggregation via Loki Stack](05-setup-loki-stack/README.md)
 7. [Backup Using Velero](06-setup-velero/README.md)

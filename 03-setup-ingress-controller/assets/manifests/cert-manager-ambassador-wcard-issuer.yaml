@@ -1,0 +1,26 @@
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: letsencrypt-ambassador-wcard
+  namespace: ambassador
+spec:
+  # ACME issuer configuration:
+  # `email` - the email address to be associated with the ACME account (make sure it's a valid one).
+  # `server` - the URL used to access the ACME server’s directory endpoint.
+  # `privateKeySecretRef` - Kubernetes Secret to store the automatically generated ACME account private key.
+  acme:
+    email: <YOUR_VALID_EMAIL_ADDRESS_HERE>
+    server: https://acme-v02.api.letsencrypt.org/directory
+    privateKeySecretRef:
+      name: letsencrypt-ambassador-wcard-private
+    # List of challenge solvers that will be used to solve ACME challenges for the matching domains.
+    solvers:
+    # Use the DigitalOcean DNS API to manage DNS01 challenge records.
+      - dns01:
+          digitalocean:
+            # Kubernetes secret that contains the DO API token.
+            # Must be in the same namespace as the Issuer CRD.
+            tokenSecretRef:
+              name: digitalocean-dns
+              key: access-token

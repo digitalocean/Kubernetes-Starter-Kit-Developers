@@ -162,4 +162,4 @@ In this tutorial, you learned how to create a private `DOCR` registry for your `
 
 Next, you will learn how to set up the `Ambassador Edge Stack` to act as an `Ingress` controller, as well as some example `backend` applications to test the setup.
 
-Go to [Section 3 - Ingress using Ambassador](../03-setup-ingress-ambassador/README.md).
+Go to [Section 3 - Set up Ingress Controller](../03-setup-ingress-controller/README.md).

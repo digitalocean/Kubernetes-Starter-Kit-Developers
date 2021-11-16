@@ -1,0 +1,22 @@
+{
+  "spec": {
+    "template": {
+      "spec": {
+        "initContainers": [
+          {
+            "name": "sysctl",
+            "image": "alpine:3.13",
+            "securityContext": {
+              "privileged": true
+            },
+            "command": [
+              "sh",
+              "-c",
+              "sysctl -w fs.file-max=1048576"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}
