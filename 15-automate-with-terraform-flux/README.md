@@ -27,7 +27,7 @@ After finishing all the steps from this tutorial, you should have a fully functi
   - [Using HelmRelease CRD to Install Helm Charts](#using-helmrelease-crd-to-install-helm-charts)
   - [Using HelmRelease CRD to Override Helm Values](#using-helmrelease-crd-to-override-helm-values)
   - [Using Sealed Secrets Controller to Encrypt Kubernetes Secrets](#using-sealed-secrets-controller-to-encrypt-kubernetes-secrets)
-- [Step 1 - Initializing the Terraform Backend](#step-1---initializing-the-terraform-backend)
+- [Step 1 - Initializing Terraform Backend](#step-1---initializing-terraform-backend)
 - [Step 2 - Bootstrapping DOKS and Flux CD](#step-2---bootstrapping-doks-and-flux-cd)
 - [Step 3 - Inspecting DOKS Cluster and Flux CD State](#step-3---inspecting-doks-cluster-and-flux-cd-state)
   - [DOKS Cluster](#doks-cluster)
@@ -35,10 +35,11 @@ After finishing all the steps from this tutorial, you should have a fully functi
 - [Step 4 - Cloning the Flux CD Git Repository and Preparing the Layout](#step-4---cloning-the-flux-cd-git-repository-and-preparing-the-layout)
 - [Step 5 - Creating the Sealed Secrets Helm Release](#step-5---creating-the-sealed-secrets-helm-release)
   - [Exporting the Sealed Secrets Controller Public Key](#exporting-the-sealed-secrets-controller-public-key)
-- [Step 6 - Creating the Ambassador Helm Release](#step-6---creating-the-ambassador-helm-release)
-- [Step 7 - Creating the Prometheus Stack Helm Release](#step-7---creating-the-prometheus-stack-helm-release)
-- [Step 8 - Creating the Loki Stack Helm Release](#step-8---creating-the-loki-stack-helm-release)
-- [Step 9 - Creating the Velero Helm Release](#step-9---creating-the-velero-helm-release)
+- [Step 6 [OPTIONAL] - Creating the Cert-Manager Helm Release](#step-6-optional---creating-the-cert-manager-helm-release)
+- [Step 7 - Creating the Ingress Controller Helm Release](#step-7---creating-the-ingress-controller-helm-release)
+- [Step 8 - Creating the Prometheus Stack Helm Release](#step-8---creating-the-prometheus-stack-helm-release)
+- [Step 9 - Creating the Loki Stack Helm Release](#step-9---creating-the-loki-stack-helm-release)
+- [Step 10 - Creating the Velero Helm Release](#step-10---creating-the-velero-helm-release)
 - [Conclusion](#conclusion)
 
 ## Prerequisites
@@ -218,7 +219,7 @@ For more details, please refer to [Section 08 - Encrypt Kubernetes Secrets Using
 
 Next, you will learn how to provision the `DOKS` cluster and `Flux CD`, using `Terraform`.
 
-## Step 1 - Initializing the Terraform Backend
+## Step 1 - Initializing Terraform Backend
 
 In this step, you're going to initialize the `Terraform` backend. A `DO Spaces` bucket for storing the `Terraform` state file is highly recommended because you do not have to worry about exposing `sensitive` data, as long as the space is `private` of course. Another advantage is that the `state` of your `infrastructure` is backed up, so you can re-use it when the `workspace` is lost. Having a `shared` space for team members is desired as well, in order to perform `collaborative` work via `Terraform`.
 
@@ -230,7 +231,7 @@ git clone https://github.com/digitalocean/Kubernetes-Starter-Kit-Developers.git
 cd Kubernetes-Starter-Kit-Developers/15-automate-with-terraform-flux/assets/terraform
 ```
 
-Next, rename the `backend.tf.sample` file provided in the `Starter Kit` repository to `backend.tf`:
+Next, rename the `backend.tf.sample` file provided by the `Starter Kit` repository to `backend.tf`:
 
 ```shell
 cp backend.tf.sample backend.tf
@@ -274,7 +275,7 @@ First, change directory to `15-automate-with-terraform-flux/assets/terraform`, f
 cd Kubernetes-Starter-Kit-Developers/15-automate-with-terraform-flux/assets/terraform
 ```
 
-Next, rename the `main.tf.sample` file provided in the `Starter Kit` repository to `main.tf`:
+Next, rename the `main.tf.sample` file provided by the `Starter Kit` repository to `main.tf`:
 
 ```shell
 cp main.tf.sample main.tf
@@ -496,13 +497,13 @@ After finishing all the steps from this tutorial, you should have a `Git` reposi
 
 Next, you're going to provision the required `Flux CD` manifests for each component of the `Starter Kit`. Then, you will inspect and commit each manifest to your `Git` repository used by `Flux CD` to reconcile your `DOKS` cluster. For sensitive data, a `Kubernetes Secrets` will be created and `encrypted` using `Sealed Secrets`, and then stored in your `Git` repository as well.
 
-First example will make use of the `Flux CLI` for you to accommodate and get familiarized with creating manifests via the `CLI`. Then, you will use the already prepared `manifests` provided in the `Starter Kit` repository, to speed up the steps from this tutorial.
+First example will make use of the `Flux CLI` for you to accommodate and get familiarized with creating manifests via the `CLI`. Then, you will use the already prepared `manifests` provided by the `Starter Kit` repository, to speed up the steps from this tutorial.
 
 You're going to start with the `Sealed Secrets` Helm release first, because it's a prerequisite for the rest of the `Starter Kit` components.
 
 ## Step 5 - Creating the Sealed Secrets Helm Release
 
-In this step, you will learn how to create manifests using the `Flux CLI`, to define the `Sealed Secrets` Helm release. Then, `Flux` will trigger the `Sealed Secrets Controller` installation in your `DOKS` cluster.
+In this step, you will learn how to create manifests using the `Flux CLI`, to define the `Sealed Secrets` Helm release. Then, `Flux` will trigger the `Sealed Secrets Controller` installation process for your `DOKS` cluster.
 
 Please use the following steps, to create required manifests for the `Sealed Secrets` Helm release:
 
@@ -600,7 +601,7 @@ Please use the following steps, to create required manifests for the `Sealed Sec
           enabled: false
     ```
 
-5. Finally, `commit` your `Git` changes and `push` to `remote`:
+5. Finally, commit `Git` changes to `remote` branch:
 
     ```shell
     SEALED_SECRETS_CHART_VERSION="1.16.1"
@@ -637,7 +638,7 @@ Look for the `READY` column value - it should say `True`. Reconciliation status 
 
 **Hints:**
 
-- The `MESSAGE` column will display `Reconciliation in progress`, as long as the `HelmController` is performing the specific Helm chart installation. If something goes wrong, you'll get another message stating the reason, so please make sure to check Helm release state.
+- The `MESSAGE` column will display `Reconciliation in progress`, as long as the `HelmController` is performing the installation for the specified `Helm` chart. If something goes wrong, you'll get another message stating the reason, so please make sure to check Helm release state.
 - You can use the `--watch` flag for example: `flux get helmrelease <name> --wait`, to wait until the command finishes. Please bear in mind that in this mode, `Flux` will block your terminal prompt until the default timeout of `5 minutes` occurs (can be overridden via the `--timeout` flag).
 - In case something goes wrong, you can search the `Flux` logs, and filter `HelmRelease` messages only:
 
@@ -671,7 +672,7 @@ If for some reason the `kubeseal` certificate fetch command hangs, you can use t
   curl --retry 5 --retry-connrefused localhost:8080/v1/cert.pem > pub-sealed-secrets-<YOUR_DOKS_CLUSTER_NAME_HERE>.pem
   ```
 
-Finally, `commit` the public key to your `Git` repository for later use (it's `safe` to do this, because the `public key` is useless without the `private key` which is stored in your `DOKS` cluster only). Please run bellow commands, and make sure to replace the `<>` placeholders accordingly:
+Finally, `commit` the public key file to remote `Git` repository for later use (it's `safe` to do this, because the `public key` is useless without the `private key` which is stored in your `DOKS` cluster only). Please run bellow commands, and make sure to replace the `<>` placeholders accordingly:
 
 ```shell
 git add pub-sealed-secrets-<YOUR_DOKS_CLUSTER_NAME_HERE>.pem
@@ -687,20 +688,111 @@ git push origin
 
 Next, you're going to perform similar steps to define `Helm` releases for the remaining components of the `Starter Kit`.
 
-## Step 6 - Creating the Ambassador Helm Release
+## Step 6 [OPTIONAL] - Creating the Cert-Manager Helm Release
 
-In this step, you will use pre-made manifests to create the `Ambassador` Helm release for `Flux CD`. Then, `Flux` will trigger the `Ambassador Edge Stack` installation in your `DOKS` cluster.
+If you want to have `wildcard certificates` support for your cluster, you need to provision `Cert-Manager` as well. This step is also required if proper `TLS` termination is needed for the `Nginx Ingress Controller`.
 
 Steps to follow:
 
 1. First, change directory where your `Flux CD` Git repository was cloned. Also, please check that the required directory structure for this tutorial is created, and that the `FLUXCD_HELM_MANIFESTS_PATH` environment variable is set (please refer to [Step 4 - Cloning the Flux CD Git Repository and Preparing the Layout](#step-4---cloning-the-flux-cd-git-repository-and-preparing-the-layout), for details).
-2. Then, fetch the Ambassador `HelmRepository` manifest provided by the `Starter Kit` Git repository:
+2. Then, fetch the Jetstack `HelmRepository` manifest file provided by the `Starter Kit` Git repository:
+
+    ```shell
+    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/15-automate-with-terraform-flux/assets/manifests/fluxcd/helm/repositories/jetstack.yaml" > "${FLUXCD_HELM_MANIFESTS_PATH}/repositories/jetstack.yaml"
+    ```
+
+3. Now, fetch the Cert-Manager `HelmRelease` manifest file provided by the `Starter Kit` Git repository:
+
+    ```shell
+    CERT_MANAGER_CHART_VERSION="1.5.4"
+
+    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/15-automate-with-terraform-flux/assets/manifests/fluxcd/helm/releases/cert-manager-v${CERT_MANAGER_CHART_VERSION}.yaml" > "${FLUXCD_HELM_MANIFESTS_PATH}/releases/cert-manager-v${CERT_MANAGER_CHART_VERSION}.yaml"
+    ```
+
+4. Next, inspect the downloaded `HelmRelease` manifest file using an editor of your choice (preferably with `YAML` lint support), and adjust to your needs. For example, you can use [VS Code](https://code.visualstudio.com) (make sure to replace the `<>` placeholders accordingly, if present):
+
+    ```shell
+    CERT_MANAGER_CHART_VERSION="1.5.4"
+
+    code "${FLUXCD_HELM_MANIFESTS_PATH}/releases/cert-manager-v${CERT_MANAGER_CHART_VERSION}.yaml"
+    ```
+
+5. Finally, commit `Git` changes to `remote` branch:
+
+    ```shell
+    CERT_MANAGER_CHART_VERSION="1.5.4"
+
+    git add "${FLUXCD_HELM_MANIFESTS_PATH}/repositories/jetstack.yaml"
+
+    git add "${FLUXCD_HELM_MANIFESTS_PATH}/releases/cert-manager-v${CERT_MANAGER_CHART_VERSION}.yaml"
+
+    git commit -am "Adding Cert-Manager manifests for Flux CD"
+
+    git push origin
+    ```
+
+After completing the above steps, `Flux CD` will start your `DOKS` cluster `reconciliation` (in about `one minute` or so, if using the `default` interval). If you don't want to wait, you can always `force` reconciliation via:
+
+```shell
+flux reconcile source git flux-system
+```
+
+After a few moments, please inspect the `HelmRelease` status:
+
+```shell
+flux get helmrelease cert-manager
+```
+  
+The output looks similar to:
+
+```text
+NAME                READY   MESSAGE                                 REVISION       SUSPENDED 
+cert-manager        True    Release reconciliation succeeded        v1.5.4         False 
+```
+
+Look for the `READY` column value - it should say `True`. Reconciliation status is displayed in the `MESSAGE` column, along with the `REVISION` number, which represents the `Helm` chart `version`. Please bear in mind that some releases take longer to complete (like `Prometheus` stack, for example), so please be patient.
+
+**Hints:**
+
+- The `MESSAGE` column will display `Reconciliation in progress`, as long as the `HelmController` is performing the installation for the specified `Helm` chart. If something goes wrong, you'll get another message stating the reason, so please make sure to check Helm release state.
+- You can use the `--watch` flag for example: `flux get helmrelease <name> --wait`, to wait until the command finishes. Please bear in mind that in this mode, `Flux` will block your terminal prompt until the default timeout of `5 minutes` occurs (can be overridden via the `--timeout` flag).
+- In case something goes wrong, you can search the `Flux` logs, and filter `HelmRelease` messages only:
+
+    ```shell
+    flux logs --kind=HelmRelease
+    ```
+
+Next, you're going to create `Flux CD` manifests for the `Ambassador` (or `Nginx`) ingress.
+
+## Step 7 - Creating the Ingress Controller Helm Release
+
+In this step, you will use pre-made manifests to create your preferred `Ingress Controller` Helm release for `Flux CD`. Then, `Flux` will trigger the `Ingress Controller` installation process for your `DOKS` cluster.
+
+There are two options available, depending on what `Ingress Controller` you feel most comfortable:
+
+- `Ambassador` Ingress Helm Release.
+- `Nginx` Ingress Helm Release.
+
+Steps to follow:
+
+1. First, change directory where your `Flux CD` Git repository was cloned. Also, please check that the required directory structure for this tutorial is created, and that the `FLUXCD_HELM_MANIFESTS_PATH` environment variable is set (please refer to [Step 4 - Cloning the Flux CD Git Repository and Preparing the Layout](#step-4---cloning-the-flux-cd-git-repository-and-preparing-the-layout), for details).
+2. Then, fetch the `HelmRepository` manifest file provided by the `Starter Kit` Git repository (please pick only one option, depending on what `Ingress Controller` you want to install and configure):
+
+    `Ambassador` Ingress:
 
     ```shell
     curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/15-automate-with-terraform-flux/assets/manifests/fluxcd/helm/repositories/ambassador.yaml" > "${FLUXCD_HELM_MANIFESTS_PATH}/repositories/ambassador.yaml"
     ```
 
-3. Now, fetch the Ambassador `HelmRelease` manifest provided by the `Starter Kit` Git repository:
+    `Nginx` Ingress:
+
+    ```shell
+    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/15-automate-with-terraform-flux/assets/manifests/fluxcd/helm/repositories/kubernetes-community-nginx.yaml" > "${FLUXCD_HELM_MANIFESTS_PATH}/repositories/kubernetes-community-nginx.yaml"
+    ```
+
+3. Now, fetch the `HelmRelease` manifest file provided by the `Starter Kit` Git repository (please pick only one option, depending on what `Ingress Controller` you want to install and configure):
+
+    `Ambassador` Ingress:
 
     ```shell
     AMBASSADOR_CHART_VERSION="6.7.13"
@@ -708,7 +800,17 @@ Steps to follow:
     curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/15-automate-with-terraform-flux/assets/manifests/fluxcd/helm/releases/ambassador-stack-v${AMBASSADOR_CHART_VERSION}.yaml" > "${FLUXCD_HELM_MANIFESTS_PATH}/releases/ambassador-stack-v${AMBASSADOR_CHART_VERSION}.yaml"
     ```
 
-4. Next, inspect the downloaded Ambassador `HelmRelease` manifest using an editor of your choice (preferably with `YAML` lint support), and adjust to your needs. For example, you can use [VS Code](https://code.visualstudio.com) (please make sure to replace the `<>` placeholders accordingly, if present):
+    `Nginx` Ingress:
+
+    ```shell
+    NGINX_CHART_VERSION="4.0.6"
+
+    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/15-automate-with-terraform-flux/assets/manifests/fluxcd/helm/releases/nginx-v${NGINX_CHART_VERSION}.yaml" > "${FLUXCD_HELM_MANIFESTS_PATH}/releases/nginx-v${NGINX_CHART_VERSION}.yaml"
+    ```
+
+4. Next, inspect the downloaded `HelmRelease` manifest file using an editor of your choice (preferably with `YAML` lint support), and adjust to your needs. For example, you can use [VS Code](https://code.visualstudio.com). Make sure to replace the `<>` placeholders accordingly, if present ((please pick only one option, depending on what `Ingress Controller` you want to install and configure):
+
+    `Ambassador` Ingress:
 
     ```shell
     AMBASSADOR_CHART_VERSION="6.7.13"
@@ -716,9 +818,17 @@ Steps to follow:
     code "${FLUXCD_HELM_MANIFESTS_PATH}/releases/ambassador-stack-v${AMBASSADOR_CHART_VERSION}.yaml"
     ```
 
-    **Note:**
+    `Nginx` Ingress:
 
-    You can see how the Ambassador `HelmRelease` manifest configures remediation actions (please visit [Configuring Failure Remediation](https://fluxcd.io/docs/components/helm/helmreleases/#configuring-failure-remediation), for more details about `Helm` install/upgrade failure remediation options available in `Flux CD`):
+    ```shell
+    NGINX_CHART_VERSION="4.0.6"
+
+    code "${FLUXCD_HELM_MANIFESTS_PATH}/releases/nginx-v${NGINX_CHART_VERSION}.yaml"
+    ```
+
+    **Hint:**
+
+    Notice how the `HelmRelease` manifest configures remediation actions (you can visit [Configuring Failure Remediation](https://fluxcd.io/docs/components/helm/helmreleases/#configuring-failure-remediation), for more details about `Helm` install/upgrade failure remediation options available in `Flux CD`):
 
       ```yaml
       ...
@@ -732,7 +842,9 @@ Steps to follow:
       ...
       ```
 
-5. Finally, `commit` your `Git` changes and `push` to `remote`:
+5. Finally, commit `Git` changes to `remote` branch (please pick only one option, depending on what `Ingress Controller` you want to install and configure):
+
+    `Ambassador` Ingress:
 
     ```shell
     AMBASSADOR_CHART_VERSION="6.7.13"
@@ -746,13 +858,29 @@ Steps to follow:
     git push origin
     ```
 
+    `Nginx` Ingress:
+
+    ```shell
+    NGINX_CHART_VERSION="4.0.6"
+
+    git add "${FLUXCD_HELM_MANIFESTS_PATH}/repositories/kubernetes-community-nginx.yaml"
+
+    git add "${FLUXCD_HELM_MANIFESTS_PATH}/releases/nginx-v${NGINX_CHART_VERSION}.yaml"
+
+    git commit -am "Adding Nginx manifests for Flux CD"
+
+    git push origin
+    ```
+
 After completing the above steps, `Flux CD` will start your `DOKS` cluster `reconciliation` (in about `one minute` or so, if using the `default` interval). If you don't want to wait, you can always `force` reconciliation via:
 
 ```shell
 flux reconcile source git flux-system
 ```
 
-After a few moments, please inspect the Ambassador `HelmRelease`:
+After a few moments, please inspect the `HelmRelease` status (please pick only one option, depending on the installed `Ingress Controller`):
+
+`Ambassador` Ingress:
 
 ```shell
 flux get helmrelease ambassador-stack
@@ -765,11 +893,24 @@ NAME                    READY   MESSAGE                                 REVISION
 ambassador-stack        True    Release reconciliation succeeded        6.7.13          False 
 ```
 
+`Nginx` Ingress:
+
+```shell
+flux get helmrelease ingress-nginx
+```
+  
+The output looks similar to:
+
+```text
+NAME                 READY   MESSAGE                                 REVISION       SUSPENDED 
+ingress-nginx        True    Release reconciliation succeeded        4.0.6          False 
+```
+
 Look for the `READY` column value - it should say `True`. Reconciliation status is displayed in the `MESSAGE` column, along with the `REVISION` number, which represents the `Helm` chart `version`. Please bear in mind that some releases take longer to complete (like `Prometheus` stack, for example), so please be patient.
 
 **Hints:**
 
-- The `MESSAGE` column will display `Reconciliation in progress`, as long as the `HelmController` is performing the specific Helm chart installation. If something goes wrong, you'll get another message stating the reason, so please make sure to check Helm release state.
+- The `MESSAGE` column will display `Reconciliation in progress`, as long as the `HelmController` is performing the installation for the specified `Helm` chart. If something goes wrong, you'll get another message stating the reason, so please make sure to check Helm release state.
 - You can use the `--watch` flag for example: `flux get helmrelease <name> --wait`, to wait until the command finishes. Please bear in mind that in this mode, `Flux` will block your terminal prompt until the default timeout of `5 minutes` occurs (can be overridden via the `--timeout` flag).
 - In case something goes wrong, you can search the `Flux` logs, and filter `HelmRelease` messages only:
 
@@ -777,13 +918,13 @@ Look for the `READY` column value - it should say `True`. Reconciliation status 
     flux logs --kind=HelmRelease
     ```
 
-Please refer to the [03-setup-ingress-controller](../03-setup-ingress-controller/ambassador.md) tutorial, for more details about checking `Ambassador Edge Stack` deployment status and functionality.
+Please refer to the [Ambassador Ingress](../03-setup-ingress-controller/ambassador.md) or [Nginx Ingress](../03-setup-ingress-controller/nginx.md) tutorial, for more details about checking `Ingress Controller` deployment status and functionality.
 
 Next, you're going to create `Flux CD` manifests for the `Prometheus` stack.
 
-## Step 7 - Creating the Prometheus Stack Helm Release
+## Step 8 - Creating the Prometheus Stack Helm Release
 
-In this step, you will use pre-made manifests to create the `Prometheus` Helm release for `Flux CD`. Then, `Flux` will trigger the `Prometheus` installation in your `DOKS` cluster. The `Prometheus` stack deploys `Grafana` as well, so you need to set the `administrator` credentials for accessing the `dashboards`. You will learn how to use `kubeseal` CLI with `Sealed Secrets Controller` to encrypt `sensitive` data stored in `Kubernetes Secrets`. Then, you will see how the Flux CD `HelmRelease` manifest is used to `reference` Grafana `credentials` stored in the `Kubernetes Secret`.
+In this step, you will use pre-made manifests to create the `Prometheus` Helm release for `Flux CD`. Then, `Flux` will trigger the `Prometheus` installation process for your `DOKS` cluster. The `Prometheus` stack deploys `Grafana` as well, so you need to set the `administrator` credentials for accessing the `dashboards`. You will learn how to use `kubeseal` CLI with `Sealed Secrets Controller` to encrypt `sensitive` data stored in `Kubernetes Secrets`. Then, you will see how the Flux CD `HelmRelease` manifest is used to `reference` Grafana `credentials` stored in the `Kubernetes Secret`.
 
 Steps to follow:
 
@@ -840,7 +981,7 @@ Steps to follow:
         optional: false  # Helm release will fail if value is not found
     ```
 
-6. Finally, `commit` your `Git` changes and `push` to `remote`:
+6. Finally, commit `Git` changes to `remote` branch:
 
     ```shell
     PROMETHEUS_CHART_VERSION="17.1.3"
@@ -873,7 +1014,7 @@ Look for the `READY` column value - it should say `True`. Reconciliation status 
 
 **Hints:**
 
-- The `MESSAGE` column will display `Reconciliation in progress`, as long as the `HelmController` is performing the specific Helm chart installation. If something goes wrong, you'll get another message stating the reason, so please make sure to check Helm release state.
+- The `MESSAGE` column will display `Reconciliation in progress`, as long as the `HelmController` is performing the installation for the specified `Helm` chart. If something goes wrong, you'll get another message stating the reason, so please make sure to check Helm release state.
 - You can use the `--watch` flag for example: `flux get helmrelease <name> --wait`, to wait until the command finishes. Please bear in mind that in this mode, `Flux` will block your terminal prompt until the default timeout of `5 minutes` occurs (can be overridden via the `--timeout` flag).
 - In case something goes wrong, you can search the `Flux` logs, and filter `HelmRelease` messages only:
 
@@ -897,9 +1038,9 @@ Please refer to the [04-setup-prometheus-stack](../04-setup-prometheus-stack/REA
 
 Next, you're going to create the manifests for `Loki` stack, and let `Flux CD` handle the `Helm` release automatically.
 
-## Step 8 - Creating the Loki Stack Helm Release
+## Step 9 - Creating the Loki Stack Helm Release
 
-In this step, you will use pre-made manifests to create the `Loki` Helm release for `Flux CD`. Then, `Flux` will trigger the `Loki` installation in your `DOKS` cluster. `Loki` needs a `DO Spaces bucket` for storing backups, hence you need to use `DO Spaces credentials`. You will learn how to use `kubeseal` CLI with `Sealed Secrets Controller` to encrypt `sensitive` data stored in `Kubernetes Secrets`. Then, you will see how the Flux CD `HelmRelease` manifest is used to `reference` DO Spaces `credentials` stored in the `Kubernetes Secret`.
+In this step, you will use pre-made manifests to create the `Loki` Helm release for `Flux CD`. Then, `Flux` will trigger the `Loki` installation process for your `DOKS` cluster. `Loki` needs a `DO Spaces bucket` for storing backups, hence you need to use `DO Spaces credentials`. You will learn how to use `kubeseal` CLI with `Sealed Secrets Controller` to encrypt `sensitive` data stored in `Kubernetes Secrets`. Then, you will see how the Flux CD `HelmRelease` manifest is used to `reference` DO Spaces `credentials` stored in the `Kubernetes Secret`.
 
 Steps to follow:
 
@@ -963,7 +1104,7 @@ Steps to follow:
         optional: false
     ```
 
-6. Finally, `commit` your `Git` changes and `push` to `remote`:
+6. Finally, commit `Git` changes to `remote` branch:
 
     ```shell
     LOKI_CHART_VERSION="2.4.1"
@@ -996,7 +1137,7 @@ Look for the `READY` column value - it should say `True`. Reconciliation status 
 
 **Hints:**
 
-- The `MESSAGE` column will display `Reconciliation in progress`, as long as the `HelmController` is performing the specific Helm chart installation. If something goes wrong, you'll get another message stating the reason, so please make sure to check Helm release state.
+- The `MESSAGE` column will display `Reconciliation in progress`, as long as the `HelmController` is performing the installation for the specified `Helm` chart. If something goes wrong, you'll get another message stating the reason, so please make sure to check Helm release state.
 - You can use the `--watch` flag for example: `flux get helmrelease <name> --wait`, to wait until the command finishes. Please bear in mind that in this mode, `Flux` will block your terminal prompt until the default timeout of `5 minutes` occurs (can be overridden via the `--timeout` flag).
 - In case something goes wrong, you can search the `Flux` logs, and filter `HelmRelease` messages only:
 
@@ -1014,9 +1155,9 @@ Please refer to the [05-setup-loki-stack](../05-setup-loki-stack/README.md) tuto
 
 Next, you're going to create the manifests and let `Flux CD` handle the `Velero` Helm release automatically.
 
-## Step 9 - Creating the Velero Helm Release
+## Step 10 - Creating the Velero Helm Release
 
-In this step, you will use pre-made manifests to create the `Velero` Helm release for `Flux CD`. Then, `Flux` will trigger the `Velero` installation in your `DOKS` cluster. `Velero` needs a `DO Spaces bucket` for storing backups, hence you need to use `DO Spaces credentials`. You will learn how to use `kubeseal` CLI with `Sealed Secrets Controller` to encrypt `sensitive` data stored in `Kubernetes Secrets`. Then, you will see how the Flux CD `HelmRelease` manifest is used to `reference` DO API `credentials` stored in the `Kubernetes Secret`.
+In this step, you will use pre-made manifests to create the `Velero` Helm release for `Flux CD`. Then, `Flux` will trigger the `Velero` installation process for your `DOKS` cluster. `Velero` needs a `DO Spaces bucket` for storing backups, hence you need to use `DO Spaces credentials`. You will learn how to use `kubeseal` CLI with `Sealed Secrets Controller` to encrypt `sensitive` data stored in `Kubernetes Secrets`. Then, you will see how the Flux CD `HelmRelease` manifest is used to `reference` DO API `credentials` stored in the `Kubernetes Secret`.
 
 **Important note:**
 
@@ -1093,7 +1234,7 @@ Steps to follow:
         kubectl describe deployment velero -n velero | grep AWS_ACCESS_KEY_ID
         ```
 
-6. Finally, commit your changes and push to remote:
+6. Finally, commit `Git` changes to `remote` branch:
 
     ```shell
     VELERO_CHART_VERSION="2.23.6"
@@ -1126,7 +1267,7 @@ Look for the `READY` column value - it should say `True`. Reconciliation status 
 
 **Hints:**
 
-- The `MESSAGE` column will display `Reconciliation in progress`, as long as the `HelmController` is performing the specific Helm chart installation. If something goes wrong, you'll get another message stating the reason, so please make sure to check Helm release state.
+- The `MESSAGE` column will display `Reconciliation in progress`, as long as the `HelmController` is performing the installation for the specified `Helm` chart. If something goes wrong, you'll get another message stating the reason, so please make sure to check Helm release state.
 - You can use the `--watch` flag for example: `flux get helmrelease <name> --wait`, to wait until the command finishes. Please bear in mind that in this mode, `Flux` will block your terminal prompt until the default timeout of `5 minutes` occurs (can be overridden via the `--timeout` flag).
 - In case something goes wrong, you can search the `Flux` logs, and filter `HelmRelease` messages only:
 
