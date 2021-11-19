@@ -572,4 +572,4 @@ For more details about `Loki` and other available features, please visit the [Lo
 
 In the next section, you will learn how to perform backup and restore of your cluster and applications, using `Velero`.
 
-Go to [Section 6 - Backup Using Velero](../06-setup-velero/README.md).
+Go to [Section 6 - Set up Backup and Restore](../06-setup-backup-restore/README.md).
