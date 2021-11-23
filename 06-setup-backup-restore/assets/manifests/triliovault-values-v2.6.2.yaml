@@ -1,0 +1,44 @@
+# TrilioVault application replica count
+replicaCount: 1
+
+# TrilioVault application scope configuration
+# Please refer to the `Understanding TrilioVault Application Scope` section from the Starter Kit TrilioVault chapter
+# Accepted values: Namespaced (default) | Cluster
+applicationScope: "Cluster"
+
+# TrilioVault Management Console components (web, web-backend) configuration
+# You can tune resource limits for each, or enable/disable the TrilioVault Management Console
+web:
+  repository: web
+  enabled: true
+  resources: {}
+web-backend:
+  repository: web-backend
+  enabled: true
+  livenessProbeEnable: true
+  resources:
+    limits:
+      cpu: "400m"
+      memory: "1024Mi"
+    requests:
+      cpu: "100m"
+      memory: "100Mi"
+
+# TrilioVault Management Console Ingress configuration
+# You can expose the TrilioVault Management Console to the outside world 
+#   (`service.type`` needs to be `LoadBalancer`)
+ingress-controller:
+  enabled: true
+  repository: ingress-controller
+  resources: {}
+  service:
+    type: NodePort
+
+# Default resource limits configuration for the Datamover and Metamover jobs
+# defaultMetaJobLimits:
+#   memory: "512Mi"
+#   cpu: "500m"
+
+# defaultDataJobLimits:
+#   memory: "3584Mi"
+#   cpu: "1500m"

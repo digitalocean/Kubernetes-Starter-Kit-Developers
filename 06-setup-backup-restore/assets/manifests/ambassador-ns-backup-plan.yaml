@@ -1,0 +1,14 @@
+---
+apiVersion: triliovault.trilio.io/v1
+kind: ClusterBackupPlan
+metadata:
+  name: ambassador-ns-backup-plan
+  namespace: tvk
+spec:
+  backupConfig:
+    target:
+      name: trilio-s3-target
+      namespace: tvk
+  backupComponents:
+    - namespace: ambassador
+    - namespace: backend

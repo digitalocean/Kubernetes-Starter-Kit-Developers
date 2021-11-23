@@ -4,9 +4,9 @@
 
 Having a reliable system in place that performs regular backups of your DOKS cluster and associated resources is a very important piece of any setup. Imagine what would happen if one day you try to access one of your applications and suddenly it doesn't respond anymore, just as if it just vanished. Disk data corruption can drastically, and in a irreversible way destroy all your hard work in seconds and even less. But this is not the only reason, it can be due to many factors:
 
-- Datacenter hardware failures (it can happen).
+- Hardware failures.
 - External attacks from bad people who want to destroy your work (nothing is 100% secure).
-- Human mistakes (from other people working in the same team, that have elevated permissions).
+- Human mistakes (from other people working in the same team, with elevated permissions).
 
 Main backup types are as follows, each with its own advantages and disadvantages:
 
@@ -37,6 +37,6 @@ Without further ado, please pick one to start with from the list below.
 
 ## Starter Kit Backup/Restore Solutions
 
-| VELERO | TRILIO |
+| VELERO | TRILIOVAULT |
 |:-----------------------------------------------------:|:-----------------------------------------------------:|
 | [![trilio](assets/images/velero-logo.png)](velero.md) | [![trilio](assets/images/trilio-logo.png)](trilio.md) |

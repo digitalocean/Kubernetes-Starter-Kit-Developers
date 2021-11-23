@@ -2,9 +2,7 @@
 
 ## Introduction
 
-In this tutorial, you will learn how to `deploy Velero` to your `Kubernetes` cluster, create `backups`, and `recover` from a backup if something goes wrong.
-
-You can back up your `entire` cluster, or optionally choose a `namespace` or `label` selector to back up.
+In this tutorial, you will learn how to deploy `Velero` to your `Kubernetes` cluster, create `backups`, and `recover` from a backup if something goes wrong. You can back up your `entire` cluster, or optionally choose a `namespace` or `label` selector to back up.
 
 `Backups` can be run `one off` or `scheduled`. It’s a good idea to have `scheduled` backups so you are certain you have a `recent` backup to easily fall back to. You can also create [backup hooks](https://velero.io/docs/v1.6/backup-hooks/), if you want to execute actions `before` or `after` a backup is made.
 
@@ -14,35 +12,59 @@ Why choose `Velero` ?
 
 Advantages of using `Velero`:
 
-- Take `backups` of your cluster and `restore` in case of loss.
-- `Migrate` cluster resources to other clusters.
+- Take full `backups` of your cluster and `restore` in case of data loss.
+- `Migrate` from one cluster to another.
 - `Replicate` your `production` cluster to `development` and `testing` clusters.
 
-After finishing this tutorial, you will be able to:
+### How Velero Works
 
-- `Backup` and `restore` your `applications`, or your entire `DOKS` cluster.
+`Velero` consists of two parts:
+
+- A `server` that runs on your cluster.
+- A `command-line` client that runs locally.
+
+Each `Velero` operation – `on-demand backup`, `scheduled backup`, `restore` – is a `custom resource`, defined with a `Kubernetes Custom Resource Definition` (CRD) and stored in `etcd`. `Velero` also includes `controllers` that process the custom resources to perform backups, restores, and all related operations.
+
+### Backup and Restore Workflow
+
+Whenever you execute a `backup command`, the `Velero CLI` makes a call to the `Kubernetes API` server to create a `Backup` object. `Backup Controller` is notified about the change, and performs backup object inspection and validation (i.e. whether it is `cluster` backup, `namespace` backup, etc.). Then, it makes a call to the `Kubernetes API` server to query the data to be backed up, and starts the backup process once it collects all the data. Finally, data is backed up to `DigitalOcean Spaces` storage as a `tarball` file (`.tar.gz`).
+
+Similarly whenever you execute a `restore command`, the `Velero CLI` makes a call to `Kubernetes API` server to `restore` from a `backup` object. Based on the restore command executed, Velero `Restore Controller` makes a call to `DigitalOcean Spaces`, and initiates restore from the particular backup object.
+
+Below is a diagram that shows the `Backup/Restore` workflow for `Velero`:
+
+![Velero Backup/Restore Workflow](assets/images/velero_bk_res_wf.png)
+
+`Velero` is ideal for the `disaster` recovery use case, as well as for `snapshotting` your application state, prior to performing `system operations` on your `cluster`, like `upgrades`. For more details on this topic, please visit the [How Velero Works](https://velero.io/docs/v1.6/how-velero-works/) official page.
+
+After finishing this tutorial, you should be able to:
+
+- Configure `DO Spaces` storage backend for `Velero` to use.
+- `Backup` and `restore` your `applications`
+- `Backup` and `restore` your entire `DOKS` cluster.
 - Create `scheduled` backups for your applications.
-- Configure `DO Spaces` storage for `Velero` to use.
+- Create `retention policies` for your backups.
 
 ## Table of contents
 
 - [Introduction](#introduction)
+  - [How Velero Works](#how-velero-works)
+  - [Backup and Restore Workflow](#backup-and-restore-workflow)
 - [Prerequisites](#prerequisites)
-- [Step 1 - How Velero Works](#step-1---how-velero-works)
-- [Step 2 - Installing Velero](#step-2---installing-velero)
-- [Step 3 - Namespace Backup and Restore Example](#step-3---namespace-backup-and-restore-example)
+- [Step 1 - Installing Velero using Helm](#step-1---installing-velero-using-helm)
+- [Step 2 - Namespace Backup and Restore Example](#step-2---namespace-backup-and-restore-example)
   - [Creating the Ambassador Namespace Backup](#creating-the-ambassador-namespace-backup)
   - [Deleting the Ambassador Namespace and Resources](#deleting-the-ambassador-namespace-and-resources)
   - [Restoring the Ambassador Namespace Backup](#restoring-the-ambassador-namespace-backup)
-  - [Checking the Ambassador Namespace Restore Status](#checking-the-ambassador-namespace-restore-status)
-- [Step 4 - Backup and Restore Whole Cluster Example](#step-4---backup-and-restore-whole-cluster-example)
+  - [Checking the Ambassador Namespace Restoration](#checking-the-ambassador-namespace-restoration)
+- [Step 3 - Backup and Restore Whole Cluster Example](#step-3---backup-and-restore-whole-cluster-example)
   - [Creating the DOKS Cluster Backup](#creating-the-doks-cluster-backup)
   - [Deleting the DOKS Cluster](#deleting-the-doks-cluster)
   - [Checking DOKS Cluster State](#checking-doks-cluster-state)
-- [Step 5 - Scheduled Backup and Restore](#step-5---scheduled-backup-and-restore)
+- [Step 4 - Scheduled Backup and Restore](#step-4---scheduled-backup-and-restore)
   - [Verifying the Scheduled Backup state](#verifying-the-scheduled-backup-state)
   - [Restoring the Scheduled Backup](#restoring-the-scheduled-backup)
-- [Step 6 - Deleting Backups](#step-6---deleting-backups)
+- [Step 5 - Deleting Backups](#step-5---deleting-backups)
   - [Manually Deleting a Backup](#manually-deleting-a-backup)
   - [Automatic Backup Deletion via TTL](#automatic-backup-deletion-via-ttl)
 - [Conclusion](#conclusion)
@@ -51,7 +73,7 @@ After finishing this tutorial, you will be able to:
 
 To complete this tutorial, you need the following:
 
-1. A DO spaces [bucket](https://docs.digitalocean.com/products/spaces/how-to/create/) bucket and `access` keys. Save the `access` and `secret` keys in a safe place for later use.
+1. A [DO Spaces Bucket](https://docs.digitalocean.com/products/spaces/how-to/create/) and `access` keys. Save the `access` and `secret` keys in a safe place for later use.
 2. A DigitalOcean [API token](https://docs.digitalocean.com/reference/api/create-personal-access-token/) for `Velero` to use.
 3. A [Git](https://git-scm.com/downloads) client, to clone the `Starter Kit` repository.
 4. [Helm](https://www.helms.sh), for managing `Velero` releases and upgrades.
@@ -59,32 +81,9 @@ To complete this tutorial, you need the following:
 6. [Kubectl](https://kubernetes.io/docs/tasks/tools), for `Kubernetes` interaction.
 7. [Velero](https://velero.io/docs/v1.6/basic-install/#install-the-cli) client, to manage `Velero` backups.
 
-## Step 1 - How Velero Works
+## Step 1 - Installing Velero using Helm
 
-`Velero` consists of two parts:
-
-- A `server` that runs on your cluster
-- A `command-line` client that runs locally
-
-Each `Velero` operation – `on-demand backup`, `scheduled backup`, `restore` – is a `custom resource`, defined with a `Kubernetes Custom Resource Definition` (CRD) and stored in `etcd`. `Velero` also includes `controllers` that process the custom resources to perform backups, restores, and all related operations.
-
-### Backup and Restore workflow
-
-Whenever you execute a `backup command`, the `Velero CLI` makes a call to the `Kubernetes API` server to create a `Backup` object. The `Backup Controller` then validates the backup object i.e. whether it is `cluster` backup, `namespace` backup, etc. and then it makes a call to the `API` server to query the data to be backed up. Finally it starts the backup process once it collects the data to be backed up. `Backup Controller` then makes a call to `DigitalOcean Spaces` to store the backup file. The backup file is stored as a `tarball` file (`.tar.gz`).
-
-Similarly whenever you execute a `restore command`, the `Velero CLI` makes a call to `Kubernetes API` server to restore from a backup object. Based on the restore command executed, Velero `Restore Controller` makes a call to `DigitalOcean Spaces` and initiates restore from the particular backup object.
-
-Below is a diagram that shows the `Backup/Restore` workflow:
-
-![Velero Backup Workflow](assets/images/velero_bk_res_wf.png)
-
-`Velero` is `ideal` for the `disaster` recovery use case, as well as for snapshotting your application state, prior to performing system operations on your cluster, like upgrades. For more details on this topic, please visit the [How Velero Works](https://velero.io/docs/v1.6/how-velero-works/) official page.
-
-In the next step, you will learn how to install `Velero`, using `Helm`.
-
-## Step 2 - Installing Velero
-
-In this step, you will deploy `Velero` and all the required components, so that it will be able to perform backups for your `Kubernetes` cluster resources (`PV's` as well). The backup data will be stored in the DO `Spaces` bucket created earlier in the [Prerequisites](#prerequisites) section.
+In this step, you will deploy `Velero` and all the required components, so that it will be able to perform backups for your `Kubernetes` cluster resources (`PV's` as well). Backups data will be stored in the `DO Spaces` bucket created earlier in the [Prerequisites](#prerequisites) section.
 
 Steps to follow:
 
@@ -114,40 +113,42 @@ Steps to follow:
     **Note:**
 
     The chart of interest is `vmware-tanzu/velero`, which will install `Velero` on the cluster. Please visit the [velero-chart](https://github.com/vmware-tanzu/helm-charts/tree/main/charts/velero) page for more details about this chart.
-3. Then, open and inspect the `06-setup-velero/assets/manifests/velero-values.yaml` file provided in the `Starter kit` repository, using an editor of your choice (preferably with `YAML` lint support). You can use [VS Code](https://code.visualstudio.com), for example:
+3. Then, open and inspect the Velero `Helm` values file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). You can use [VS Code](https://code.visualstudio.com), for example:
 
     ```shell
-    code 06-setup-velero/assets/manifests/velero-values.yaml
+    VELERO_CHART_VERSION="2.23.6"
+
+    code 06-setup-backup-restore/assets/manifests/velero-values-v${VELERO_CHART_VERSION}.yaml
     ```
 
 4. Next, please replace the `<>` placeholders accordingly for your DO Spaces `Velero` bucket (like: name, region and secrets). Make sure that you provide your DigitalOcean `API` token as well (`DIGITALOCEAN_TOKEN` key).
 5. Finally, install `Velero` using `Helm`:
 
     ```shell
-    HELM_CHART_VERSION="2.23.6"
+    VELERO_CHART_VERSION="2.23.6"
 
-    helm install velero vmware-tanzu/velero --version "${HELM_CHART_VERSION}" \
+    helm install velero vmware-tanzu/velero --version "${VELERO_CHART_VERSION}" \
       --namespace velero \
       --create-namespace \
-      -f 06-setup-velero/assets/manifests/velero-values-v${HELM_CHART_VERSION}.yaml
+      -f 06-setup-backup-restore/assets/manifests/velero-values-v${VELERO_CHART_VERSION}.yaml
     ```
 
     **Note:**
 
-    A `specific` version for the `Helm` chart is used. In this case `2.23.6` is picked, which maps to the `1.6.3` version of the application (see the output from `Step 2.`). It’s good practice in general, to lock on a specific version. This helps to have predictable results, and allows versioning control via `Git`.
+    A `specific` version for the `Velero` Helm chart is used. In this case `2.23.6` is picked, which maps to the `1.6.3` version of the application (see the output from `Step 2.`). It’s good practice in general, to lock on a specific version. This helps to have predictable results, and allows versioning control via `Git`.
 
 Now, please check your `Velero` deployment:
 
- ```shell
- helm ls -n velero
- ```
+```shell
+helm ls -n velero
+```
 
 The output looks similar to the following (`STATUS` column should display `deployed`):
 
- ```text
- NAME    NAMESPACE       REVISION        UPDATED                                 STATUS          CHART           APP VERSION
- velero  velero          1               2021-08-25 13:16:24.383446 +0300 EEST   deployed        velero-2.23.6   1.6.3 
- ```
+```text
+NAME    NAMESPACE       REVISION        UPDATED                                 STATUS          CHART           APP VERSION
+velero  velero          1               2021-08-25 13:16:24.383446 +0300 EEST   deployed        velero-2.23.6   1.6.3 
+```
 
 Next, verify that `Velero` is up and running:
 
@@ -155,7 +156,7 @@ Next, verify that `Velero` is up and running:
 kubectl get deployment velero -n velero
 ```
 
-The output looks similar to the following (all pods must be in `Ready` state):
+The output looks similar to the following (deployment pods must be in the `Ready` state):
 
 ```text
 NAME     READY   UP-TO-DATE   AVAILABLE   AGE
@@ -186,16 +187,16 @@ kubectl -n velero get all
 
 `Velero` uses a number of `CRD`'s (Custom Resource Definitions) to represent its own resources like `backups`, `backup schedules`, etc. You'll discover each in the next steps of the tutorial, along with some basic examples.
 
-## Step 3 - Namespace Backup and Restore Example
+## Step 2 - Namespace Backup and Restore Example
 
-In this step, you will learn how to `backup` an entire `namespace` of your `DOKS` cluster, and `restore` it afterwards making sure that all the resources are re-created. The namespace in question is `ambassador`.
+In this step, you will learn how to perform a `one time backup` for an entire `namespace` from your `DOKS` cluster, and `restore` it afterwards making sure that all the resources are re-created. The namespace in question is `ambassador`.
 
 Next, you will perform the following tasks:
 
-- `Creating` the `ambassador` namespace `backup`, using `Velero` CLI.
-- `Deleting` the `ambassador` namespace.
-- `Restoring` the `ambassador` namespace, using `Velero` CLI.
-- `Checking` the `ambassador` namespace `restore` status, using `Velero` CLI.
+- `Create` the `ambassador` namespace `backup`, using the `Velero` CLI.
+- `Delete` the `ambassador` namespace.
+- `Restore` the `ambassador` namespace, using the `Velero` CLI.
+- `Check` the `ambassador` namespace restoration.
 
 ### Creating the Ambassador Namespace Backup
 
@@ -282,12 +283,12 @@ Next, check that the namespace was deleted (namespaces listing should not print 
 kubectl get namespaces
 ```
 
-Finally, verify that the `echo` and `quote` backend services `endpoint` is `DOWN` (please refer to [Creating the Ambassador Edge Stack Backend Services](../03-setup-ingress-controller/ambassador.md#step-4---creating-the-ambassador-edge-stack-backend-services) or [Creating the Nginx Backend Services](#step-3---creating-the-nginx-backend-services), regarding the `backend applications` used in the `Starter Kit` tutorial). You can use `curl` to test (or you can use your web browser):
+Finally, verify that the `echo` and `quote` backend services `endpoint` is `DOWN` (please refer to [Creating the Ambassador Edge Stack Backend Services](../03-setup-ingress-controller/ambassador.md#step-4---creating-the-ambassador-edge-stack-backend-services)), regarding the `backend applications` used in the `Starter Kit` tutorial). You can use `curl` to test (or you can use your web browser):
 
 ```shell
 curl -Li http://quote.starter-kit.online/quote/
 
-curl -Li http://quote.starter-kit.online/echo/
+curl -Li http://echo.starter-kit.online/echo/
 ```
 
 ### Restoring the Ambassador Namespace Backup
@@ -302,7 +303,7 @@ velero restore create --from-backup ambassador-backup
 
 When you delete the `ambassador` namespace, the load balancer resource associated with the ambassador service will be deleted as well. So, when you restore the `ambassador` service, the `LB` will be recreated by `DigitalOcean`. The issue is that you will get a `NEW IP` address for your `LB`, so you will need to `adjust` the `A records` for getting `traffic` into your domains hosted on the cluster.
 
-### Checking the Ambassador Namespace Restore Status
+### Checking the Ambassador Namespace Restoration
 
 First, check the `Phase` line from the `ambassador-backup` restore command output. It should say `Completed` (also, please take a note of the `Warnings` section - it tells if something went bad or not):
 
@@ -341,17 +342,49 @@ replicaset.apps/ambassador-agent-bcdd8ccc8    1         1         1       18h
 replicaset.apps/ambassador-redis-64b7c668b9   1         1         1       18h
 ```
 
-Finally, after reconfiguring your `LoadBalancer` and DigitalOcean `domain` settings, please verify that the `echo` and `quote` backend services `endpoint` is `UP` (please refer to [Creating the Ambassador Edge Stack Backend Services](../03-setup-ingress-controller/ambassador.md#step-4---creating-the-ambassador-edge-stack-backend-services) or [Creating the Nginx Backend Services](#step-3---creating-the-nginx-backend-services), regarding the `backend applications` used in the `Starter Kit` tutorial). For example, you can use `curl` to test each endpoint:
+Ambassador `Hosts`:
 
 ```shell
-curl -Li https://quote.starter-kit.online/
+kubectl get hosts -n ambassador
+```
 
-curl -Li https://echo.starter-kit.online/
+The output looks similar to (`STATE` should be `Ready`, as well as the `HOSTNAME` column pointing to the fully qualified host name):
+
+```text
+NAME         HOSTNAME                   STATE   PHASE COMPLETED   PHASE PENDING   AGE
+echo-host    echo.starter-kit.online    Ready                                     11m
+quote-host   quote.starter-kit.online   Ready                                     11m
+```
+
+Ambassador `Mappings`:
+
+```shell
+kubectl get mappings -n ambassador
+```
+
+The output looks similar to (notice the `echo-backend` which is mapped to the `echo.starter-kit.online` host and `/echo/` source prefix, same for `quote-backend`):
+
+```text
+NAME                          SOURCE HOST                SOURCE PREFIX                               DEST SERVICE     STATE   REASON
+ambassador-devportal                                     /documentation/                             127.0.0.1:8500           
+ambassador-devportal-api                                 /openapi/                                   127.0.0.1:8500           
+ambassador-devportal-assets                              /documentation/(assets|styles)/(.*)(.css)   127.0.0.1:8500           
+ambassador-devportal-demo                                /docs/                                      127.0.0.1:8500           
+echo-backend                  echo.starter-kit.online    /echo/                                      echo.backend
+quote-backend                 quote.starter-kit.online   /quote/                                     quote.backend
+```
+
+Finally, after reconfiguring your `LoadBalancer` and DigitalOcean `domain` settings, please verify that the `echo` and `quote` backend services `endpoint` is `UP` (please refer to [Creating the Ambassador Edge Stack Backend Services](../03-setup-ingress-controller/ambassador.md#step-4---creating-the-ambassador-edge-stack-backend-services)). For example, you can use `curl` to test each endpoint:
+
+```shell
+curl -Li https://quote.starter-kit.online/quote/
+
+curl -Li https://echo.starter-kit.online/echo/
 ```
 
 In the next step, you will simulate a disaster by intentionally deleting your `DOKS` cluster (the `Starter Kit` DOKS cluster).
 
-## Step 4 - Backup and Restore Whole Cluster Example
+## Step 3 - Backup and Restore Whole Cluster Example
 
 In this step, you will simulate a `disaster recovery` scenario. The whole `DOKS` cluster will be deleted, and then restored from a previous backup.
 
@@ -425,17 +458,17 @@ Now, verify all cluster `Kubernetes` resources (you should have everything in pl
 kubectl get all --all-namespaces
 ```
 
-Finally, the `backend applications` should respond to `HTTP` requests as well (please refer to [Creating the Ambassador Edge Stack Backend Services](../03-setup-ingress-controller/ambassador.md#step-4---creating-the-ambassador-edge-stack-backend-services) or [Creating the Nginx Backend Services](#step-3---creating-the-nginx-backend-services), regarding the `backend applications` used in the `Starter Kit` tutorial):
+Finally, the `backend applications` should respond to `HTTP` requests as well (please refer to [Creating the Ambassador Edge Stack Backend Services](../03-setup-ingress-controller/ambassador.md#step-4---creating-the-ambassador-edge-stack-backend-services)), regarding the `backend applications` used in the `Starter Kit` tutorial):
 
 ```shell
 curl -Li http://quote.starter-kit.online/quote/
 
-curl -Li http://quote.starter-kit.online/echo/
+curl -Li http://echo.starter-kit.online/echo/
 ```
 
 In the next step, you will learn how to perform scheduled backup and restore for your `DOKS` cluster applications.
 
-## Step 5 - Scheduled Backup and Restore
+## Step 4 - Scheduled Backup and Restore
 
 Taking backups automatically based on a schedule, is a really useful feature to have. It allows you to `rewind back time`, and restore the system to a previous working state if something goes wrong.
 
@@ -498,7 +531,7 @@ To restore one of the `minute` backups, please follow the same steps as you lear
 
 In the next step, you will learn how to manually or automatically delete specific backups you created over time.
 
-## Step 6 - Deleting Backups
+## Step 5 - Deleting Backups
 
 When you decide that some older backups are not needed anymore, you can free up some resources both on the `Kubernetes` cluster, as well as on the Velero `DO Spaces` bucket.
 

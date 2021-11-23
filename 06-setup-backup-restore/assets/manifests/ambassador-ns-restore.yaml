@@ -1,0 +1,21 @@
+---
+apiVersion: triliovault.trilio.io/v1
+kind: ClusterRestore
+metadata:
+  name: ambassador-ns-cluster-restore
+  namespace: tvk
+spec:
+  source:
+    type: ClusterBackup
+    clusterBackup:
+      name: ambassador-ns-full-backup
+      namespace: tvk
+  components:
+    - backupNamespace: ambassador
+      restoreNamespace: ambassador
+    - backupNamespace: backend
+      restoreNamespace: backend
+  globalConfig:
+    restoreFlags:
+      skipIfAlreadyExists: true
+  cleanupOnFailure: true

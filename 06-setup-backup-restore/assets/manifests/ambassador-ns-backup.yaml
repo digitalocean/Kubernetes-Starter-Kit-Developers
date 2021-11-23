@@ -1,0 +1,11 @@
+---
+apiVersion: triliovault.trilio.io/v1
+kind: ClusterBackup
+metadata:
+  name: ambassador-ns-full-backup
+  namespace: tvk
+spec:
+  type: Full
+  clusterBackupPlan:
+    name: ambassador-ns-backup-plan
+    namespace: tvk
