@@ -1,0 +1,11 @@
+---
+kind: Policy
+apiVersion: triliovault.trilio.io/v1
+metadata:
+  name: scheduled-backup-every-5min
+  namespace: tvk
+spec:
+  type: Schedule
+  scheduleConfig:
+    schedule:
+      - "*/5 * * * *" # trigger every 5 minutes

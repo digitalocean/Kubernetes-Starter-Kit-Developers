@@ -45,7 +45,7 @@ After finishing this tutorial, you should be able to:
 - Create `scheduled` backups for your applications.
 - Create `retention policies` for your backups.
 
-## Table of contents
+## Table of Contents
 
 - [Introduction](#introduction)
   - [How Velero Works](#how-velero-works)
@@ -59,9 +59,9 @@ After finishing this tutorial, you should be able to:
   - [Checking the Ambassador Namespace Restoration](#checking-the-ambassador-namespace-restoration)
 - [Step 3 - Backup and Restore Whole Cluster Example](#step-3---backup-and-restore-whole-cluster-example)
   - [Creating the DOKS Cluster Backup](#creating-the-doks-cluster-backup)
-  - [Deleting the DOKS Cluster](#deleting-the-doks-cluster)
-  - [Checking DOKS Cluster State](#checking-doks-cluster-state)
-- [Step 4 - Scheduled Backup and Restore](#step-4---scheduled-backup-and-restore)
+  - [Re-creating the DOKS Cluster and Restoring Applications](#re-creating-the-doks-cluster-and-restoring-applications)
+  - [Checking DOKS Cluster Applications State](#checking-doks-cluster-applications-state)
+- [Step 4 - Scheduled Backups](#step-4---scheduled-backups)
   - [Verifying the Scheduled Backup state](#verifying-the-scheduled-backup-state)
   - [Restoring the Scheduled Backup](#restoring-the-scheduled-backup)
 - [Step 5 - Deleting Backups](#step-5---deleting-backups)
@@ -113,7 +113,7 @@ Steps to follow:
     **Note:**
 
     The chart of interest is `vmware-tanzu/velero`, which will install `Velero` on the cluster. Please visit the [velero-chart](https://github.com/vmware-tanzu/helm-charts/tree/main/charts/velero) page for more details about this chart.
-3. Then, open and inspect the Velero `Helm` values file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). You can use [VS Code](https://code.visualstudio.com), for example:
+3. Then, open and inspect the Velero `Helm` values file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). You can use [VS Code](https://code.visualstudio.com) for example:
 
     ```shell
     VELERO_CHART_VERSION="2.23.6"
@@ -424,7 +424,9 @@ velero backup describe all-cluster-backup
 velero backup logs all-cluster-backup
 ```
 
-### Deleting the DOKS Cluster
+### Re-creating the DOKS Cluster and Restoring Applications
+
+An important aspect to keep in mind is that whenever you destroy a `DOKS` cluster and then restore it, a new `Load Balancer` with a new external `IP` is created as well when `Velero` restores your `ingress` controller. So, please make sure to update your DigitalOcean DNS `A records` accordingly.
 
 First, delete the whole `DOKS` cluster (make sure to replace the `<>` placeholders accordingly):
 
@@ -436,13 +438,13 @@ Next, re-create the cluster, as described in [Section 1 - Set up DigitalOcean Ku
 
 Then, install Velero `CLI` and `Server`, as described in the [Prerequisites](#prerequisites) section, and [Step 2 - Installing Velero](step-2---installing-velero) respectively. Please make sure to use the `same Helm Chart version` - this is important!
 
-Finally, `restore` everything, by using the below command:
+Finally, `restore` everything by using  below command:
 
 ```shell
 velero restore create --from-backup all-cluster-backup
 ```
 
-### Checking DOKS Cluster State
+### Checking DOKS Cluster Applications State
 
 First, check the `Phase` line from the `all-cluster-backup` restore describe command output. It should say `Completed` (also, please take a note of the `Warnings` section - it tells if something went bad or not):
 
@@ -466,9 +468,9 @@ curl -Li http://quote.starter-kit.online/quote/
 curl -Li http://echo.starter-kit.online/echo/
 ```
 
-In the next step, you will learn how to perform scheduled backup and restore for your `DOKS` cluster applications.
+In the next step, you will learn how to perform scheduled (or automatic) backups for your `DOKS` cluster applications.
 
-## Step 4 - Scheduled Backup and Restore
+## Step 4 - Scheduled Backups
 
 Taking backups automatically based on a schedule, is a really useful feature to have. It allows you to `rewind back time`, and restore the system to a previous working state if something goes wrong.
 

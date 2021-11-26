@@ -35,17 +35,28 @@ Each `TrilioVault` application consists of a bunch of `Controllers` and the asso
 
 ### Understanding TrilioVault Application Scope
 
-`TrilioVault` for Kubernetes works based on `application scope`, meaning you can have a `Namespaced` or a `Cluster` type of installation.
+`TrilioVault` for Kubernetes works based on `scope`, meaning you can have a `Namespaced` or a `Cluster` type of installation.
 
 A `Namespaced` installation allows you to `backup` and `restore` at the `namespace` level only. In other words, the backup is meant to protect a set of applications that are bound to a namespace that you own. This is how a `BackupPlan` and the corresponding `Backup` CRD works. You cannot mutate those CRDs in other namespaces, they must be created in the same namespace where the application to be backed up is located.
 
-On the other hand, a cluster type of backup is not scoped or bound to any namespace or a set of applications. You define cluster type backups via the `ClusterBackupPlan` and `ClusterBackup` CRDs. Cluster type backups are a little bit more flexible, in the sense that you are not tied to a specific namespace or set of applications to backup and restore. You can have the `ClusterBackupPlan` and `ClusterBackup` created in the same namespace where `TVK` is installed for example, and control backup/restore operations of any Kubernetes resource from there.
+On the other hand, a `Cluster` type installation is not scoped or bound to any namespace or a set of applications. You define cluster type backups via the `ClusterBackupPlan` and `ClusterBackup` CRDs. Cluster type backups are a little bit more flexible, in the sense that you are not tied to a specific namespace or set of applications to backup and restore. You can perform backup/restore operations for any namespace or resource, regardless if you're the owner or not (requires elevated privileges).
 
-In order to make sure that `application scope` and `rules` are followed correctly, `TrilioVault` is using an `Admission Controller`. It `intercepts` and `validates` each `CRD` that you want to push for `TVK`, before it is actually created. In case TVK application scope is not followed, the admission controller will reject CRD creation in the cluster.
+In order to make sure that TVK application `scope` and `rules` are followed correctly, `TrilioVault` is using an `Admission Controller`. It `intercepts` and `validates` each `CRD` that you want to push for `TVK`, before it is actually created. In case TVK application scope is not followed, the admission controller will reject CRD creation in the cluster.
 
-Another important thing to consider and remember is that a TVK `License` is application specific. In other words, you need to generate one type of license for either a `Namespaced` or a `Cluster` type installation.
+Another important thing to consider and remember is that a TVK `License` is scope specific. In other words, you need to generate one type of license for either a `Namespaced` or a `Cluster` type installation.
 
-`Namespaced` vs `Cluster` application scope - when to use one or the other? It all depends on the use case. For example, a `Namespaced` application scope is a more appropriate option when you don't have access to the whole Kubernetes cluster, only to specific namespaces. Most of the cases you want to protect only the applications tied to a specific namespace that you own. On the other hand, a cluster scoped application type works at the global level, meaning it can trigger backup/restore operations for any namespace or resource from a Kubernetes cluster.
+`Namespaced` vs `Cluster` TVK application scope - when to use one or the other? It all depends on the use case. For example, a `Namespaced` scope is a more appropriate option when you don't have access to the whole Kubernetes cluster, only to specific namespaces and applications. Most of the cases you want to protect only the applications tied to a specific namespace that you own. On the other hand, a cluster scoped installation type works at the global level, meaning it can trigger backup/restore operations for any namespace or resource from a Kubernetes cluster.
+
+To summarize:
+
+- If you are a cluster administrator, then you will most probably want to perform `cluster` level `operations` like : `ClusterBackupPlan`, `ClusterBackup`, `ClusterRestore`, etc.
+- If you are a regular user, then you can perform `namespaced` only `operations` like: `BackupPlan`, `Backup`, `Restore`, etc.
+
+The `interface` is very similar or uniform when comparing the two types: `Cluster` vs `non-Cluster` prefixed `CRDs`. So, if you're familiar with one type, it's very straightforward to use the counterpart.
+
+`Starter Kit` relies on the `"Cluster"` type installation for `TVK`, so all examples from this tutorial rely on the `Cluster` prefixed CRD definitions.
+
+For more information, please refer to the [TVK CRDs](https://docs.trilio.io/kubernetes/architecture/apis-and-command-line-reference/custom-resource-definitions-application-1) official documentation.
 
 ### Backup and Restore Workflow
 
@@ -82,9 +93,15 @@ After finishing this tutorial, you should be able to:
   - [Creating the Ambassador Namespace Backup](#creating-the-ambassador-namespace-backup)
   - [Deleting the Ambassador Namespace and Resources](#deleting-the-ambassador-namespace-and-resources)
   - [Restoring the Ambassador Namespace Backup](#restoring-the-ambassador-namespace-backup)
+  - [Verify Applications Integrity after Restoration](#verify-applications-integrity-after-restoration)
 - [Step 4 - Backup and Restore Whole Cluster Example](#step-4---backup-and-restore-whole-cluster-example)
+  - [Creating the DOKS Cluster Backup](#creating-the-doks-cluster-backup)
+  - [Re-creating the DOKS Cluster and Restoring Applications](#re-creating-the-doks-cluster-and-restoring-applications)
+  - [Checking DOKS Cluster Applications State](#checking-doks-cluster-applications-state)
 - [Step 5 - Scheduled Backups](#step-5---scheduled-backups)
 - [Step 6 - Backups Retention Policy](#step-6---backups-retention-policy)
+  - [Using Retention Policies](#using-retention-policies)
+  - [Introducing the Cleanup Policy](#introducing-the-cleanup-policy)
 - [Conclusion](#conclusion)
 
 ## Prerequisites
@@ -158,8 +175,8 @@ Please follow the steps below, to install `TrilioVault` via `Helm`:
 
     **Note:**
 
-    The chart of interest is `triliovault/k8s-triliovault `, which will install `TrilioVault for Kubernetes` on the cluster. You can run `helm show values triliovault/k8s-triliovault --version 2.6.2`, and export to a file to see all the available options.
-3. Then, open and inspect the TrilioVault `Helm` values file file provided in the `Starter kit` repository, using an editor of your choice (preferably with `YAML` lint support). You can use [VS Code](https://code.visualstudio.com), for example:
+    The chart of interest is `triliovault/k8s-triliovault`, which will install `TrilioVault for Kubernetes` on the cluster. You can run `helm show values triliovault/k8s-triliovault --version 2.6.2`, and export to a file to see all the available options.
+3. Then, open and inspect the TrilioVault `Helm` values file file provided in the `Starter kit` repository, using an editor of your choice (preferably with `YAML` lint support). You can use [VS Code](https://code.visualstudio.com) for example:
 
     ```shell
     TRILIOVAULT_CHART_VERSION="2.6.2"
@@ -358,7 +375,7 @@ Steps to create a `Target` for `TrilioVault`:
       --from-literal=secretKey="<YOUR_DO_SPACES_SECRET_KEY_HERE>"
     ```
 
-3. Then, open and inspect the `Target` manifest file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support), You can use [VS Code](https://code.visualstudio.com), for example:
+3. Then, open and inspect the `Target` manifest file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). You can use [VS Code](https://code.visualstudio.com) for example:
 
     ```shell
     code 06-setup-backup-restore/assets/manifests/triliovault-s3-target.yaml
@@ -435,9 +452,9 @@ In this step, you will learn how to `backup` an entire `namespace` from your `DO
 
 Next, you will perform the following tasks:
 
-- `Create` the `ambassador` namespace `backup`, using a `ClusterBackupPlan` and `ClusterBackup` CRDs.
+- `Create` the `ambassador` namespace `backup`, via `ClusterBackupPlan` and `ClusterBackup` CRDs.
 - `Delete` the `ambassador` namespace.
-- `Restore` the `ambassador` namespace, using a `ClusterRestore` CRD.
+- `Restore` the `ambassador` namespace, via `ClusterRestore` CRD.
 - `Check` the `ambassador` namespace restoration.
 
 ### Creating the Ambassador Namespace Backup
@@ -505,7 +522,7 @@ Steps to initiate the `Ambassador` namespace backup:
     cd Kubernetes-Starter-Kit-Developers
     ```
 
-3. Then, open and inspect the Ambassador `ClusterBackupPlan` and `ClusterBackup` manifest files provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support), You can use [VS Code](https://code.visualstudio.com), for example:
+3. Then, open and inspect the Ambassador `ClusterBackupPlan` and `ClusterBackup` manifest files provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). You can use [VS Code](https://code.visualstudio.com) for example:
 
     ```shell
     code 06-setup-backup-restore/assets/manifests/ambassador-ns-backup-plan.yaml
@@ -513,7 +530,7 @@ Steps to initiate the `Ambassador` namespace backup:
     code 06-setup-backup-restore/assets/manifests/ambassador-ns-backup.yaml
     ```
 
-4. Finally, create the `ClusterBackupPlan` and `ClusterBackup` resources, using the `manifests` provided by the `Starter Kit`:
+4. Finally, create the `ClusterBackupPlan` and `ClusterBackup` resources, using `kubectl`:
 
     ```shell
     kubectl apply -f 06-setup-backup-restore/assets/manifests/ambassador-ns-backup-plan.yaml
@@ -647,6 +664,12 @@ First, inspect the `ClusterRestore` CRD example from the `Starter Kit` Git repos
 code 06-setup-backup-restore/assets/manifests/ambassador-ns-restore.yaml
 ```
 
+Before creating the restore object, you need to create the target namespace first (`ambassador` in this case):
+
+```shell
+kubectl create ns ambassador
+```
+
 Then, create the `ClusterRestore` resource using `kubectl`:
 
 ```shell
@@ -667,6 +690,8 @@ ambassador-ns-cluster-restore   Completed   0           2021-11-25T15:06:52Z   2
 ```
 
 If the output looks like above, then the `ambassador` namespace `restoration` completed successfully.
+
+### Verify Applications Integrity after Restoration
 
 Check that all the `ambassador` namespace `resources` are in place and running:
 
@@ -745,8 +770,430 @@ Next step deals with whole cluster backup and restore, thus simulating a disaste
 
 ## Step 4 - Backup and Restore Whole Cluster Example
 
+In this step, you will simulate a `disaster recovery` scenario. The whole `DOKS` cluster will be deleted, and then restored from a previous backup.
+
+Next, you will perform the following tasks:
+
+- `Creating` the `DOKS` cluster `backup` using a `ClusterBackupPlan` CRD, that targets `all namespaces` from your `cluster`.
+- `Deleting` the `DOKS` cluster, using `doctl`.
+- `Restoring` the `DOKS` cluster using a `ClusterRestore` CRD, to `restore` back `all namespaces` to your new cluster.
+- `Checking` the `DOKS` cluster state.
+
+### Creating the DOKS Cluster Backup
+
+The main idea here is to perform a `DOKS` cluster `backup` by including `all` important `namespaces`, that hold all your `applications` and definitions. Basically, we cannot name it a full cluster backup and restore, but rather a `multi-namespace` backup and restore operation. In practice this is all that's needed, because everything is `namespaced` in `Kubernetes`. You will also learn how to perform a cluster restore operation via `location` from the `target`. The same flow applies when you need to perform cluster migration.
+
+Typical `ClusterBackupPlan` manifest targeting multiple namespaces looks like below:
+
+```yaml
+apiVersion: triliovault.trilio.io/v1
+kind: ClusterBackupPlan
+metadata:
+  name: starter-kit-cluster-backup-plan
+  namespace: tvk
+spec:
+  backupConfig:
+    target:
+      name: trilio-s3-target
+      namespace: tvk
+  backupComponents:
+    - namespace: ambassador
+    - namespace: backend
+    - namespace: default
+    - namespace: monitoring
+    - namespace: tvk
+```
+
+Notice that `kube-system` (or other DOKS cluster related namespaces) is not included in the list. Usually, those are not required, unless there is a special case requiring some settings to be persisted at that level.
+
+Steps to initiate a backup for all namespaces in your DOKS cluster:
+
+1. First, change directory where the `Starter Kit` Git repository was cloned on your local machine:
+
+    ```shell
+    cd Kubernetes-Starter-Kit-Developers
+    ```
+
+2. Then, open and inspect the `ClusterBackupPlan` and `ClusterBackup` manifest files provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). You can use [VS Code](https://code.visualstudio.com) for example:
+
+    ```shell
+    code 06-setup-backup-restore/assets/manifests/starter-kit-cluster-backup-plan.yaml
+
+    code 06-setup-backup-restore/assets/manifests/starter-kit-cluster-backup.yaml
+    ```
+
+3. Finally, create the `ClusterBackupPlan` and `ClusterBackup` resources, using `kubectl`:
+
+    ```shell
+    kubectl apply -f 06-setup-backup-restore/assets/manifests/starter-kit-cluster-backup-plan.yaml
+
+    kubectl apply -f 06-setup-backup-restore/assets/manifests/starter-kit-cluster-backup.yaml
+    ```
+
+Now, inspect the `ClusterBackupPlan` status, using `kubectl`:
+
+```shell
+kubectl get clusterbackupplan starter-kit-cluster-backup-plan -n tvk
+```
+
+The output looks similar to (notice the `STATUS` column value which should be set to `Available`):
+
+```text
+NAME                              TARGET             ...   STATUS
+starter-kit-cluster-backup-plan   trilio-s3-target   ...   Available
+```
+
+Next, check the `ClusterBackup` status, using `kubectl`:
+
+```shell
+kubectl get clusterbackup starter-kit-cluster-backup -n tvk
+```
+
+The output looks similar to (notice the `STATUS` column value which should be set to `Available`, as well as the `PERCENTAGE COMPLETE` set to `100`):
+
+```text
+NAME                        BACKUPPLAN                        BACKUP TYPE   STATUS      ...   PERCENTAGE COMPLETE
+starter-kit-cluster-backup  starter-kit-cluster-backup-plan   Full          Available   ...   100                               
+```
+
+If the output looks like above then all your important application namespaces were backed up successfully.
+
+**Note:**
+
+Please bear in mind that it may take a while for the full cluster backup to finish, depending on how many namespaces and associated resources are involved in the process.
+
+Now, before deleting the cluster and all `TVK` resources, you need to identify the backup resources via their corresponding `UIDs`. `TVK` stores backups on the `S3` target using the `UID` of the `ClusterBackupPlan` and `ClusterBackup` Kubernetes objects. For each type of `object` that you create in your cluster, `Kubernetes` generates a unique ID (or `UID`).
+
+Why is this important? You can restore a backup by either referencing a TVK backup resource, or a `location` on the target. In case of a disaster, the whole cluster is destroyed so you no longer have access to the `ClusterBackupPlan` and `ClusterBackup` objects. What's left is your S3 target, which is the backend storage where your objects are stored. If you `browse` the `S3 bucket` for `Trilio`, you will find lots of folders and subfolders containing a `UID` in their `name`.
+
+TVK stores each `ClusterBackupPlan` and `ClusterBackup` data in a folder structure that resembles the TVK objects hierarchy. Remember that a `ClusterBackup` object depends on a `ClusterBackupPlan` object? Thus, on the storage backend (S3 bucket), TVK will create a folder structure similar to:
+
+```text
+└── 56d6c87c-0685-43aa-a85f-c89ff5136beb
+    └── 0601bd98-30de-4c28-b210-8826b2910c86
+        ├── cluster-backup.json.manifest.0000000e
+        ├── cluster-backupplan.json.manifest.0000000e
+        ├── target-secret.json.manifest.00000003
+        ├── target.json.manifest.00000003
+        └── tvk-meta.json.manifest.00000004
+```
+
+The `56d6c87c-0685-43aa-a85f-c89ff5136beb` UID represents the `ClusterBackup` object, and the `0601bd98-30de-4c28-b210-8826b2910c86` UID is a reference to the `ClusterBackupPlan` object.
+
+How can you find out which one is which? You can inspect the `ClusterBackup` object created earlier and see the relationship:
+
+```shell
+kubectl get clusterbackup starter-kit-cluster-backup -n tvk -o yaml
+```
+
+The output looks similar to (some parts were omitted from the output for brevity):
+
+```yaml
+apiVersion: triliovault.trilio.io/v1
+kind: ClusterBackup
+metadata:
+...
+  name: starter-kit-cluster-backup
+  resourceVersion: "9328"
+  uid: 0601bd98-30de-4c28-b210-8826b2910c86
+spec:
+  clusterBackupPlan:
+    apiVersion: triliovault.trilio.io/v1
+    kind: ClusterBackupPlan
+    name: starter-kit-cluster-backup-plan
+    resourceVersion: "8335"
+    uid: 56d6c87c-0685-43aa-a85f-c89ff5136beb
+...
+```
+
+Looking at the above, you can identify the `ClusterBackup` UID value by looking at the `metadata.uid` field, and the `ClusterBackupPlan` UID value via the `spec.clusterBackupPlan.uid` field.
+
+You can also fetch the `ClusterBackup` object UID via:
+
+```shell
+kubectl get clusterbackup starter-kit-cluster-backup -n tvk -o 'jsonpath={.metadata.uid}'
+```
+
+And, for the `ClusterBackupPlan` object:
+
+```shell
+kubectl get clusterbackup starter-kit-cluster-backup -n tvk -o 'jsonpath={.spec.clusterBackupPlan.uid}'
+```
+
+Of course, you don't have to do this all the time, because working with UIDs is not quite human friendly. TVK has a [Web Management Console](https://docs.trilio.io/kubernetes/management-console/user-interface) that simplifies these tasks, and many other operations (not covered in this tutorial).
+
+Before continuing with the next steps, please save the `ClusterBackupPlan` and `ClusterBackup` UIDs somewhere safe, for later use.
+
+### Re-creating the DOKS Cluster and Restoring Applications
+
+An important aspect to keep in mind is that whenever you destroy a `DOKS` cluster and then restore it, a new `Load Balancer` with a new external `IP` is created as well when `TVK` restores your `ingress` controller. So, please make sure to update your DigitalOcean DNS `A records` accordingly.
+
+Now, delete the whole `DOKS` cluster (make sure to replace the `<>` placeholders accordingly):
+
+```shell
+doctl kubernetes cluster delete <DOKS_CLUSTER_NAME>
+```
+
+Next, re-create the cluster, as described in [Section 1 - Set up DigitalOcean Kubernetes](../01-setup-DOKS/README.md).
+
+To perform the restore operation, you need to install the `TVK` application as described in [Step 1 - Installing TrilioVault for Kubernetes](#step-1---installing-triliovault-for-kubernetes). Please make sure to use the `same Helm Chart version` - this is important!
+
+After the installation finishes successfully, configure the `TVK` target as described in [Step 2 - Creating a TrilioVault Target to Store Backups](#step-2---creating-a-triliovault-target-to-store-backups), and point it to the same S3 bucket where your backup data is located. You need the target configured and ready to use, so that the `ClusterRestore` CRD which you're going to use shortly, knows where to restore your data from.
+
+Now, open and inspect the `ClusterRestore` manifest file provided by the `Starter Kit` Git repository, using an editor of your choice (preferably with `YAML` lint support). You can use [VS Code](https://code.visualstudio.com) for example:
+
+```shell
+code 06-setup-backup-restore/assets/manifests/starter-kit-cluster-restore.yaml
+```
+
+Replace the `<>` placeholders using the `ClusterBackupPlan` and `ClusterBackup` object UIDs saved earlier. Then, save the manifest file and create the `ClusterRestore` resource in your `DOKS` cluster using `kubectl`:
+
+```shell
+kubectl apply -f 06-setup-backup-restore/assets/manifests/starter-kit-cluster-restore.yaml
+```
+
+After creating the `ClusterRestore` object, `TVK` will begin to `restore` all your `namespaces`. Now, you can go ahead and inspect the `ClusterRestore` object state, to see the restore progress:
+
+```shell
+kubectl get clusterbackup starter-kit-cluster-backup -n tvk
+```
+
+After a while, if everything goes as planned, you should see the following output (notice the `STATUS` set to `Available`, and `PERCENTAGE COMPLETED` set to `100`):
+
+```text
+NAME                         BACKUPPLAN                        BACKUP TYPE   STATUS      ...  PERCENTAGE COMPLETED   DURATION
+starter-kit-cluster-backup   starter-kit-cluster-backup-plan   Full          Available   ...  100                    1m28.817680067s
+```
+
+If the output looks like above, then the multi-namespace restore operation completed successfully.
+
+### Checking DOKS Cluster Applications State
+
+First, verify all cluster `Kubernetes` resources (you should have everything in place):
+
+```shell
+kubectl get all --all-namespaces
+```
+
+Then, make sure that your DNS A records are updated to point to your new load balancer external IP.
+
+Finally, the `backend applications` should respond to `HTTP` requests as well (please refer to [Creating the Ambassador Edge Stack Backend Services](../03-setup-ingress-controller/ambassador.md#step-4---creating-the-ambassador-edge-stack-backend-services)), regarding the `backend applications` used in the `Starter Kit` tutorial):
+
+```shell
+curl -Li http://quote.starter-kit.online/quote/
+
+curl -Li http://echo.starter-kit.online/echo/
+```
+
+In the next step, you will learn how to perform scheduled (or automatic) backups for your `DOKS` cluster applications.
+
 ## Step 5 - Scheduled Backups
+
+Taking backups automatically based on a schedule, is a really useful feature to have. It allows you to `rewind back time`, and restore the system to a previous working state if something goes wrong. This section provides an example for an automatic backup on a `5 minute` schedule (the `kube-system` namespace was picked).
+
+First, you need to create a `Policy` CRD that defines the backup schedule in `cron` format (same as `Linux` cron). Typical `Policy` CRD looks like below (defines a `5 minute` schedule):
+
+```yaml
+kind: Policy
+apiVersion: triliovault.trilio.io/v1
+metadata:
+  name: scheduled-backup-every-5min
+  namespace: tvk
+spec:
+  type: Schedule
+  scheduleConfig:
+    schedule:
+      - "*/5 * * * *" # trigger every 5 minutes
+```
+
+Next, a `ClusterBackupPlan` with a `schedulePolicy` needs to be defined as below:
+
+```yaml
+apiVersion: triliovault.trilio.io/v1
+kind: ClusterBackupPlan
+metadata:
+  name: kube-system-ns-backup-plan-5min-schedule
+  namespace: tvk
+spec:
+  backupConfig:
+    target:
+      name: trilio-s3-target
+      namespace: tvk
+    schedulePolicy:
+      fullBackupPolicy:
+        name: scheduled-backup-every-5min
+        namespace: tvk
+  backupComponents:
+    - namespace: kube-system
+    - namespace: backend
+```
+
+Looking at the above, you can notice that it's a basic `ClusterBackupPlan` CRD, referencing the `Policy` CRD defined earlier via the `spec.backupConfig.schedulePolicy` field. You can have separate policies created for `full` or `incremental` backups, hence the `fullBackupPolicy` or `incrementalBackupPolicy` can be specified in the spec.
+
+Now, please go ahead and create the schedule `Policy`, using the sample manifest provided by the `Starter Kit` tutorial (make sure to change directory first, where the Starter Kit Git repository was cloned on your local machine):
+
+```shell
+kubectl apply -f 06-setup-backup-restore/assets/manifests/scheduled-backup-every-5min.yaml
+```
+
+Check that the policy resource was created:
+
+```shell
+kubectl get policies -n tvk
+```
+
+The output looks similar to (notice the `POLICY` type set to `Schedule`):
+
+```text
+NAME                          POLICY     DEFAULT
+scheduled-backup-every-5min   Schedule   false
+```
+
+Finally, create the resources for the `kube-system` namespace scheduled backups:
+
+```shell
+# Create the backup plan first for kube-system namespace
+kubectl apply -f 06-setup-backup-restore/assets/manifests/kube-system-ns-backup-plan-scheduled.yaml
+
+# Create and trigger the scheduled backup for kube-system namespace
+kubectl apply -f 06-setup-backup-restore/assets/manifests/kube-system-ns-backup-scheduled.yaml
+```
+
+Check the scheduled backup plan status for `kube-system`:
+
+```shell
+kubectl get clusterbackupplan kube-system-ns-backup-plan-5min-schedule -n tvk
+```
+
+The output looks similar to (notice the `FULL BACKUP POLICY` value set to the previously created `scheduled-backup-every-5min` policy resource, as well as the `STATUS` which should be `Available`):
+
+```text
+NAME                                       TARGET             ...   FULL BACKUP POLICY            STATUS
+kube-system-ns-backup-plan-5min-schedule   trilio-s3-target   ...   scheduled-backup-every-5min   Available
+```
+
+Check the scheduled backup status for `kube-system`:
+
+```shell
+kubectl get clusterbackup kube-system-ns-full-backup-scheduled -n tvk
+```
+
+The output looks similar to (notice the `BACKUPPLAN` value set to the previously created backup plan resource, as well as the `STATUS` which should be `Available`):
+
+```text
+NAME                                   BACKUPPLAN                                 BACKUP TYPE   STATUS      ...
+kube-system-ns-full-backup-scheduled   kube-system-ns-backup-plan-5min-schedule   Full          Available   ...
+```
+
+Now, you can check that backups are performed on a regular interval (5 minutes), by querying the cluster backup resource and inspect the `START TIME` column (`kubectl get clusterbackup -n tvk`). It should reflect the 5 minute delta, as highlighted in the picture below:
+
+![TVK Every 5 Minute Backups](assets/images/tvk_scheduled_backups_5min.png)
+
+In the next step, you will learn how to set up a retention policy for your backups.
 
 ## Step 6 - Backups Retention Policy
 
+The retention policy allows you to define the `number` of backups to `retain` and the `cadence` to `delete` backups as per compliance requirements. The retention policy `CRD` provides a simple `YAML` specification to define the `number` of backups to retain in terms of `days`, `weeks`, `months`, `years`, latest etc.
+
+### Using Retention Policies
+
+Retention polices are referenced within a `BackupPlan` or `ClusterBackupPlan`. Typical retention `Policy` manifest looks like below:
+
+```yaml
+apiVersion: triliovault.trilio.io/v1
+kind: Policy
+metadata:
+  name: sample-policy
+spec:
+  type: Retention
+  retentionConfig:
+    latest: 2
+    weekly: 1
+    dayOfWeek: Wednesday
+    monthly: 1
+    dateOfMonth: 15
+    monthOfYear: March
+    yearly: 1
+```
+
+Explanation for the above configuration:
+
+- `spec.type`: Defines policy type. Can be: `Retention` or `Schedule`.
+- `spec.retentionConfig`: Describes retention configuration, like what interval to use for backups retention and how many.
+- `spec.retentionConfig.latest`: Maximum number of latest backups to be retained.
+- `spec.retentionConfig.weekly`: Maximum number of backups to be retained in a week.
+- `spec.retentionConfig.dayOfWeek`: Day of the week to maintain weekly backups.
+- `spec.retentionConfig.monthly`: Maximum number of backups to be retained in a month.
+- `spec.retentionConfig.dateOfMonth`: Date of the month to maintain monthly backups.
+- `spec.retentionConfig.monthOfYear`: Month of the backup to retain for yearly backups.
+- `spec.retentionConfig.yearly`: Maximum number of backups to be retained in a year.
+
+The above retention policy translates to:
+
+- On a `weekly` basis, keep one backup each `Wednesday`.
+- On a `monthly` basis, keep one backup in the `15th` day.
+- On a `yearly` basis, keep one backup every `March`.
+- `Overall`, I want to always have the `2 most recent` backups available.
+
+The basic flow for creating a retention policy resource goes the same way as for scheduled backups. You need a `BackupPlan` or a `ClusterBackupPlan` CRD defined to reference the retention policy, and then have a `Backup` or `ClusterBackup` object to trigger the process.
+
+Typical `ClusterBackupPlan` configuration that has retention set, looks like below:
+
+```yaml
+apiVersion: triliovault.trilio.io/v1
+kind: ClusterBackupPlan
+metadata:
+  name: kube-system-ns-backup-plan-5min-schedule
+  namespace: tvk
+spec:
+  backupConfig:
+    target:
+      name: trilio-s3-target
+      namespace: tvk
+    retentionPolicy:
+      fullBackupPolicy:
+        name: ambassador-backups-retention-policy
+        namespace: tvk
+  backupComponents:
+    - namespace: kube-system
+    - namespace: backend
+```
+
+Notice that it uses a `retentionPolicy` field to reference the policy in question. Of course, you can have a backup plan that has both types of policies set, so that it is able to perform scheduled backups, as well as to deal with retention strategies.
+
+### Introducing the Cleanup Policy
+
+Having so many TVK resources each responsible with various operations like: scheduled backups, retention, etc, it is very probable for things to go wrong at some point in time. It means that some of the previously enumerated operations might fail due to various reasons, like: inaccessible storage, network issues for NFS, etc. So, what happens is that your `DOKS` cluster will get `crowded` with many `Kubernetes objects` in a `failed state`.
+
+You need a way to garbage collect all those objects in the end and release associated resources, to avoid trouble in the future. Meet the `Cleanup Policy` CRD:
+
+```yaml
+apiVersion: triliovault.trilio.io/v1
+kind: Policy
+metadata:
+  name: garbage-collect-policy
+spec:
+  type: Cleanup
+  cleanupConfig:
+    backupDays: 5
+```
+
+The above cleanup policy must be defined in the `TVK` install namespace. Then, a `cron job` is created automatically for you that runs `every 30 mins`, and `deletes failed backups` based on the value specified for `backupdays` within the spec field.
+
+This is a very neat feature that TVK provides to help you deal with this kind of situation.
+
 ## Conclusion
+
+In this tutorial, you learned how to perform `one time`, as well as `scheduled` backups, and to restore everything back. Having `scheduled` backups in place, is very important as it allows you to revert to a previous snapshot in time, if something goes wrong along the way. You walked through a disaster recovery scenario, as well. Next, backups retention plays an important role as well, because storage is finite and sometimes it can get expensive if too many objects are implied.
+
+All the basic tasks and operations explained in this tutorial, are meant to give you a basic introduction and understanding of what `TrilioVault for Kubernetes` is capable of. You can learn more about `TrilioVault for Kubernetes` and other interesting (or useful) topics, by following the links below:
+
+- TVK [CRD API](https://docs.trilio.io/kubernetes/architecture/apis-and-command-line-reference/custom-resource-definitions-application-1) documentation.
+- [How to Integrate Pre/Post Hooks for Backup Operations](https://docs.trilio.io/kubernetes/architecture/apis-and-command-line-reference/custom-resource-definitions-application-1/triliovault-crds#hooks), with examples given for various databases.
+- [Immutable Backups](https://docs.trilio.io/kubernetes/architecture/apis-and-command-line-reference/custom-resource-definitions-application-1/triliovault-crds#immutability), which restrict backups on the target storage to be overwritten.
+- [Helm Releases Backups](https://docs.trilio.io/kubernetes/architecture/apis-and-command-line-reference/custom-resource-definitions-application-1/triliovault-crds#type-helm-example-1-single-helm-release), which shows examples for Helm releases backup strategies.
+- [Backups Encryption](https://docs.trilio.io/kubernetes/architecture/apis-and-command-line-reference/custom-resource-definitions-application-1/triliovault-crds#type-encryption), which explains how to encrypt and protect sensitive data on the target (storage).
+- [Web Management Console](https://docs.trilio.io/kubernetes/management-console/user-interface), for managing TVK operations via the Web UI interface.
+- [Disaster Recovery Plan](https://docs.trilio.io/kubernetes/management-console/user-interface/use-cases-with-trilio/disaster-recovery-plan).
+
+Go to [Section 7 - Alerts and Notifications](../07-alerting-and-notification/README.md).
