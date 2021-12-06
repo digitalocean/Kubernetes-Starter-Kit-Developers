@@ -1,0 +1,13 @@
+---
+apiVersion: triliovault.trilio.io/v1
+kind: Restore
+metadata:
+  name: ambassador-helm-release-restore
+  namespace: ambassador
+spec:
+  source:
+    type: Backup
+    backup:
+      name: ambassador-helm-release-full-backup
+      namespace: ambassador
+  skipIfAlreadyExists: true

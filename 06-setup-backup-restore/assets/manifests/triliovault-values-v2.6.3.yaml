@@ -24,15 +24,17 @@ web-backend:
       cpu: "100m"
       memory: "100Mi"
 
-# TrilioVault Management Console Ingress configuration
-# You can expose the TrilioVault Management Console to the outside world 
-#   (`service.type`` needs to be `LoadBalancer`)
+# Ingress Controller settings for TVK Web Console
 ingress-controller:
   enabled: true
   repository: ingress-controller
   resources: {}
   service:
     type: NodePort
+
+# The host name to use when accessing the web console via the TVK ingress gateway
+ingressConfig:
+  host: "tvk-doks.com"
 
 # Default resource limits configuration for the Datamover and Metamover jobs
 # defaultMetaJobLimits:

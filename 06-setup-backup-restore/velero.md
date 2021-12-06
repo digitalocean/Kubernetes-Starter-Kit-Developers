@@ -390,10 +390,10 @@ In this step, you will simulate a `disaster recovery` scenario. The whole `DOKS`
 
 Next, you will perform the following tasks:
 
-- `Creating` the `DOKS` cluster `backup`, using `Velero` CLI.
-- `Deleting` the `DOKS` cluster, using `doctl`.
-- `Restoring` the `DOKS` cluster, using `Velero` CLI.
-- `Checking` the `DOKS` cluster state.
+- `Create` the `DOKS` cluster `backup`, using `Velero` CLI.
+- `Delete` the `DOKS` cluster, using `doctl`.
+- `Restore` the `DOKS` cluster important applications, using `Velero` CLI.
+- `Check` the `DOKS` cluster applications state.
 
 ### Creating the DOKS Cluster Backup
 

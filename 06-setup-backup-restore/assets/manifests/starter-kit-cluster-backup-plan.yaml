@@ -11,6 +11,4 @@ spec:
   backupComponents:
     - namespace: ambassador
     - namespace: backend
-    - namespace: default
     - namespace: monitoring
-    - namespace: tvk
