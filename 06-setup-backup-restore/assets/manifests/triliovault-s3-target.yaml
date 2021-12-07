@@ -1,0 +1,18 @@
+---
+apiVersion: triliovault.trilio.io/v1
+kind: Target
+metadata:
+  name: trilio-s3-target
+  namespace: tvk
+spec:
+  type: ObjectStore
+  vendor: Other
+  enableBrowsing: true
+  objectStoreCredentials:
+    bucketName: <YOUR_DO_SPACES_BUCKET_NAME_HERE>
+    region: <YOUR_DO_SPACES_BUCKET_REGION_HERE>           # e.g.: nyc1
+    url: "https://<YOUR_DO_SPACES_BUCKET_ENDPOINT_HERE>"  # e.g.: nyc1.digitaloceanspaces.com
+    credentialSecret:
+      name: trilio-s3-target
+      namespace: tvk
+  thresholdCapacity: 10Gi

@@ -1,0 +1,11 @@
+---
+apiVersion: triliovault.trilio.io/v1
+kind: ClusterBackup
+metadata:
+  name: kube-system-ns-full-backup-scheduled
+  namespace: tvk
+spec:
+  type: Full
+  clusterBackupPlan:
+    name: kube-system-ns-backup-plan-5min-schedule
+    namespace: tvk

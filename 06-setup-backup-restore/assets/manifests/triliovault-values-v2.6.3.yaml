@@ -1,0 +1,46 @@
+# TrilioVault application replica count
+replicaCount: 1
+
+# TrilioVault application scope configuration
+# Please refer to the `Understanding TrilioVault Application Scope` section from the Starter Kit TrilioVault chapter
+# Accepted values: Namespaced (default) | Cluster
+applicationScope: "Cluster"
+
+# TrilioVault Management Console components (web, web-backend) configuration
+# You can tune resource limits for each, or enable/disable the TrilioVault Management Console
+web:
+  repository: web
+  enabled: true
+  resources: {}
+web-backend:
+  repository: web-backend
+  enabled: true
+  livenessProbeEnable: true
+  resources:
+    limits:
+      cpu: "400m"
+      memory: "1024Mi"
+    requests:
+      cpu: "100m"
+      memory: "100Mi"
+
+# Ingress Controller settings for TVK Web Console
+ingress-controller:
+  enabled: true
+  repository: ingress-controller
+  resources: {}
+  service:
+    type: NodePort
+
+# The host name to use when accessing the web console via the TVK ingress gateway
+ingressConfig:
+  host: "tvk-doks.com"
+
+# Default resource limits configuration for the Datamover and Metamover jobs
+# defaultMetaJobLimits:
+#   memory: "512Mi"
+#   cpu: "500m"
+
+# defaultDataJobLimits:
+#   memory: "3584Mi"
+#   cpu: "1500m"

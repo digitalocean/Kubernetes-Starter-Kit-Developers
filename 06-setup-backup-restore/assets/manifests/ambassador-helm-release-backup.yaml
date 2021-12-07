@@ -1,0 +1,11 @@
+---
+apiVersion: triliovault.trilio.io/v1
+kind: Backup
+metadata:
+  name: ambassador-helm-release-full-backup
+  namespace: ambassador
+spec:
+  type: Full
+  backupPlan:
+    name: ambassador-helm-release-backup-plan
+    namespace: ambassador

@@ -1,0 +1,14 @@
+---
+apiVersion: triliovault.trilio.io/v1
+kind: BackupPlan
+metadata:
+  name: ambassador-helm-release-backup-plan
+  namespace: ambassador
+spec:
+  backupConfig:
+    target:
+      name: trilio-s3-target
+      namespace: tvk
+  backupPlanComponents:
+    helmReleases:
+      - ambassador

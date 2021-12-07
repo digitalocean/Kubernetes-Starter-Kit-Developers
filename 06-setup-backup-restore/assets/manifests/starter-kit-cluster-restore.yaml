@@ -1,0 +1,16 @@
+---
+apiVersion: triliovault.trilio.io/v1
+kind: ClusterRestore
+metadata:
+  name: starter-kit-cluster-restore
+  namespace: tvk
+spec:
+  source:
+    type: Location
+    location: <YOUR_CLUSTER_BACKUP_OBJECT_UID_HERE>/<YOUR_CLUSTER_BACKUP_PLAN_OBJECT_UID_HERE>
+    target:
+      name: trilio-s3-target
+      namespace: tvk
+  globalConfig:
+    restoreFlags:
+      skipIfAlreadyExists: true

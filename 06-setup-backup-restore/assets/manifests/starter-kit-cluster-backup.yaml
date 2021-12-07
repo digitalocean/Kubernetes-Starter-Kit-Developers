@@ -1,0 +1,11 @@
+---
+apiVersion: triliovault.trilio.io/v1
+kind: ClusterBackup
+metadata:
+  name: starter-kit-cluster-backup
+  namespace: tvk
+spec:
+  type: Full
+  clusterBackupPlan:
+    name: starter-kit-cluster-backup-plan
+    namespace: tvk

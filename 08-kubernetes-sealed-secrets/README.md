@@ -309,7 +309,7 @@ kubectl apply -f master.key
 kubectl delete pod -n sealed-secrets -l name=sealed-secrets-controller
 ```
 
-Best approach is to perform regular backups via `Velero` for example, as you already learned in [Section 6 - Backup Using Velero](../06-setup-velero/README.md). `Velero` helps you to restore the `Sealed Secrets` controller state in case of a disaster as well (without the need to fetch the `master` key, and then `inserting` it back in the `cluster`).
+Best approach is to perform regular backups for example, as you already learned in [Section 6 - Set up Backup and Restore](../06-setup-backup-restore/README.md). `Velero` or `Trilio` helps you to restore the `Sealed Secrets` controller state in case of a disaster as well (without the need to fetch the `master` key, and then `inserting` it back in the `cluster`).
 
 ## Security Best Practices
 

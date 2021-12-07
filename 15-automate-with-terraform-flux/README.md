@@ -1281,7 +1281,7 @@ Finally, check if the `do-api-credentials` Kubernetes secret was created as well
 kubectl get secret do-api-credentials -n flux-system
 ```
 
-Please refer to the [06-setup-velero](../06-setup-velero/README.md) tutorial, for more details about checking `Velero` deployment status and functionality.
+Please refer to the [Velero](../06-setup-backup-restore/velero.md) tutorial, for more details about checking `Velero` deployment status and functionality.
 
 ## Conclusion
 
