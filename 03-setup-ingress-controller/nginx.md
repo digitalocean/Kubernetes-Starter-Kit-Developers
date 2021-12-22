@@ -27,19 +27,19 @@ After finishing this tutorial, you will be able to:
 
 ## Table of contents
 
-- [Introduction](#introduction)
-- [Prerequisites](#prerequisites)
-- [Step 1 - Installing the Nginx Ingress Controller](#step-1---installing-the-nginx-ingress-controller)
-- [Step 2 - Configuring DNS for Nginx Ingress Controller](#step-2---configuring-dns-for-nginx-ingress-controller)
-- [Step 3 - Creating the Nginx Backend Services](#step-3---creating-the-nginx-backend-services)
-- [Step 4 - Configuring Nginx Ingress Rules for Backend Services](#step-4---configuring-nginx-ingress-rules-for-backend-services)
-- [Step 5 - Configuring Production Ready TLS Certificates for Nginx](#step-5---configuring-production-ready-tls-certificates-for-nginx)
-- [Step 6 - Enabling Proxy Protocol](#step-6---enabling-proxy-protocol)
-- [How To Guides](#how-to-guides)
-  - [Setting up Ingress to use Wildcard Certificates](guides/wildcard_certificates.md)
-  - [Ingress Controller LoadBalancer Migration](guides/ingress_loadbalancer_migration.md)
-  - [Performance Considerations for Nginx](guides/nginx_performance_considerations.md)
-- [Conclusion](#conclusion)
+- [How to Configure Ingress using Nginx](#how-to-configure-ingress-using-nginx)
+  - [Introduction](#introduction)
+    - [Starter Kit Nginx Setup Overview](#starter-kit-nginx-setup-overview)
+  - [Table of contents](#table-of-contents)
+  - [Prerequisites](#prerequisites)
+  - [Step 1 - Installing the Nginx Ingress Controller](#step-1---installing-the-nginx-ingress-controller)
+  - [Step 2 - Configuring DNS for Nginx Ingress Controller](#step-2---configuring-dns-for-nginx-ingress-controller)
+  - [Step 3 - Creating the Nginx Backend Services](#step-3---creating-the-nginx-backend-services)
+  - [Step 4 - Configuring Nginx Ingress Rules for Backend Services](#step-4---configuring-nginx-ingress-rules-for-backend-services)
+  - [Step 5 - Configuring Production Ready TLS Certificates for Nginx](#step-5---configuring-production-ready-tls-certificates-for-nginx)
+  - [Step 6 - Enabling Proxy Protocol](#step-6---enabling-proxy-protocol)
+  - [How To Guides](#how-to-guides)
+  - [Conclusion](#conclusion)
 
 ## Prerequisites
 
@@ -732,7 +732,10 @@ In the next step, you will learn how to use the `DigitalOcean Proxy Protocol` wi
 
 A `L4` load balancer replaces the original `client IP` with its `own IP` address. This is a problem, as you will lose the `client IP` visibility in the application, so you need to enable `proxy protocol`. Proxy protocol enables a `L4 Load Balancer` to communicate the `original` client `IP`. For this to work, you need to configure both `DigitalOcean Load Balancer` and `Nginx`.
 
-After deploying the [Backend Services](#step-3---creating-the-nginx-backend-services), you need to configure the nginx Kubernetes `Service` to use the `proxy protocol`. A special service annotation is made available by the `DigitalOcean Cloud Controller` - `service.beta.kubernetes.io/do-loadbalancer-enable-proxy-protocol`.
+After deploying the [Backend Services](#step-3---creating-the-nginx-backend-services), you need to configure the nginx Kubernetes `Service` to use the `proxy protocol` and `tls-passthrough`. This annotations are made available by the `DigitalOcean Cloud Controller`
+
+- `service.beta.kubernetes.io/do-loadbalancer-enable-proxy-protocol`
+- `service.beta.kubernetes.io/do-loadbalancer-tls-passthrough`
 
 First, you need to edit the `Helm` values file provided in the `Starter Kit` repository using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://visualstudio.microsoft.com):
 
@@ -744,15 +747,24 @@ Then, uncomment the `service` section as seen below:
 
 ```yaml
 service:
- type: LoadBalancer
- annotations:
-   # Enable proxy protocol
-   service.beta.kubernetes.io/do-loadbalancer-enable-proxy-protocol: true
+  type: LoadBalancer
+  annotations:
+    # Enable proxy protocol
+    service.beta.kubernetes.io/do-loadbalancer-enable-proxy-protocol: "true"
+    # Specify whether the DigitalOcean Load Balancer should pass encrypted data to backend droplets
+    service.beta.kubernetes.io/do-loadbalancer-tls-passthrough: "true"
 ```
 
 **Note:**
 
 You must **NOT** create a load balancer with `Proxy` support by using the `DigitalOcean` web console, as any setting done outside `DOKS` is automatically `overridden` by DOKS `reconciliation`.
+
+Then, uncomment the `config` section as seen below to allow Nginx to receive client connection information:
+
+```yaml
+config:
+  use-proxy-protocol: "true"
+```
 
 Finally, after saving the values file, you can apply changes using `Helm`:
 

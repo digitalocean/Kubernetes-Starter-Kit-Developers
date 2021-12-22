@@ -34,20 +34,20 @@ After finishing this tutorial, you will be able to:
 
 ## Table of contents
 
-- [Introduction](#introduction)
-- [Prerequisites](#prerequisites)
-- [Step 1 - Installing the Ambassador Edge Stack](#step-1---installing-the-ambassador-edge-stack)
-- [Step 2 - Defining the Hosts for Ambassador Edge Stack](#step-2---defining-the-hosts-for-ambassador-edge-stack)
-- [Step 3 - Configuring DNS for Ambassador Edge Stack](#step-3---configuring-dns-for-ambassador-edge-stack)
-- [Step 4 - Creating the Ambassador Edge Stack Backend Services](#step-4---creating-the-ambassador-edge-stack-backend-services)
-- [Step 5 - Configuring the Ambassador Edge Stack Mappings for Hosts](#step-5---configuring-the-ambassador-edge-stack-mappings-for-hosts)
-- [Step 6 - Enabling Proxy Protocol](#step-6---enabling-proxy-protocol)
-- [Step 7 - Verifying the Ambassador Edge Stack Setup](#step-7---verifying-the-ambassador-edge-stack-setup)
-- [How To Guides](#how-to-guides)
-  - [Setting up Ingress to use Wildcard Certificates](guides/wildcard_certificates.md)
-  - [Ingress Controller LoadBalancer Migration](guides/ingress_loadbalancer_migration.md)
-  - [Performance Considerations for the Ambassador Edge Stack](guides/aes_performance_considerations.md)
-- [Conclusion](#conclusion)
+- [How to Install and Configure Ingress using Ambassador](#how-to-install-and-configure-ingress-using-ambassador)
+  - [Introduction](#introduction)
+    - [Starter Kit AES Setup Overview](#starter-kit-aes-setup-overview)
+  - [Table of contents](#table-of-contents)
+  - [Prerequisites](#prerequisites)
+  - [Step 1 - Installing the Ambassador Edge Stack](#step-1---installing-the-ambassador-edge-stack)
+  - [Step 2 - Defining the Hosts for Ambassador Edge Stack](#step-2---defining-the-hosts-for-ambassador-edge-stack)
+  - [Step 3 - Configuring DNS for Ambassador Edge Stack](#step-3---configuring-dns-for-ambassador-edge-stack)
+  - [Step 4 - Creating the Ambassador Edge Stack Backend Services](#step-4---creating-the-ambassador-edge-stack-backend-services)
+  - [Step 5 - Configuring the Ambassador Edge Stack Mappings for Hosts](#step-5---configuring-the-ambassador-edge-stack-mappings-for-hosts)
+  - [Step 6 - Enabling Proxy Protocol](#step-6---enabling-proxy-protocol)
+  - [Step 7 - Verifying the Ambassador Edge Stack Setup](#step-7---verifying-the-ambassador-edge-stack-setup)
+  - [How To Guides](#how-to-guides)
+  - [Conclusion](#conclusion)
 
 ## Prerequisites
 
@@ -528,10 +528,43 @@ A `L4` load balancer replaces the original `client IP` with its `own IP` address
 
 To enable proxy protocol for `AES`, you need to:
 
-1. Enable `proxy` protocol on `DigitalOcean` LB through service `annotation` on `Ambassador` LB service.
-2. Enable `proxy` protocol configuration on `Ambassador Edge Stack` end.
+- Enable `proxy` protocol on `DigitalOcean` LB through service `annotation` on `Ambassador` LB service.
 
-For different `DigitalOcean` load balancer configurations, please refer to the examples from the official [DigitalOcean Cloud Controller Manager](https://github.com/digitalocean/digitalocean-cloud-controller-manager/tree/master/docs/controllers/services/examples) documentation. Proxy protocol on the `LoadBalancer` is enabled with the following `annotation` on `Ambassador` LB service: `service.beta.kubernetes.io/do-loadbalancer-enable-proxy-protocol: "true"`. You must **NOT** create a load balancer with `Proxy` support by using the `DigitalOcean` web console, as any setting done outside `DOKS` is automatically `overridden` by DOKS `reconciliation`.
+Edit the `Helm` values file provided in the `Starter Kit` repository using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://visualstudio.microsoft.com):
+
+```shell
+code 03-setup-ingress-controller/assets/manifests/ambassador-values-v6.7.13.yaml
+```
+
+Then, uncomment the `service` section as seen below:
+
+```yaml
+service:
+  type: LoadBalancer
+  annotations:
+    # Enable proxy protocol
+    service.beta.kubernetes.io/do-loadbalancer-enable-proxy-protocol: "true"
+    # Specify whether the DigitalOcean Load Balancer should pass encrypted data to backend droplets
+    service.beta.kubernetes.io/do-loadbalancer-tls-passthrough: "true"
+```
+
+Finally, after saving the values file, you can apply changes using `Helm`:
+
+```shell
+HELM_CHART_VERSION="6.7.13"
+
+helm upgrade ambassador datawire/ambassador --version "$HELM_CHART_VERSION" \
+ --namespace ambassador  \
+ -f "03-setup-ingress-controller/assets/manifests/ambassador-values-v${HELM_CHART_VERSION}.yaml"
+```
+
+For different `DigitalOcean` load balancer configurations, please refer to the examples from the official [DigitalOcean Cloud Controller Manager](https://github.com/digitalocean/digitalocean-cloud-controller-manager/tree/master/docs/controllers/services/examples) documentation. Proxy protocol on the `LoadBalancer` is enabled with the following `annotation` on `Ambassador` LB service: `service.beta.kubernetes.io/do-loadbalancer-enable-proxy-protocol: "true"`.
+
+  **Note:**
+
+You must **NOT** create a load balancer with `Proxy` support by using the `DigitalOcean` web console, as any setting done outside `DOKS` is automatically `overridden` by DOKS `reconciliation`.
+
+- Enable `proxy` protocol configuration on `Ambassador Edge Stack` end.
 
 You can enable proxy support in the `Ambassador` stack via the [aes_proxy_module](assets/manifests/aes_proxy_module.yaml) manifest.
 
