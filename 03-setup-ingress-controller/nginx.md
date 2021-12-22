@@ -747,7 +747,7 @@ service:
  type: LoadBalancer
  annotations:
    # Enable proxy protocol
-   service.beta.kubernetes.io/do-loadbalancer-enable-proxy-protocol: true
+   service.beta.kubernetes.io/do-loadbalancer-enable-proxy-protocol: "true"
 ```
 
 **Note:**
