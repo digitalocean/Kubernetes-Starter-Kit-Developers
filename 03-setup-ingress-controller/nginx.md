@@ -27,19 +27,19 @@ After finishing this tutorial, you will be able to:
 
 ## Table of contents
 
-- [How to Configure Ingress using Nginx](#how-to-configure-ingress-using-nginx)
-  - [Introduction](#introduction)
-    - [Starter Kit Nginx Setup Overview](#starter-kit-nginx-setup-overview)
-  - [Table of contents](#table-of-contents)
-  - [Prerequisites](#prerequisites)
-  - [Step 1 - Installing the Nginx Ingress Controller](#step-1---installing-the-nginx-ingress-controller)
-  - [Step 2 - Configuring DNS for Nginx Ingress Controller](#step-2---configuring-dns-for-nginx-ingress-controller)
-  - [Step 3 - Creating the Nginx Backend Services](#step-3---creating-the-nginx-backend-services)
-  - [Step 4 - Configuring Nginx Ingress Rules for Backend Services](#step-4---configuring-nginx-ingress-rules-for-backend-services)
-  - [Step 5 - Configuring Production Ready TLS Certificates for Nginx](#step-5---configuring-production-ready-tls-certificates-for-nginx)
-  - [Step 6 - Enabling Proxy Protocol](#step-6---enabling-proxy-protocol)
-  - [How To Guides](#how-to-guides)
-  - [Conclusion](#conclusion)
+- [Introduction](#introduction)
+- [Prerequisites](#prerequisites)
+- [Step 1 - Installing the Nginx Ingress Controller](#step-1---installing-the-nginx-ingress-controller)
+- [Step 2 - Configuring DNS for Nginx Ingress Controller](#step-2---configuring-dns-for-nginx-ingress-controller)
+- [Step 3 - Creating the Nginx Backend Services](#step-3---creating-the-nginx-backend-services)
+- [Step 4 - Configuring Nginx Ingress Rules for Backend Services](#step-4---configuring-nginx-ingress-rules-for-backend-services)
+- [Step 5 - Configuring Production Ready TLS Certificates for Nginx](#step-5---configuring-production-ready-tls-certificates-for-nginx)
+- [Step 6 - Enabling Proxy Protocol](#step-6---enabling-proxy-protocol)
+- [How To Guides](#how-to-guides)
+  - [Setting up Ingress to use Wildcard Certificates](guides/wildcard_certificates.md)
+  - [Ingress Controller LoadBalancer Migration](guides/ingress_loadbalancer_migration.md)
+  - [Performance Considerations for Nginx](guides/nginx_performance_considerations.md)
+- [Conclusion](#conclusion)
 
 ## Prerequisites
 

@@ -34,20 +34,20 @@ After finishing this tutorial, you will be able to:
 
 ## Table of contents
 
-- [How to Install and Configure Ingress using Ambassador](#how-to-install-and-configure-ingress-using-ambassador)
-  - [Introduction](#introduction)
-    - [Starter Kit AES Setup Overview](#starter-kit-aes-setup-overview)
-  - [Table of contents](#table-of-contents)
-  - [Prerequisites](#prerequisites)
-  - [Step 1 - Installing the Ambassador Edge Stack](#step-1---installing-the-ambassador-edge-stack)
-  - [Step 2 - Defining the Hosts for Ambassador Edge Stack](#step-2---defining-the-hosts-for-ambassador-edge-stack)
-  - [Step 3 - Configuring DNS for Ambassador Edge Stack](#step-3---configuring-dns-for-ambassador-edge-stack)
-  - [Step 4 - Creating the Ambassador Edge Stack Backend Services](#step-4---creating-the-ambassador-edge-stack-backend-services)
-  - [Step 5 - Configuring the Ambassador Edge Stack Mappings for Hosts](#step-5---configuring-the-ambassador-edge-stack-mappings-for-hosts)
-  - [Step 6 - Enabling Proxy Protocol](#step-6---enabling-proxy-protocol)
-  - [Step 7 - Verifying the Ambassador Edge Stack Setup](#step-7---verifying-the-ambassador-edge-stack-setup)
-  - [How To Guides](#how-to-guides)
-  - [Conclusion](#conclusion)
+- [Introduction](#introduction)
+- [Prerequisites](#prerequisites)
+- [Step 1 - Installing the Ambassador Edge Stack](#step-1---installing-the-ambassador-edge-stack)
+- [Step 2 - Defining the Hosts for Ambassador Edge Stack](#step-2---defining-the-hosts-for-ambassador-edge-stack)
+- [Step 3 - Configuring DNS for Ambassador Edge Stack](#step-3---configuring-dns-for-ambassador-edge-stack)
+- [Step 4 - Creating the Ambassador Edge Stack Backend Services](#step-4---creating-the-ambassador-edge-stack-backend-services)
+- [Step 5 - Configuring the Ambassador Edge Stack Mappings for Hosts](#step-5---configuring-the-ambassador-edge-stack-mappings-for-hosts)
+- [Step 6 - Enabling Proxy Protocol](#step-6---enabling-proxy-protocol)
+- [Step 7 - Verifying the Ambassador Edge Stack Setup](#step-7---verifying-the-ambassador-edge-stack-setup)
+- [How To Guides](#how-to-guides)
+  - [Setting up Ingress to use Wildcard Certificates](guides/wildcard_certificates.md)
+  - [Ingress Controller LoadBalancer Migration](guides/ingress_loadbalancer_migration.md)
+  - [Performance Considerations for the Ambassador Edge Stack](guides/aes_performance_considerations.md)
+- [Conclusion](#conclusion)
 
 ## Prerequisites
 
