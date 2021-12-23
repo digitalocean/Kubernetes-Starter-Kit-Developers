@@ -537,21 +537,21 @@ To enable proxy protocol for `AES Backend Services`, you need to run the below s
 
 2. Edit the `Helm` values file provided in the `Starter Kit` repository using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://visualstudio.microsoft.com):
 
-```shell
-code 03-setup-ingress-controller/assets/manifests/ambassador-values-v6.7.13.yaml
-```
+    ```shell
+    code 03-setup-ingress-controller/assets/manifests/ambassador-values-v6.7.13.yaml
+    ```
 
 3. Uncomment the `annotations` settings from the `service` section, like in the below example:
 
-```yaml
-service:
-  type: LoadBalancer
-  annotations:
-    # Enable proxy protocol
-    service.beta.kubernetes.io/do-loadbalancer-enable-proxy-protocol: "true"
-    # Specify whether the DigitalOcean Load Balancer should pass encrypted data to backend droplets
-    service.beta.kubernetes.io/do-loadbalancer-tls-passthrough: "true"
-```
+    ```yaml
+    service:
+      type: LoadBalancer
+      annotations:
+        # Enable proxy protocol
+        service.beta.kubernetes.io/do-loadbalancer-enable-proxy-protocol: "true"
+        # Specify whether the DigitalOcean Load Balancer should pass encrypted data to backend droplets
+        service.beta.kubernetes.io/do-loadbalancer-tls-passthrough: "true"
+    ```
 
  **Note:**
 
@@ -559,52 +559,52 @@ You must **NOT** create a load balancer with `Proxy` support by using the `Digit
 
 4. Save the values file and apply changes using `Helm`:
 
-```shell
-HELM_CHART_VERSION="6.7.13"
+    ```shell
+    HELM_CHART_VERSION="6.7.13"
 
-helm upgrade ambassador datawire/ambassador --version "$HELM_CHART_VERSION" \
- --namespace ambassador  \
- -f "03-setup-ingress-controller/assets/manifests/ambassador-values-v${HELM_CHART_VERSION}.yaml"
-```
+    helm upgrade ambassador datawire/ambassador --version "$HELM_CHART_VERSION" \
+    --namespace ambassador  \
+    -f "03-setup-ingress-controller/assets/manifests/ambassador-values-v${HELM_CHART_VERSION}.yaml"
+    ```
 
 5. Enable the proxy support in the `Ambassador` stack via the [aes_proxy_module](assets/manifests/aes_proxy_module.yaml) manifest.
 
-```shell
-kubectl apply -f 03-setup-ingress-controller/assets/manifests/aes_proxy_module.yaml
-```
+    ```shell
+    kubectl apply -f 03-setup-ingress-controller/assets/manifests/aes_proxy_module.yaml
+    ```
 
 Please note that module configuration is a `global` option (enable/disable) for `AES`.
 
 6. Test the echo service via curl (notice that your Public IP will be present in `X-Forwarded-For` and `X-Envoy-External-Address` headers):
 
-```shell
-curl -Li https://echo.starter-kit.online/echo/
-```
+    ```shell
+    curl -Li https://echo.starter-kit.online/echo/
+    ```
 
-```shell
-echo/                                                                                                                                                                           main!
-HTTP/1.1 200 OK
-content-type: text/plain
-date: Thu, 23 Dec 2021 10:16:18 GMT
-content-length: 356
-x-envoy-upstream-service-time: 0
-server: envoy
+    ```shell
+    echo/                                                                                                                                                                           main!
+    HTTP/1.1 200 OK
+    content-type: text/plain
+    date: Thu, 23 Dec 2021 10:16:18 GMT
+    content-length: 356
+    x-envoy-upstream-service-time: 0
+    server: envoy
 
-Request served by echo-5d8d65c665-8spcr
+    Request served by echo-5d8d65c665-8spcr
 
-HTTP/1.1 GET /
+    HTTP/1.1 GET /
 
-Host: echo.starter-kit.online
-X-Envoy-Original-Path: /echo/
-Content-Length: 0
-User-Agent: curl/7.77.0
-X-Forwarded-Proto: https
-X-Request-Id: 51e37d36-b810-4c77-8f65-e4f99f5d6b37
-Accept: */*
-X-Forwarded-For: 79.119.116.72
-X-Envoy-External-Address: 79.119.116.72
-X-Envoy-Expected-Rq-Timeout-Ms: 3000
-```
+    Host: echo.starter-kit.online
+    X-Envoy-Original-Path: /echo/
+    Content-Length: 0
+    User-Agent: curl/7.77.0
+    X-Forwarded-Proto: https
+    X-Request-Id: 51e37d36-b810-4c77-8f65-e4f99f5d6b37
+    Accept: */*
+    X-Forwarded-For: 79.119.116.72
+    X-Envoy-External-Address: 79.119.116.72
+    X-Envoy-Expected-Rq-Timeout-Ms: 3000
+    ```
 
 In the next step, you will test the `AES` mappings configuration, and perform `HTTP` requests on the backend services using `curl`.
 
