@@ -528,7 +528,7 @@ A `L4` load balancer replaces the original `client IP` with its `own IP` address
 
 For different `DigitalOcean` load balancer configurations, please refer to the examples from the official [DigitalOcean Cloud Controller Manager](https://github.com/digitalocean/digitalocean-cloud-controller-manager/tree/master/docs/controllers/services/examples) documentation. The Proxy protocol on the `DigitalOcean LoadBalancer` needs to be enabled with the following `annotations`:
 
-- `service.beta.kubernetes.io/do-loadbalancer-enable-proxy-protocol`.
+- `service.beta.kubernetes.io/do-loadbalancer-enable-proxy-protocol`
 - `service.beta.kubernetes.io/do-loadbalancer-tls-passthrough`
 
 To enable proxy protocol for `AES Backend Services`, you need to run the below steps:
