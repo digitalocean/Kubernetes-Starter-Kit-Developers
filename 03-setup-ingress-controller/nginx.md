@@ -732,7 +732,10 @@ In the next step, you will learn how to use the `DigitalOcean Proxy Protocol` wi
 
 A `L4` load balancer replaces the original `client IP` with its `own IP` address. This is a problem, as you will lose the `client IP` visibility in the application, so you need to enable `proxy protocol`. Proxy protocol enables a `L4 Load Balancer` to communicate the `original` client `IP`. For this to work, you need to configure both `DigitalOcean Load Balancer` and `Nginx`.
 
-After deploying the [Backend Services](#step-3---creating-the-nginx-backend-services), you need to configure the nginx Kubernetes `Service` to use the `proxy protocol`. A special service annotation is made available by the `DigitalOcean Cloud Controller` - `service.beta.kubernetes.io/do-loadbalancer-enable-proxy-protocol`.
+After deploying the [Backend Services](#step-3---creating-the-nginx-backend-services), you need to configure the nginx Kubernetes `Service` to use the `proxy protocol` and `tls-passthrough`. This annotations are made available by the `DigitalOcean Cloud Controller`:
+
+- `service.beta.kubernetes.io/do-loadbalancer-enable-proxy-protocol`
+- `service.beta.kubernetes.io/do-loadbalancer-tls-passthrough`
 
 First, you need to edit the `Helm` values file provided in the `Starter Kit` repository using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://visualstudio.microsoft.com):
 
@@ -740,21 +743,30 @@ First, you need to edit the `Helm` values file provided in the `Starter Kit` rep
 code 03-setup-ingress-controller/assets/manifests/nginx-values-v4.0.6.yaml
 ```
 
-Then, uncomment the `service` section as seen below:
+Then, uncomment the `annotations` settings from the `service` section, like in the below example:
 
 ```yaml
 service:
- type: LoadBalancer
- annotations:
-   # Enable proxy protocol
-   service.beta.kubernetes.io/do-loadbalancer-enable-proxy-protocol: "true"
+  type: LoadBalancer
+  annotations:
+    # Enable proxy protocol
+    service.beta.kubernetes.io/do-loadbalancer-enable-proxy-protocol: "true"
+    # Specify whether the DigitalOcean Load Balancer should pass encrypted data to backend droplets
+    service.beta.kubernetes.io/do-loadbalancer-tls-passthrough: "true"
 ```
 
 **Note:**
 
 You must **NOT** create a load balancer with `Proxy` support by using the `DigitalOcean` web console, as any setting done outside `DOKS` is automatically `overridden` by DOKS `reconciliation`.
 
-Finally, after saving the values file, you can apply changes using `Helm`:
+Then, uncomment the `config` section as seen below to allow Nginx to receive client connection information:
+
+```yaml
+config:
+  use-proxy-protocol: "true"
+```
+
+Then, save the values file and apply changes using `Helm`:
 
 ```shell
 NGINX_CHART_VERSION="4.0.6"
@@ -762,6 +774,36 @@ NGINX_CHART_VERSION="4.0.6"
 helm upgrade ingress-nginx ingress-nginx/ingress-nginx --version "$NGINX_CHART_VERSION" \
   --namespace ingress-nginx \
   -f "03-setup-ingress-controller/assets/manifests/nginx-values-v${NGINX_CHART_VERSION}.yaml"
+```
+
+Finally, test the echo service via curl (notice that your Public IP will be present in `X-Forwarded-For` and `X-Real-Ip` headers):
+
+```shell
+curl -Li https://echo.starter-kit.online/
+```
+
+```shell
+HTTP/2 200
+date: Thu, 23 Dec 2021 10:26:02 GMT
+content-type: text/plain
+content-length: 356
+strict-transport-security: max-age=15724800; includeSubDomains
+
+Request served by echo-5d8d65c665-fpbwx
+
+HTTP/1.1 GET /echo/
+
+Host: echo.starter-kit.online
+X-Real-Ip: 79.119.116.72
+X-Forwarded-For: 79.119.116.72
+X-Forwarded-Host: echo.starter-kit.online
+X-Forwarded-Proto: https
+User-Agent: curl/7.77.0
+X-Request-Id: b167a24f6ac241442642c3abf24d7517
+X-Forwarded-Port: 443
+X-Forwarded-Scheme: https
+X-Scheme: https
+Accept: */*
 ```
 
 For different `DigitalOcean` load balancer configurations, please refer to the examples from the official [DigitalOcean Cloud Controller Manager](https://github.com/digitalocean/digitalocean-cloud-controller-manager/tree/master/docs/controllers/services/examples) documentation.
