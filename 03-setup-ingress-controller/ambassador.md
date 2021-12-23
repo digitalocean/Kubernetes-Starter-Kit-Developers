@@ -526,17 +526,22 @@ In the next step, you will learn how to use the `DigitalOcean Proxy Protocol` wi
 
 A `L4` load balancer replaces the original `client IP` with its `own IP` address. This is a problem, as you will lose the `client IP` visibility in the application, so you need to enable `proxy protocol`. Proxy protocol enables a `L4 Load Balancer` to communicate the `original` client `IP`. For this to work, you need to configure both `DigitalOcean Load Balancer` and `AES`. After deploying the [AES Backend Services](#step-5---creating-the-ambassador-edge-stack-backend-services), and manually enabling the `proxy protocol`, you need to configure `Ambassador Module` to enable `AES` to use the `proxy protocol`.
 
-To enable proxy protocol for `AES`, you need to:
+For different `DigitalOcean` load balancer configurations, please refer to the examples from the official [DigitalOcean Cloud Controller Manager](https://github.com/digitalocean/digitalocean-cloud-controller-manager/tree/master/docs/controllers/services/examples) documentation. The Proxy protocol on the `DigitalOcean LoadBalancer` needs to be enabled with the following `annotations`:
 
-- Enable `proxy` protocol on `DigitalOcean` LB through service `annotation` on `Ambassador` LB service.
+- `service.beta.kubernetes.io/do-loadbalancer-enable-proxy-protocol`.
+- `service.beta.kubernetes.io/do-loadbalancer-tls-passthrough`
 
-Edit the `Helm` values file provided in the `Starter Kit` repository using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://visualstudio.microsoft.com):
+To enable proxy protocol for `AES Backend Services`, you need to run the below steps:
+
+First, change directory where the `Starter Kit` repository was cloned
+
+Then, edit the `Helm` values file provided in the `Starter Kit` repository using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://visualstudio.microsoft.com):
 
 ```shell
 code 03-setup-ingress-controller/assets/manifests/ambassador-values-v6.7.13.yaml
 ```
 
-Then, uncomment the `service` section as seen below:
+Then, uncomment the `annotations` settings from the `service` section, like in the below example:
 
 ```yaml
 service:
@@ -548,7 +553,11 @@ service:
     service.beta.kubernetes.io/do-loadbalancer-tls-passthrough: "true"
 ```
 
-Finally, after saving the values file, you can apply changes using `Helm`:
+ **Note:**
+
+You must **NOT** create a load balancer with `Proxy` support by using the `DigitalOcean` web console, as any setting done outside `DOKS` is automatically `overridden` by DOKS `reconciliation`.
+
+Then, save the values file and apply changes using `Helm`:
 
 ```shell
 HELM_CHART_VERSION="6.7.13"
@@ -558,23 +567,44 @@ helm upgrade ambassador datawire/ambassador --version "$HELM_CHART_VERSION" \
  -f "03-setup-ingress-controller/assets/manifests/ambassador-values-v${HELM_CHART_VERSION}.yaml"
 ```
 
-For different `DigitalOcean` load balancer configurations, please refer to the examples from the official [DigitalOcean Cloud Controller Manager](https://github.com/digitalocean/digitalocean-cloud-controller-manager/tree/master/docs/controllers/services/examples) documentation. Proxy protocol on the `LoadBalancer` is enabled with the following `annotation` on `Ambassador` LB service: `service.beta.kubernetes.io/do-loadbalancer-enable-proxy-protocol: "true"`.
-
-  **Note:**
-
-You must **NOT** create a load balancer with `Proxy` support by using the `DigitalOcean` web console, as any setting done outside `DOKS` is automatically `overridden` by DOKS `reconciliation`.
-
-- Enable `proxy` protocol configuration on `Ambassador Edge Stack` end.
-
-You can enable proxy support in the `Ambassador` stack via the [aes_proxy_module](assets/manifests/aes_proxy_module.yaml) manifest.
-
-Change directory where the `Starter Kit` repository was cloned and:
+Then, enable the proxy support in the `Ambassador` stack via the [aes_proxy_module](assets/manifests/aes_proxy_module.yaml) manifest.
 
 ```shell
 kubectl apply -f 03-setup-ingress-controller/assets/manifests/aes_proxy_module.yaml
 ```
 
 Please note that module configuration is a `global` option (enable/disable) for `AES`.
+
+Finally, test the echo service via curl (notice that your Public IP will be present in `X-Forwarded-For` and `X-Envoy-External-Address` headers):
+
+```shell
+curl -Li https://echo.starter-kit.online/echo/
+```
+
+```shell
+echo/                                                                                                                                                                           main!
+HTTP/1.1 200 OK
+content-type: text/plain
+date: Thu, 23 Dec 2021 10:16:18 GMT
+content-length: 356
+x-envoy-upstream-service-time: 0
+server: envoy
+
+Request served by echo-5d8d65c665-8spcr
+
+HTTP/1.1 GET /
+
+Host: echo.starter-kit.online
+X-Envoy-Original-Path: /echo/
+Content-Length: 0
+User-Agent: curl/7.77.0
+X-Forwarded-Proto: https
+X-Request-Id: 51e37d36-b810-4c77-8f65-e4f99f5d6b37
+Accept: */*
+X-Forwarded-For: 79.119.116.72
+X-Envoy-External-Address: 79.119.116.72
+X-Envoy-Expected-Rq-Timeout-Ms: 3000
+```
 
 In the next step, you will test the `AES` mappings configuration, and perform `HTTP` requests on the backend services using `curl`.
 
