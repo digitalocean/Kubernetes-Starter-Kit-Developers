@@ -533,15 +533,15 @@ For different `DigitalOcean` load balancer configurations, please refer to the e
 
 To enable proxy protocol for `AES Backend Services`, you need to run the below steps:
 
-First, change directory where the `Starter Kit` repository was cloned
+1. Change directory where the `Starter Kit` repository was cloned
 
-Then, edit the `Helm` values file provided in the `Starter Kit` repository using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://visualstudio.microsoft.com):
+2. Edit the `Helm` values file provided in the `Starter Kit` repository using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://visualstudio.microsoft.com):
 
 ```shell
 code 03-setup-ingress-controller/assets/manifests/ambassador-values-v6.7.13.yaml
 ```
 
-Then, uncomment the `annotations` settings from the `service` section, like in the below example:
+3. Uncomment the `annotations` settings from the `service` section, like in the below example:
 
 ```yaml
 service:
@@ -557,7 +557,7 @@ service:
 
 You must **NOT** create a load balancer with `Proxy` support by using the `DigitalOcean` web console, as any setting done outside `DOKS` is automatically `overridden` by DOKS `reconciliation`.
 
-Then, save the values file and apply changes using `Helm`:
+4. Save the values file and apply changes using `Helm`:
 
 ```shell
 HELM_CHART_VERSION="6.7.13"
@@ -567,7 +567,7 @@ helm upgrade ambassador datawire/ambassador --version "$HELM_CHART_VERSION" \
  -f "03-setup-ingress-controller/assets/manifests/ambassador-values-v${HELM_CHART_VERSION}.yaml"
 ```
 
-Then, enable the proxy support in the `Ambassador` stack via the [aes_proxy_module](assets/manifests/aes_proxy_module.yaml) manifest.
+5. Enable the proxy support in the `Ambassador` stack via the [aes_proxy_module](assets/manifests/aes_proxy_module.yaml) manifest.
 
 ```shell
 kubectl apply -f 03-setup-ingress-controller/assets/manifests/aes_proxy_module.yaml
@@ -575,7 +575,7 @@ kubectl apply -f 03-setup-ingress-controller/assets/manifests/aes_proxy_module.y
 
 Please note that module configuration is a `global` option (enable/disable) for `AES`.
 
-Finally, test the echo service via curl (notice that your Public IP will be present in `X-Forwarded-For` and `X-Envoy-External-Address` headers):
+6. Test the echo service via curl (notice that your Public IP will be present in `X-Forwarded-For` and `X-Envoy-External-Address` headers):
 
 ```shell
 curl -Li https://echo.starter-kit.online/echo/
