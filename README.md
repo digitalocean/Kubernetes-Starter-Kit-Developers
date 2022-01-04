@@ -4,12 +4,21 @@
 
 In this tutorial, we provide developers a hands-on introduction on how to get started with an operations-ready Kubernetes cluster on DigitalOcean Kubernetes (DOKS). Kubernetes is easy to set up and developers can use identical tooling and configurations across any cloud. Making Kubernetes operationally ready requires a few more tools to be set up, which are described in this tutorial.
 
-Resources used by the starter kit include the following:
+Resources used by the Starter Kit include the following:
 
 - DigitalOcean `Droplets` (for `DOKS` cluster).
 - DigitalOcean `Load Balancer`.
 - DigitalOcean `Block Storage` for persistent storage.
 - DigitalOcean `Spaces` for object storage.
+- Kubernetes Helm Charts:
+
+    [![](https://img.shields.io/static/v1?label=ingress-nginx&message=4.0.6&color=success)](https://artifacthub.io/packages/helm/ingress-nginx/ingress-nginx/4.0.6)
+    [![](https://img.shields.io/static/v1?label=ingress-ambassador&message=6.7.13&color=success)](https://artifacthub.io/packages/helm/datawire/ambassador/6.7.13)
+    [![](https://img.shields.io/static/v1?label=prometheus-stack&message=17.1.3&color=success)](https://artifacthub.io/packages/helm/prometheus-community/kube-prometheus-stack/17.1.3)
+    [![](https://img.shields.io/static/v1?label=loki-stack&message=2.4.1&color=success)](https://artifacthub.io/packages/helm/grafana/loki-stack/2.4.1)
+    [![](https://img.shields.io/static/v1?label=velero&message=2.23.6&color=success)](https://artifacthub.io/packages/helm/vmware-tanzu/velero/2.23.6)
+    ![](https://img.shields.io/static/v1?label=triliovault&message=2.6.3&color=success)
+    [![](https://img.shields.io/static/v1?label=sealed-secrets&message=1.16.1&color=success)](https://artifacthub.io/packages/helm/bitnami-labs/sealed-secrets/1.16.1)
 
 Remember to verify and delete the resources at the end of the tutorial, if you no longer need those.
 
