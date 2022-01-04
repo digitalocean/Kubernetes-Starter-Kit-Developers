@@ -3,11 +3,11 @@ module "doks_flux_cd" {
 
   # DOKS 
   do_api_token                 = "<YOUR_DO_API_TOKEN_HERE>"               # DO API TOKEN (string value)
-  doks_cluster_name            = "<YOUR_DOKS_CLUSTER_NAME_HERE>"          # Name of this `DOKS` cluster ? (string value)
-  doks_cluster_region          = "<YOUR_DOKS_CLUSTER_REGION_HERE>"        # What region should this `DOKS` cluster be provisioned in ? (string value)
-  doks_cluster_version         = "1.21.3-do.0"                            # What Kubernetes version should this `DOKS` cluster use ? (string value)
-  doks_cluster_pool_size       = "<YOUR_DOKS_CLUSTER_POOL_SIZE_HERE>"     # What machine type to use for this `DOKS` cluster ? (string value)
-  doks_cluster_pool_node_count = <YOUR_DOKS_CLUSTER_POOL_NODE_COUNT_HERE> # How many worker nodes this `DOKS` cluster should have ? (integer value)
+  doks_cluster_name            = "<YOUR_DOKS_CLUSTER_NAME_HERE>"          # Name of your `DOKS` cluster (string value)
+  doks_cluster_region          = "<YOUR_DOKS_CLUSTER_REGION_HERE>"        # The region this `DOKS` cluster will be provisioned in (string value)
+  doks_cluster_version         = "1.21.5-do.0"                            # The Kubernetes version of this `DOKS` cluster (string value)
+  doks_cluster_pool_size       = "<YOUR_DOKS_CLUSTER_POOL_SIZE_HERE>"     # The droplet size for nodes of this `DOKS` cluster (string value)
+  doks_cluster_pool_node_count = <YOUR_DOKS_CLUSTER_POOL_NODE_COUNT_HERE> # The number of worker nodes in this `DOKS` cluster (integer value)
   
   # GitHub
   # Important notes:
@@ -16,6 +16,6 @@ module "doks_flux_cd" {
   github_user               = "<YOUR_GITHUB_USER_HERE>"               # Your `GitHub` username
   github_token              = "<YOUR_GITHUB_TOKEN_HERE>"              # Your `GitHub` personal access token
   git_repository_name       = "<YOUR_GIT_REPOSITORY_NAME_HERE>"       # Git repository where `Flux CD` manifests should be stored
-  git_repository_branch     = "<YOUR_GIT_REPOSITORY_BRANCH_HERE>"     # Branch name to use for this `Git` repository (e.g.: `main`)
-  git_repository_sync_path  = "<YOUR_GIT_REPOSITORY_SYNC_PATH_HERE>"  # Git repository path where the manifests to sync are committed (e.g.: `clusters/dev`)
+  git_repository_branch     = "<YOUR_GIT_REPOSITORY_BRANCH_HERE>"     # Branch name to use for this `Git` repository (e.g. `main`)
+  git_repository_sync_path  = "<YOUR_GIT_REPOSITORY_SYNC_PATH_HERE>"  # Git repository path where the manifests to sync are committed (e.g. `clusters/dev`)
 }

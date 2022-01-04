@@ -33,3 +33,13 @@ controller:
   #   worker-processes: "auto"
   #   max-worker-connections: "65535"
   #   use-gzip: "true"
+  # # Enable the metrics of the NGINX Ingress controller https://kubernetes.github.io/ingress-nginx/user-guide/monitoring/
+  # metrics:
+  #   enabled: true
+  # podAnnotations:
+  #   controller:
+  #     metrics:
+  #       service:
+  #         servicePort: "9090"
+  #   prometheus.io/port: "10254"
+  #   prometheus.io/scrape: "true"
