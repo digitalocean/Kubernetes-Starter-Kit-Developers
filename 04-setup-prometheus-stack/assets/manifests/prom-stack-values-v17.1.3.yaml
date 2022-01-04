@@ -50,6 +50,7 @@ prometheus:
   ## Starter Kit components service monitors
   #
   # additionalServiceMonitors:
+  # # Uncomment the following section to enable ambassador service monitoring
   #   - name: "ambassador-monitor"
   #     selector:
   #       matchLabels:
@@ -59,8 +60,19 @@ prometheus:
   #         - ambassador
   #     endpoints:
   #       - port: "ambassador-admin"
-  #
-  ## Uncomment the following section to enable Loki service monitoring
+
+  # # Uncomment the following section to enable ingress-nginx service monitoring
+  #   - name: "ingress-nginx-monitor"
+  #     selector:
+  #       matchLabels:
+  #         app.kubernetes.io/name: ingress-nginx
+  #     namespaceSelector:
+  #       matchNames:
+  #         - ingress-nginx
+  #     endpoints:
+  #       - port: "metrics"
+
+  # # Uncomment the following section to enable Loki service monitoring
   #   - name: "loki-monitor"
   #     selector:
   #       matchLabels:
@@ -71,8 +83,8 @@ prometheus:
   #         - monitoring
   #     endpoints:
   #       - port: "http-metrics"
-  #
-  ## Uncomment the following section to enable Promtail service monitoring
+
+  # # Uncomment the following section to enable Promtail service monitoring
   #   - name: "promtail-monitor"
   #     selector:
   #       matchLabels:
