@@ -36,6 +36,12 @@ alertmanager:
 grafana:
   enabled: true
   adminPassword: prom-operator # Please change the default password in production !!!
+  # # Starter Kit setup for DigitalOcean Block Storage
+  # persistence:
+  #   enabled: true
+  #   storageClassName: do-block-storage
+  #   accessModes: ["ReadWriteOnce"]
+  #   size: 5Gi
 
 ## Manages Prometheus and Alertmanager components
 ##
