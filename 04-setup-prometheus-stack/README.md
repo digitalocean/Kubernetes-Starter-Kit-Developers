@@ -487,56 +487,29 @@ A new `Volume` should appear in the [Volumes](https://cloud.digitalocean.com/vol
 
 ## Step 6 - Configuring Persistent Storage for Grafana
 
-In this step, you will learn how to enable `persistent storage` for `Grafana`, so that the dashboards are persisted across `server restarts`, or in case of `cluster failures`. You will define a `5 Gi Persistent Volume Claim` (PVC), using the `DigitalOcean Block Storage`. Later on, a quick and easy guide is provided, on how to `plan` the `size` of your `PVC`, to suit your monitoring `storage` needs. To learn more about `PVCs`, please consult the [Persistent Volumes](https://kubernetes.io/docs/concepts/storage/persistent-volumes) page from the official `Kubernetes` documentation.
+The steps are similar like the one from [Step 5 - Configuring Persistent Storage for Prometheus](#step-5---configuring-persistent-storage-for-prometheus) where the definition for `grafana` needs to be changed.
 
-Steps to follow:
+Open the `04-setup-prometheus-stack/assets/manifests/prom-stack-values-v17.1.3.yaml` file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support). The `persistence` definition should look like:
 
-1. First, check what storage class is available - you need one, in order to proceed:
+```yaml
+grafana:
+  ...
+  persistence:
+    enabled: true
+    storageClassName: do-block-storage
+    accessModes: ["ReadWriteOnce"]
+    size: 5Gi
+```
 
-    ```shell
-    kubectl get storageclass
-    ```
+Apply settings using `Helm`:
 
-    The output should look similar to (notice that `DigitalOcean Block Storage` is available for you to use):
+  ```shell
+  HELM_CHART_VERSION="17.1.3"
 
-    ```text
-    NAME                         PROVISIONER                 RECLAIMPOLICY   VOLUMEBINDINGMODE   ALLOWVOLUMEEXPANSION   AGE
-    do-block-storage (default)   dobs.csi.digitalocean.com   Delete          Immediate           true                   4d2h
-    ```
-
-2. Next, change directory (if not already) where the `Starter Kit` Git repository was cloned:
-
-    ```shell
-    cd Kubernetes-Starter-Kit-Developers
-    ```
-
-3. Then, open the `04-setup-prometheus-stack/assets/manifests/prom-stack-values-v17.1.3.yaml` file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support). Search for the `persistence` line under `grafana` section, and uncomment the lines. The `persistence` definition should look like:
-
-    ```yaml
-    grafana:
-      ...
-      persistence:
-        enabled: true
-        storageClassName: do-block-storage
-        accessModes: ["ReadWriteOnce"]
-        size: 5Gi
-    ```
-
-    Explanations for the above configuration:
-
-    - `volumeClaimTemplate` - defines a new `PVC`.
-    - `storageClassName` - defines the storage class (should use the same value as from the `kubectl get storageclass` command output).
-    - `resources` - sets the storage requests value - in this case, a total capacity of `5 Gi` is requested for the new volume.
-
-4. Finally, apply settings using `Helm`:
-
-    ```shell
-    HELM_CHART_VERSION="17.1.3"
-
-    helm upgrade kube-prom-stack prometheus-community/kube-prometheus-stack --version "${HELM_CHART_VERSION}" \
-      --namespace monitoring \
-      -f "04-setup-prometheus-stack/assets/manifests/prom-stack-values-v${HELM_CHART_VERSION}.yaml"
-    ```
+  helm upgrade kube-prom-stack prometheus-community/kube-prometheus-stack --version "${HELM_CHART_VERSION}" \
+    --namespace monitoring \
+    -f "04-setup-prometheus-stack/assets/manifests/prom-stack-values-v${HELM_CHART_VERSION}.yaml"
+  ```
 
 After completing the above steps, check the `PVC` status:
 
