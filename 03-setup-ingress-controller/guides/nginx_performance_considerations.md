@@ -127,7 +127,7 @@ Following steps are required to change `fs.file-max` for `Nginx` via `Pod Securi
 2. Next, open and inspect the `controller.sysctls` section, from the Nginx `Helm` values file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support). It has the required values already set for you to use. For example, you can use [VS Code](https://code.visualstudio.com):
 
     ```shell
-    code 03-setup-ingress-controller/assets/manifests/nginx-values-v4.0.6.yaml
+    code 03-setup-ingress-controller/assets/manifests/nginx-values-v4.0.13.yaml
     ```
 
 3. Then, uncomment the `sys.fs.file-max` parameter from `sysctls` section. It should look like below:
@@ -140,7 +140,7 @@ Following steps are required to change `fs.file-max` for `Nginx` via `Pod Securi
 4. Now, save the values file and apply changes using `Helm` upgrade:
 
     ```shell
-    NGINX_CHART_VERSION="4.0.6"
+    NGINX_CHART_VERSION="4.0.13"
 
     helm upgrade ingress-nginx ingress-nginx/ingress-nginx --version "$NGINX_CHART_VERSION" \
       --namespace ingress-nginx \
@@ -243,7 +243,7 @@ Following steps are required to change `net.core.somaxconn` for `Nginx` via `Pod
 2. Next, open and inspect the `controller.sysctls` section, from the Nginx `Helm` values file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support). It has the required values already set for you to use. For example, you can use [VS Code](https://code.visualstudio.com):
 
     ```shell
-    code 03-setup-ingress-controller/assets/manifests/nginx-values-v4.0.6.yaml
+    code 03-setup-ingress-controller/assets/manifests/nginx-values-v4.0.13.yaml
     ```
 
 3. Then, uncomment the `net.core.somaxconn` parameter from `sysctls` section. It should look like below:
@@ -256,7 +256,7 @@ Following steps are required to change `net.core.somaxconn` for `Nginx` via `Pod
 4. Now, save the values file and apply changes using `Helm` upgrade:
 
     ```shell
-    NGINX_CHART_VERSION="4.0.6"
+    NGINX_CHART_VERSION="4.0.13"
 
     helm upgrade ingress-nginx ingress-nginx/ingress-nginx --version "$NGINX_CHART_VERSION" \
       --namespace ingress-nginx \
@@ -357,7 +357,7 @@ Following steps are required to change `net.ipv4.ip_local_port_range` for `Nginx
 2. Next, open and inspect the `controller.sysctls` section, from the Nginx `Helm` values file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support). It has the required values already set for you to use. For example, you can use [VS Code](https://code.visualstudio.com):
 
     ```shell
-    code 03-setup-ingress-controller/assets/manifests/nginx-values-v4.0.6.yaml
+    code 03-setup-ingress-controller/assets/manifests/nginx-values-v4.0.13.yaml
     ```
 
 3. Then, uncomment the `net.ipv4.ip_local_port_range` parameter from `sysctls` section. It should look like below:
@@ -370,7 +370,7 @@ Following steps are required to change `net.ipv4.ip_local_port_range` for `Nginx
 4. Now, save the values file and apply changes using `Helm` upgrade:
 
     ```shell
-    NGINX_CHART_VERSION="4.0.6"
+    NGINX_CHART_VERSION="4.0.13"
 
     helm upgrade ingress-nginx ingress-nginx/ingress-nginx --version "$NGINX_CHART_VERSION" \
       --namespace ingress-nginx \
@@ -494,7 +494,7 @@ Please follow below steps, to set `keep-alive-requests` and `upstream-keepalive-
 2. Next, open and inspect the `controller.config` section, from the Nginx `Helm` values file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support). It has the required values already set for you to use. For example, you can use [VS Code](https://code.visualstudio.com):
 
     ```shell
-    code 03-setup-ingress-controller/assets/manifests/nginx-values-v4.0.6.yaml
+    code 03-setup-ingress-controller/assets/manifests/nginx-values-v4.0.13.yaml
     ```
 
 3. Then, uncomment the `keep-alive-requests` and `upstream-keepalive-requests` parameters from `config` section. It should look like below:
@@ -508,7 +508,7 @@ Please follow below steps, to set `keep-alive-requests` and `upstream-keepalive-
 4. Finally, save the values file and apply changes using `Helm` upgrade:
 
     ```shell
-    NGINX_CHART_VERSION="4.0.6"
+    NGINX_CHART_VERSION="4.0.13"
 
     helm upgrade ingress-nginx ingress-nginx/ingress-nginx --version "$NGINX_CHART_VERSION" \
       --namespace ingress-nginx \
@@ -573,7 +573,7 @@ Steps required to change `worker processes` configuration:
 2. Next, open and inspect the `controller.config` section, from the Nginx `Helm` values file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support). It has the required values already set for you to use. For example, you can use [VS Code](https://code.visualstudio.com):
 
     ```shell
-    code 03-setup-ingress-controller/assets/manifests/nginx-values-v4.0.6.yaml
+    code 03-setup-ingress-controller/assets/manifests/nginx-values-v4.0.13.yaml
     ```
 
 3. Then, uncomment the `worker-processes` and `max-worker-connections` parameters from `config` section. It should look like below:
@@ -587,7 +587,7 @@ Steps required to change `worker processes` configuration:
 4. Finally, save the values file and apply changes using `Helm` upgrade:
 
     ```shell
-    NGINX_CHART_VERSION="4.0.6"
+    NGINX_CHART_VERSION="13"
 
     helm upgrade ingress-nginx ingress-nginx/ingress-nginx --version "$NGINX_CHART_VERSION" \
       --namespace ingress-nginx \
@@ -653,7 +653,7 @@ To enable `compression` for `Nginx`, you must configure the `use-gzip` parameter
 2. Next, open and inspect the `controller.config` section, from the Nginx `Helm` values file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support). It has the required values already set for you to use. For example, you can use [VS Code](https://code.visualstudio.com):
 
     ```shell
-    code 03-setup-ingress-controller/assets/manifests/nginx-values-v4.0.6.yaml
+    code 03-setup-ingress-controller/assets/manifests/nginx-values-v4.0.13.yaml
     ```
 
 3. Then, uncomment the `use-gzip` parameter from `config` section. It should look like below:
@@ -666,7 +666,7 @@ To enable `compression` for `Nginx`, you must configure the `use-gzip` parameter
 4. Finally, save the values file and apply changes using `Helm` upgrade:
 
     ```shell
-    NGINX_CHART_VERSION="4.0.6"
+    NGINX_CHART_VERSION="4.0.13"
 
     helm upgrade ingress-nginx ingress-nginx/ingress-nginx --version "$NGINX_CHART_VERSION" \
       --namespace ingress-nginx \
