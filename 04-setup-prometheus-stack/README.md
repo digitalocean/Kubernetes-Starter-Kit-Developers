@@ -487,9 +487,9 @@ A new `Volume` should appear in the [Volumes](https://cloud.digitalocean.com/vol
 
 ## Step 6 - Configuring Persistent Storage for Grafana
 
-The steps are similar like the one from [Step 5 - Configuring Persistent Storage for Prometheus](#step-5---configuring-persistent-storage-for-prometheus) where the definition for `grafana` needs to be changed.
+In this step, you will learn how to enable `persistent` storage for `Grafana`, so that the graphs are persisted across server restarts, or in case of cluster failures. You will define a `5 Gi Persistent Volume Claim` (PVC), using the DigitalOcean Block Storage. The next steps are the same as [Step 5 - Configuring Persistent Storage for Prometheus](#step-5---configuring-persistent-storage-for-prometheus).
 
-Open the `04-setup-prometheus-stack/assets/manifests/prom-stack-values-v17.1.3.yaml` file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support). The `persistence` definition should look like:
+First, open the `04-setup-prometheus-stack/assets/manifests/prom-stack-values-v17.1.3.yaml` file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support). The `persistence`  storage section for `grafana` should look like:
 
 ```yaml
 grafana:
@@ -501,7 +501,7 @@ grafana:
     size: 5Gi
 ```
 
-Apply settings using `Helm`:
+Next, apply settings using `Helm`:
 
   ```shell
   HELM_CHART_VERSION="17.1.3"
