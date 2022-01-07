@@ -244,7 +244,7 @@ Notice: Cluster created, fetching credentials
 Notice: Adding cluster credentials to kubeconfig file found in "/Users/starterkit/.kube/config"
 Notice: Setting current-context to starterkit-cluster-2
 ID                                      Name                  Region    Version        Auto Upgrade    Status     Node Pools
-0922a629-7f2e-4bda-940c-4d42a3f987ad    starterkit-cluster-2  nyc1      1.21.3-do.0    false           running    basicnp
+0922a629-7f2e-4bda-940c-4d42a3f987ad    starterkit-cluster-2  nyc1      1.21.5-do.0    false           running    basicnp
 ```
 
 Next, you can verify the cluster details. First, fetch your `DOKS` cluster `ID`:
@@ -257,7 +257,7 @@ The output looks similar to (notice the `ID` column value):
 
 ```text
 ID                                      Name                  Region    Version        Auto Upgrade    Status     Node Pools
-b4ddaa2e-8c0c-4fd8-b249-cbf99eda0808    starterkit-cluster-2  nyc1      1.21.3-do.0    false           running    basicnp
+b4ddaa2e-8c0c-4fd8-b249-cbf99eda0808    starterkit-cluster-2  nyc1      1.21.5-do.0    false           running    basicnp
 ```
 
 Now, query the DigitalOcean `API`, using [curl](https://curl.se/download.html) (please make sure to replace the `<>` placeholders accordingly)
@@ -293,7 +293,7 @@ The output looks similar to:
 
 ```text
 ID                                      Name                  Region    Version        Auto Upgrade    Status     Node Pools
-b4ddaa2e-8c0c-4fd8-b249-cbf99eda0808    starterkit-cluster-2  nyc1      1.21.3-do.0    false           running    basicnp
+b4ddaa2e-8c0c-4fd8-b249-cbf99eda0808    starterkit-cluster-2  nyc1      1.21.5-do.0    false           running    basicnp
 ```
 
 Next, set `kubectl` context to point to your cluster:
@@ -319,9 +319,9 @@ The output looks similar to:
 
 ```text
 NAME            STATUS   ROLES    AGE     VERSION
-basicnp-865x3   Ready    <none>   2m55s   v1.20.7
-basicnp-865x8   Ready    <none>   2m21s   v1.20.7
-basicnp-865xu   Ready    <none>   2m56s   v1.20.7
+basicnp-865x3   Ready    <none>   2m55s   v1.21.5
+basicnp-865x8   Ready    <none>   2m21s   v1.21.5
+basicnp-865xu   Ready    <none>   2m56s   v1.21.5
 ```
 
 If everything was set correctly, you should get a list of all the `DOKS` cluster worker `nodes`. The `STATUS` column should print `Ready`, if all the nodes are `healthy`.
