@@ -474,7 +474,7 @@ After completing the above steps, check the `PVC` status:
 kubectl get pvc -n monitoring
 ```
 
-The output looks similar to (`STATUS` column should display `Bound`:
+The output looks similar to (`STATUS` column should display `Bound`):
 
 ```text
 NAME                      STATUS   VOLUME                                     CAPACITY   ACCESS         MODES              AGE
@@ -517,7 +517,7 @@ After completing the above steps, check the `PVC` status:
 kubectl get pvc -n monitoring
 ```
 
-The output looks similar to (`STATUS` column should display `Bound`:
+The output looks similar to (`STATUS` column should display `Bound`):
 
 ```text
 NAME                      STATUS   VOLUME                                     CAPACITY   ACCESS         MODES              AGE
