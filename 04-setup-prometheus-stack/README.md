@@ -17,6 +17,7 @@ After finishing this tutorial, you will be able to:
 - Configure `ServiceMonitors` via the `Prometheus Operator`, for your services (e.g. `Ambassador Edge Stack`)
 - Use `PromQL` to perform queries on metrics.
 - Configure `persistent` storage for `Prometheus`, to safely store all your `DOKS` cluster and `application` metrics.
+- Configure `persistent` storage for `Grafana`, to safely store all your `dashboards`.
 
 ### Starter Kit Prometheus Stack Setup Overview
 
@@ -31,6 +32,7 @@ After finishing this tutorial, you will be able to:
 - [Step 3 - PromQL (Prometheus Query Language)](#step-3---promql-prometheus-query-language)
 - [Step 4 - Visualizing Metrics Using Grafana](#step-4---visualizing-metrics-using-grafana)
 - [Step 5 - Configuring Persistent Storage for Prometheus](#step-5---configuring-persistent-storage-for-prometheus)
+- [Step 6 - Configuring Persistent Storage for Grafana](#step-6---configuring-persistent-storage-for-grafana)
 - [Conclusion](#conclusion)
 
 ## Prerequisites
@@ -472,7 +474,7 @@ After completing the above steps, check the `PVC` status:
 kubectl get pvc -n monitoring
 ```
 
-The output looks similar to (`STATUS` column should display `Bound`:
+The output looks similar to (`STATUS` column should display `Bound`):
 
 ```text
 NAME                      STATUS   VOLUME                                     CAPACITY   ACCESS         MODES              AGE
@@ -482,6 +484,49 @@ kube-prome-prometheus-0   Bound    pvc-768d85ff-17e7-4043-9aea-4929df6a35f4   5G
 A new `Volume` should appear in the [Volumes](https://cloud.digitalocean.com/volumes) web page, from your `DigitalOcean` account panel:
 
 ![DOKS Volumes](assets/images/prom_pvc.png)
+
+## Step 6 - Configuring Persistent Storage for Grafana
+
+In this step, you will learn how to enable `persistent` storage for `Grafana`, so that the graphs are persisted across server restarts, or in case of cluster failures. You will define a `5 Gi Persistent Volume Claim` (PVC), using the DigitalOcean Block Storage. The next steps are the same as [Step 5 - Configuring Persistent Storage for Prometheus](#step-5---configuring-persistent-storage-for-prometheus).
+
+First, open the `04-setup-prometheus-stack/assets/manifests/prom-stack-values-v17.1.3.yaml` file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support). The `persistence`  storage section for `grafana` should look like:
+
+```yaml
+grafana:
+  ...
+  persistence:
+    enabled: true
+    storageClassName: do-block-storage
+    accessModes: ["ReadWriteOnce"]
+    size: 5Gi
+```
+
+Next, apply settings using `Helm`:
+
+  ```shell
+  HELM_CHART_VERSION="17.1.3"
+
+  helm upgrade kube-prom-stack prometheus-community/kube-prometheus-stack --version "${HELM_CHART_VERSION}" \
+    --namespace monitoring \
+    -f "04-setup-prometheus-stack/assets/manifests/prom-stack-values-v${HELM_CHART_VERSION}.yaml"
+  ```
+
+After completing the above steps, check the `PVC` status:
+
+```shell
+kubectl get pvc -n monitoring
+```
+
+The output looks similar to (`STATUS` column should display `Bound`):
+
+```text
+NAME                      STATUS   VOLUME                                     CAPACITY   ACCESS         MODES              AGE
+kube-prom-stack-grafana   Bound    pvc-768d85ff-17e7-4043-9aea-4929df6a35f4   5Gi        RWO            do-block-storage   4d2h
+```
+
+A new `Volume` should appear in the [Volumes](https://cloud.digitalocean.com/volumes) web page, from your `DigitalOcean` account panel:
+
+![DOKS Volumes](assets/images/grafana_pvc.png)
 
 ### Best Practices for PV Sizing
 
