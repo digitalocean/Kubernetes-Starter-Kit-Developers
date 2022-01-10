@@ -106,8 +106,8 @@ Steps to follow:
     The output looks similar to the following:
 
     ```text
-    NAME                    CHART VERSION   APP VERSION     DESCRIPTION            
-    vmware-tanzu/velero     2.23.6          1.6.3           A Helm chart for velero
+    NAME                    CHART VERSION   APP VERSION     DESCRIPTION
+    vmware-tanzu/velero     2.27.3          1.7.1           A Helm chart for velero
     ```
 
     **Note:**
@@ -116,7 +116,7 @@ Steps to follow:
 3. Then, open and inspect the Velero `Helm` values file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). You can use [VS Code](https://code.visualstudio.com) for example:
 
     ```shell
-    VELERO_CHART_VERSION="2.23.6"
+    VELERO_CHART_VERSION="2.27.3"
 
     code 06-setup-backup-restore/assets/manifests/velero-values-v${VELERO_CHART_VERSION}.yaml
     ```
@@ -125,7 +125,7 @@ Steps to follow:
 5. Finally, install `Velero` using `Helm`:
 
     ```shell
-    VELERO_CHART_VERSION="2.23.6"
+    VELERO_CHART_VERSION="2.27.3"
 
     helm install velero vmware-tanzu/velero --version "${VELERO_CHART_VERSION}" \
       --namespace velero \
@@ -135,7 +135,7 @@ Steps to follow:
 
     **Note:**
 
-    A `specific` version for the `Velero` Helm chart is used. In this case `2.23.6` is picked, which maps to the `1.6.3` version of the application (see the output from `Step 2.`). It’s good practice in general, to lock on a specific version. This helps to have predictable results, and allows versioning control via `Git`.
+    A `specific` version for the `Velero` Helm chart is used. In this case `2.27.3` is picked, which maps to the `1.7.1` version of the application (see the output from `Step 2.`). It’s good practice in general, to lock on a specific version. This helps to have predictable results, and allows versioning control via `Git`.
 
 Now, please check your `Velero` deployment:
 
@@ -147,7 +147,7 @@ The output looks similar to the following (`STATUS` column should display `deplo
 
 ```text
 NAME    NAMESPACE       REVISION        UPDATED                                 STATUS          CHART           APP VERSION
-velero  velero          1               2021-08-25 13:16:24.383446 +0300 EEST   deployed        velero-2.23.6   1.6.3 
+velero  velero          1               2022-01-10 12:25:13.069965 +0200 EET   deployed        velero-2.27.3   1.7.1
 ```
 
 Next, verify that `Velero` is up and running:
@@ -366,10 +366,10 @@ The output looks similar to (notice the `echo-backend` which is mapped to the `e
 
 ```text
 NAME                          SOURCE HOST                SOURCE PREFIX                               DEST SERVICE     STATE   REASON
-ambassador-devportal                                     /documentation/                             127.0.0.1:8500           
-ambassador-devportal-api                                 /openapi/                                   127.0.0.1:8500           
-ambassador-devportal-assets                              /documentation/(assets|styles)/(.*)(.css)   127.0.0.1:8500           
-ambassador-devportal-demo                                /docs/                                      127.0.0.1:8500           
+ambassador-devportal                                     /documentation/                             127.0.0.1:8500
+ambassador-devportal-api                                 /openapi/                                   127.0.0.1:8500
+ambassador-devportal-assets                              /documentation/(assets|styles)/(.*)(.css)   127.0.0.1:8500
+ambassador-devportal-demo                                /docs/                                      127.0.0.1:8500
 echo-backend                  echo.starter-kit.online    /echo/                                      echo.backend
 quote-backend                 quote.starter-kit.online   /quote/                                     quote.backend
 ```
