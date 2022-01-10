@@ -14,13 +14,13 @@ Resources used by the Starter Kit include the following:
 - DigitalOcean `Spaces` for object storage.
 - Kubernetes Helm Charts:
 
-    [![ingress-nginx](https://img.shields.io/static/v1?label=ingress-nginx&message=4.0.6&color=success)](https://artifacthub.io/packages/helm/ingress-nginx/ingress-nginx/4.0.6)
-    [![ingress-ambassador](https://img.shields.io/static/v1?label=ingress-ambassador&message=6.7.13&color=success)](https://artifacthub.io/packages/helm/datawire/ambassador/6.7.13)
-    [![prometheus-stac](https://img.shields.io/static/v1?label=prometheus-stack&message=17.1.3&color=success)](https://artifacthub.io/packages/helm/prometheus-community/kube-prometheus-stack/17.1.3)
-    [![loki-stack](https://img.shields.io/static/v1?label=loki-stack&message=2.4.1&color=success)](https://artifacthub.io/packages/helm/grafana/loki-stack/2.4.1)
-    [![velro](https://img.shields.io/static/v1?label=velero&message=2.23.6&color=success)](https://artifacthub.io/packages/helm/vmware-tanzu/velero/2.23.6)
-    ![triliovault](https://img.shields.io/static/v1?label=triliovault&message=2.6.3&color=success)
-    [![sealed-secrets](https://img.shields.io/static/v1?label=sealed-secrets&message=1.16.1&color=success)](https://artifacthub.io/packages/helm/bitnami-labs/sealed-secrets/1.16.1)
+    [![ingress-nginx](https://img.shields.io/static/v1?label=ingress-nginx&message=4.0.13&color=success)](https://artifacthub.io/packages/helm/ingress-nginx/ingress-nginx/4.0.13)
+    [![ingress-ambassador](https://img.shields.io/static/v1?label=ingress-ambassador&message=6.9.3&color=success)](https://artifacthub.io/packages/helm/datawire/ambassador/6.9.3)
+    [![prometheus-stac](https://img.shields.io/static/v1?label=prometheus-stack&message=30.0.1&color=success)](https://artifacthub.io/packages/helm/prometheus-community/kube-prometheus-stack/30.0.1)
+    [![loki-stack](https://img.shields.io/static/v1?label=loki-stack&message=2.5.1&color=success)](https://artifacthub.io/packages/helm/grafana/loki-stack/2.5.1)
+    [![velro](https://img.shields.io/static/v1?label=velero&message=2.23.6&color=success)](https://artifacthub.io/packages/helm/vmware-tanzu/velero/2.27.3)
+    ![triliovault](https://img.shields.io/static/v1?label=triliovault&message=2.27.3&color=success)
+    [![sealed-secrets](https://img.shields.io/static/v1?label=sealed-secrets&message=2.0.2&color=success)](https://artifacthub.io/packages/helm/bitnami-labs/sealed-secrets/2.0.2)
 
 **Notes:**
 
