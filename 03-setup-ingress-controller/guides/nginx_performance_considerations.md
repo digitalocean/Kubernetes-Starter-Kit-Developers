@@ -587,7 +587,7 @@ Steps required to change `worker processes` configuration:
 4. Finally, save the values file and apply changes using `Helm` upgrade:
 
     ```shell
-    NGINX_CHART_VERSION="13"
+    NGINX_CHART_VERSION="4.0.13"
 
     helm upgrade ingress-nginx ingress-nginx/ingress-nginx --version "$NGINX_CHART_VERSION" \
       --namespace ingress-nginx \

@@ -74,6 +74,8 @@ Steps to follow:
     ```shell
     helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 
+    helm repo update ingress-nginx
+
     helm search repo ingress-nginx
     ```
 
@@ -492,6 +494,12 @@ Next, please add the `Jetstack` Helm repository:
 
 ```shell
 helm repo add jetstack https://charts.jetstack.io
+```
+
+Next, update the `jetstack` chart repository:
+
+```shell
+helm repo update jetstack
 ```
 
 Then, open and inspect the `03-setup-ingress-controller/assets/manifests/cert-manager-values-v1.6.1.yaml` file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://code.visualstudio.com):
