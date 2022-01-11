@@ -100,6 +100,8 @@ Steps to follow:
     ```shell
     helm repo add vmware-tanzu https://vmware-tanzu.github.io/helm-charts
 
+    helm repo update vmware-tanzu
+
     helm search repo vmware-tanzu
     ```
 
