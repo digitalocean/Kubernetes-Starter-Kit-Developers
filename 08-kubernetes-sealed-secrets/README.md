@@ -87,6 +87,12 @@ Then, add the sealed secrets `bitnami-labs` repository for `Helm`:
 helm repo add sealed-secrets https://bitnami-labs.github.io/sealed-secrets
 ```
 
+Next, update the `sealed-secrets` chart repository:
+
+```shell
+helm repo update sealed-secrets
+```
+
 Next, search the `sealed-secrets` repository for available charts to install:
 
 ```shell
