@@ -60,26 +60,28 @@ Steps to follow:
     ```shell
     helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 
+    helm repo update prometheus-community
+
     helm search repo prometheus-community
     ```
 
     The output looks similar to the following:
 
     ```text
-    NAME                                                    CHART VERSION   APP VERSION     DESCRIPTION                                       
-    prometheus-community/alertmanager                       0.12.2          v0.22.1         The Alertmanager handles alerts sent by client ...
-    prometheus-community/kube-prometheus-stack              17.1.3          0.49.0          kube-prometheus-stack collects Kubernetes manif...
+    NAME                                                    CHART VERSION   APP VERSION     DESCRIPTION
+    prometheus-community/alertmanager                       0.14.0          v0.23.0         The Alertmanager handles alerts sent by client ...
+    prometheus-community/kube-prometheus-stack              30.0.1          0.53.1          kube-prometheus-stack collects Kubernetes manif...
     ...
     ```
 
     **Note:**
 
     The chart of interest is `prometheus-community/kube-prometheus-stack`, which will install `Prometheus`, `Promtail`, `Alertmanager` and `Grafana` on the cluster. Please visit the [kube-prometheus-stack](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack) page for more details about this chart.
-3. Then, open and inspect the `04-setup-prometheus-stack/assets/manifests/prom-stack-values-v17.1.3.yaml` file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). By default, `kubeSched` and `etcd` metrics are disabled - those components are managed by `DOKS` and are not accessible to `Prometheus`. Note that `storage` is set to `emptyDir`. It means the **storage will be gone** if `Prometheus` pods restart (you will fix this later on, in the [Configuring Persistent Storage for Prometheus](#configuring-persistent-storage-for-prometheus) section).
+3. Then, open and inspect the `04-setup-prometheus-stack/assets/manifests/prom-stack-values-v30.0.1.yaml` file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). By default, `kubeSched` and `etcd` metrics are disabled - those components are managed by `DOKS` and are not accessible to `Prometheus`. Note that `storage` is set to `emptyDir`. It means the **storage will be gone** if `Prometheus` pods restart (you will fix this later on, in the [Configuring Persistent Storage for Prometheus](#configuring-persistent-storage-for-prometheus) section).
 4. Finally, install the `kube-prometheus-stack`, using `Helm`:
 
     ```shell
-    HELM_CHART_VERSION="17.1.3"
+    HELM_CHART_VERSION="30.0.1"
 
     helm install kube-prom-stack prometheus-community/kube-prometheus-stack --version "${HELM_CHART_VERSION}" \
       --namespace monitoring \
@@ -89,7 +91,7 @@ Steps to follow:
 
     **Note:**
 
-    A `specific` version for the `Helm` chart is used. In this case `17.1.3` was picked, which maps to the `0.49.0` version of the application (see output from `Step 2.`). It’s good practice in general, to lock on a specific version. This helps to have predictable results, and allows versioning control via `Git`.
+    A `specific` version for the `Helm` chart is used. In this case `30.0.1` was picked, which maps to the `0.53.1` version of the application (see output from `Step 2.`). It’s good practice in general, to lock on a specific version. This helps to have predictable results, and allows versioning control via `Git`.
 
 Now, check the `Prometheus` stack `Helm` release status:
 
@@ -101,7 +103,7 @@ The output looks similar to (notice the `STATUS` column value - it should say `d
 
 ```text
 NAME            NAMESPACE       REVISION        UPDATED                                 STATUS          CHART                           APP VERSION
-kube-prom-stack monitoring      1               2021-09-25 14:04:10.477183 +0300 EEST   deployed        kube-prometheus-stack-17.1.3    0.49.0
+kube-prom-stack monitoring      1               2022-01-10 11:29:29.463468 +0200 EET   deployed        kube-prometheus-stack-30.0.1    0.53.1
 ```
 
 See what `Kubernetes` resources are available for `Prometheus`:
@@ -151,7 +153,7 @@ statefulset.apps/alertmanager-kube-prom-stack-kube-prome-alertmanager   1/1     
 statefulset.apps/prometheus-kube-prom-stack-kube-prome-prometheus       1/1     3m3s
 ```
 
-Then, you can connect to `Grafana` (using default credentials: `admin/prom-operator` - see [prom-stack-values-v17.1.3](assets/manifests/prom-stack-values-v17.1.3.yaml#L58) file), by port forwarding to local machine:
+Then, you can connect to `Grafana` (using default credentials: `admin/prom-operator` - see [prom-stack-values-v30.0.1](assets/manifests/prom-stack-values-v30.0.1.yaml#L58) file), by port forwarding to local machine:
 
 ```shell
 kubectl --namespace monitoring port-forward svc/kube-prom-stack-grafana 3000:80
@@ -229,7 +231,7 @@ Steps required to add the `Ambassador` service, for `Prometheus` to monitor:
     cd Kubernetes-Starter-Kit-Developers
     ```
 
-2. Next, open the `04-setup-prometheus-stack/assets/manifests/prom-stack-values-v17.1.3.yaml` file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support). Please remove the comments surrounding the `additionalServiceMonitors` section. The output looks similar to:
+2. Next, open the `04-setup-prometheus-stack/assets/manifests/prom-stack-values-v30.0.1.yaml` file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support). Please remove the comments surrounding the `additionalServiceMonitors` section. The output looks similar to:
 
     ```yaml
     additionalServiceMonitors:
@@ -255,7 +257,7 @@ Steps required to add the `Ambassador` service, for `Prometheus` to monitor:
 3. Finally, apply changes using `Helm`:
 
     ```shell
-    HELM_CHART_VERSION="17.1.3"
+    HELM_CHART_VERSION="30.0.1"
 
     helm upgrade kube-prom-stack prometheus-community/kube-prometheus-stack --version "${HELM_CHART_VERSION}" \
       --namespace monitoring \
@@ -438,7 +440,7 @@ Steps to follow:
     cd Kubernetes-Starter-Kit-Developers
     ```
 
-3. Then, open the `04-setup-prometheus-stack/assets/manifests/prom-stack-values-v17.1.3.yaml` file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support). Search for the `storageSpec` line, and uncomment the required section for `Prometheus`. The `storageSpec` definition should look like:
+3. Then, open the `04-setup-prometheus-stack/assets/manifests/prom-stack-values-v30.0.1.yaml` file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support). Search for the `storageSpec` line, and uncomment the required section for `Prometheus`. The `storageSpec` definition should look like:
 
     ```yaml
     prometheusSpec:
@@ -461,7 +463,7 @@ Steps to follow:
 4. Finally, apply settings using `Helm`:
 
     ```shell
-    HELM_CHART_VERSION="17.1.3"
+    HELM_CHART_VERSION="30.0.1"
 
     helm upgrade kube-prom-stack prometheus-community/kube-prometheus-stack --version "${HELM_CHART_VERSION}" \
       --namespace monitoring \
@@ -489,7 +491,7 @@ A new `Volume` should appear in the [Volumes](https://cloud.digitalocean.com/vol
 
 In this step, you will learn how to enable `persistent` storage for `Grafana`, so that the graphs are persisted across server restarts, or in case of cluster failures. You will define a `5 Gi Persistent Volume Claim` (PVC), using the DigitalOcean Block Storage. The next steps are the same as [Step 5 - Configuring Persistent Storage for Prometheus](#step-5---configuring-persistent-storage-for-prometheus).
 
-First, open the `04-setup-prometheus-stack/assets/manifests/prom-stack-values-v17.1.3.yaml` file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support). The `persistence`  storage section for `grafana` should look like:
+First, open the `04-setup-prometheus-stack/assets/manifests/prom-stack-values-v30.0.1.yaml` file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support). The `persistence`  storage section for `grafana` should look like:
 
 ```yaml
 grafana:
@@ -504,7 +506,7 @@ grafana:
 Next, apply settings using `Helm`:
 
   ```shell
-  HELM_CHART_VERSION="17.1.3"
+  HELM_CHART_VERSION="30.0.1"
 
   helm upgrade kube-prom-stack prometheus-community/kube-prometheus-stack --version "${HELM_CHART_VERSION}" \
     --namespace monitoring \
