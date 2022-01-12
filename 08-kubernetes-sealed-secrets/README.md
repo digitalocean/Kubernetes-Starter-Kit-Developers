@@ -65,7 +65,7 @@ After finishing this tutorial, you will be able to:
 To complete this tutorial, you will need:
 
 1. A [Git](https://git-scm.com/downloads) client, to clone the `Starter Kit` repository.
-2. [Kubeseal](https://github.com/bitnami-labs/sealed-secrets/releases/tag/v0.16.0), for encrypting secrets and `Sealed Secrets Controller` interaction.
+2. [Kubeseal](https://github.com/bitnami-labs/sealed-secrets/releases/tag/v0.17.1), for encrypting secrets and `Sealed Secrets Controller` interaction.
 3. [Helm](https://www.helms.sh), for managing `Sealed Secrets Controller` releases and upgrades.
 4. [Kubectl](https://kubernetes.io/docs/tasks/tools), for `Kubernetes` interaction.
 
@@ -87,6 +87,12 @@ Then, add the sealed secrets `bitnami-labs` repository for `Helm`:
 helm repo add sealed-secrets https://bitnami-labs.github.io/sealed-secrets
 ```
 
+Next, update the `sealed-secrets` chart repository:
+
+```shell
+helm repo update sealed-secrets
+```
+
 Next, search the `sealed-secrets` repository for available charts to install:
 
 ```shell
@@ -96,28 +102,30 @@ helm search repo sealed-secrets
 The output looks similar to:
 
 ```text
-NAME                            CHART VERSION   APP VERSION     DESCRIPTION                                  
-sealed-secrets/sealed-secrets   1.16.1          v0.16.0         Helm chart for the sealed-secrets controller.
+NAME                            CHART VERSION   APP VERSION     DESCRIPTION
+sealed-secrets/sealed-secrets   2.0.2          v0.17.1         Helm chart for the sealed-secrets controller.
 ```
 
-Now, open and inspect the `08-kubernetes-sealed-secrets/assets/manifests/sealed-secrets-values-v1.16.1.yaml` file provided in the `Starter kit` repository, using an editor of your choice (preferably with `YAML` lint support). You can use [VS Code](https://code.visualstudio.com), for example:
+Now, open and inspect the `08-kubernetes-sealed-secrets/assets/manifests/sealed-secrets-values-v2.0.2.yaml` file provided in the `Starter kit` repository, using an editor of your choice (preferably with `YAML` lint support). You can use [VS Code](https://code.visualstudio.com), for example:
 
 ```shell
-code 08-kubernetes-sealed-secrets/assets/manifests/sealed-secrets-values-v1.16.1.yaml
+code 08-kubernetes-sealed-secrets/assets/manifests/sealed-secrets-values-v2.0.2.yaml
 ```
 
 Next, install the `sealed-secrets/sealed-secrets` chart, using `Helm` (notice that a dedicated `sealed-secrets` namespace is created as well):
 
 ```shell
-helm install sealed-secrets-controller sealed-secrets/sealed-secrets --version 1.16.1 \
+HELM_CHART_VERSION="2.0.2"
+
+helm install sealed-secrets-controller sealed-secrets/sealed-secrets --version "${HELM_CHART_VERSION}" \
   --namespace sealed-secrets \
   --create-namespace \
-  -f 08-kubernetes-sealed-secrets/assets/manifests/sealed-secrets-values-v1.16.1.yaml
+  -f "08-kubernetes-sealed-secrets/assets/manifests/sealed-secrets-values-v${HELM_CHART_VERSION}.yaml"
 ```
 
 **Notes:**
 
-- A `specific` version for the `Helm` chart is used. In this case `1.16.1` is picked, which maps to the `0.16.0` version of the application. It’s good practice in general, to lock on a specific version. This helps to have predictable results, and allows versioning control via `Git`.
+- A `specific` version for the `Helm` chart is used. In this case `2.0.2` is picked, which maps to the `0.17.1` version of the application. It’s good practice in general, to lock on a specific version. This helps to have predictable results, and allows versioning control via `Git`.
 - You will want to `restrict` access to the sealed-secrets `namespace` for other users that have access to your `DOKS` cluster, to prevent `unauthorized` access to the `private key` (e.g. use `RBAC` policies).
 
 Next, list the deployment status for `Sealed Secrets` controller (the `STATUS` column value should be `deployed`):
@@ -130,7 +138,7 @@ The output looks similar to:
 
 ```text
 NAME                            NAMESPACE       REVISION        UPDATED                                 STATUS          CHART                   APP VERSION
-sealed-secrets-controller       sealed-secrets  1               2021-10-04 18:25:03.594564 +0300 EEST   deployed        sealed-secrets-1.16.1   v0.16.0
+sealed-secrets-controller       sealed-secrets  1               2021-10-04 18:25:03.594564 +0300 EEST   deployed        sealed-secrets-2.0.2   v0.17.1
 ```
 
 Finally, inspect the `Kubernetes` resources created by the `Sealed Secrets` Helm deployment:
