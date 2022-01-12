@@ -74,32 +74,34 @@ Steps to follow:
     ```shell
     helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 
+    helm repo update ingress-nginx
+
     helm search repo ingress-nginx
     ```
 
     The output looks similar to the following:
 
     ```text
-    NAME                            CHART VERSION   APP VERSION     DESCRIPTION                                       
-    ingress-nginx/ingress-nginx     4.0.6           1.0.4           Ingress controller for Kubernetes using NGINX 
+    NAME                            CHART VERSION   APP VERSION     DESCRIPTION
+    ingress-nginx/ingress-nginx     4.0.13           1.1.0           Ingress controller for Kubernetes using NGINX
     ```
 
     **Note:**
 
     The chart of interest is `ingress-nginx/ingress-nginx`, which will install Kubernetes-maintained `Nginx` on the cluster. Please visit the [kubernetes-nginx](https://github.com/kubernetes/ingress-nginx/tree/main/charts/ingress-nginx) page, for more details about this chart.
-3. Then, open and inspect the `03-setup-ingress-controller/assets/manifests/nginx-values-v4.0.6.yaml` file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://code.visualstudio.com):
+3. Then, open and inspect the `03-setup-ingress-controller/assets/manifests/nginx-values-v4.0.13.yaml` file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://code.visualstudio.com):
 
     ```shell
-    code 03-setup-ingress-controller/assets/manifests/nginx-values-v4.0.6.yaml
+    code 03-setup-ingress-controller/assets/manifests/nginx-values-v4.0.13.yaml
     ```
 
     **Note:**
 
-    There are times when you want to re-use the existing `load balancer`. This is for preserving your `DNS` settings and other `load balancer` configurations. If so, make sure to modify the `nginx-values-v4.0.6.yaml` file, and add the annotation for your existing load balancer. Please refer to the `DigitalOcean` Kubernetes guide - [How To Migrate Load Balancers](https://docs.digitalocean.com/products/kubernetes/how-to/migrate-load-balancers) for more details.
+    There are times when you want to re-use the existing `load balancer`. This is for preserving your `DNS` settings and other `load balancer` configurations. If so, make sure to modify the `nginx-values-v4.0.13.yaml` file, and add the annotation for your existing load balancer. Please refer to the `DigitalOcean` Kubernetes guide - [How To Migrate Load Balancers](https://docs.digitalocean.com/products/kubernetes/how-to/migrate-load-balancers) for more details.
 4. Finally, install the `Nginx Ingress Controller` using `Helm` (a dedicated `ingress-nginx` namespace will be created as well):
 
     ```shell
-    NGINX_CHART_VERSION="4.0.6"
+    NGINX_CHART_VERSION="4.0.13"
 
     helm install ingress-nginx ingress-nginx/ingress-nginx --version "$NGINX_CHART_VERSION" \
       --namespace ingress-nginx \
@@ -109,7 +111,7 @@ Steps to follow:
 
     **Note:**
 
-    A `specific` version for the ingress-nginx `Helm` chart is used. In this case `4.0.6` was picked, which maps to the `1.0.4` release of `Nginx` (see the output from `Step 2.`). It’s good practice in general, to lock on a specific version. This helps to have predictable results, and allows versioning control via `Git`.
+    A `specific` version for the ingress-nginx `Helm` chart is used. In this case `4.0.13` was picked, which maps to the `1.1.0` release of `Nginx` (see the output from `Step 2.`). It’s good practice in general, to lock on a specific version. This helps to have predictable results, and allows versioning control via `Git`.
 
 **Observations and results:**
 
@@ -123,7 +125,7 @@ The output looks similar to (notice that the `STATUS` column value is `deployed`
 
 ```text
 NAME            NAMESPACE       REVISION   UPDATED                                 STATUS     CHART                   APP VERSION
-ingress-nginx   ingress-nginx   1          2021-11-02 10:12:44.799499 +0200 EET    deployed   ingress-nginx-4.0.6     1.0.4 
+ingress-nginx   ingress-nginx   1          2021-11-02 10:12:44.799499 +0200 EET    deployed   ingress-nginx-4.0.13     1.1.0
 ```
 
 Next check Kubernetes resources created for the `ingress-nginx` namespace (notice the `deployment` and `replicaset` resources which should be healthy, as well as the `LoadBalancer` resource having an `external IP` assigned):
@@ -494,21 +496,27 @@ Next, please add the `Jetstack` Helm repository:
 helm repo add jetstack https://charts.jetstack.io
 ```
 
-Then, open and inspect the `03-setup-ingress-controller/assets/manifests/cert-manager-values-v1.5.4.yaml` file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://code.visualstudio.com):
+Next, update the `jetstack` chart repository:
 
 ```shell
-code 03-setup-ingress-controller/assets/manifests/cert-manager-values-v1.5.4.yaml
+helm repo update jetstack
+```
+
+Then, open and inspect the `03-setup-ingress-controller/assets/manifests/cert-manager-values-v1.6.1.yaml` file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://code.visualstudio.com):
+
+```shell
+code 03-setup-ingress-controller/assets/manifests/cert-manager-values-v1.6.1.yaml
 ```
 
 Finally, you can install the `jetstack/cert-manager` chart using Helm:
 
 ```shell
-CERT_MANAGER_HELM_CHART_VERSION="1.5.4"
+CERT_MANAGER_HELM_CHART_VERSION="1.6.1"
 
 helm install cert-manager jetstack/cert-manager --version "$CERT_MANAGER_HELM_CHART_VERSION" \
   --namespace cert-manager \
   --create-namespace \
-  -f 03-setup-ingress-controller/assets/manifests/cert-manager-values-v1.5.4.yaml
+  -f 03-setup-ingress-controller/assets/manifests/cert-manager-values-v${CERT_MANAGER_HELM_CHART_VERSION}.yaml
 ```
 
 Check Helm release status:
@@ -521,7 +529,7 @@ The output looks similar to (notice the `STATUS` column which has the `deployed`
 
 ```text
 NAME            NAMESPACE       REVISION        UPDATED                                 STATUS          CHART                   APP VERSION
-cert-manager    cert-manager    1               2021-10-20 12:13:05.124264 +0300 EEST   deployed        cert-manager-v1.5.4     v1.5.4
+cert-manager    cert-manager    1               2021-10-20 12:13:05.124264 +0300 EEST   deployed        cert-manager-v1.6.1     v1.6.1
 ```
 
 Inspect `Kubernetes` resources created by the `cert-manager` Helm release:
@@ -562,12 +570,12 @@ The output looks similar to:
 
 ```text
 NAME                                  CREATED AT
-certificaterequests.cert-manager.io   2021-10-20T09:13:15Z
-certificates.cert-manager.io          2021-10-20T09:13:15Z
-challenges.acme.cert-manager.io       2021-10-20T09:13:16Z
-clusterissuers.cert-manager.io        2021-10-20T09:13:17Z
-issuers.cert-manager.io               2021-10-20T09:13:18Z
-orders.acme.cert-manager.io           2021-10-20T09:13:18Z
+certificaterequests.cert-manager.io   2022-01-07T14:17:55Z
+certificates.cert-manager.io          2022-01-07T14:17:55Z
+challenges.acme.cert-manager.io       2022-01-07T14:17:55Z
+clusterissuers.cert-manager.io        2022-01-07T14:17:55Z
+issuers.cert-manager.io               2022-01-07T14:17:55Z
+orders.acme.cert-manager.io           2022-01-07T14:17:55Z
 ```
 
 Next, you will configure a certificate `Issuer` resource for `cert-manager`, which is responsible with fetching the `TLS` certificate for `Nginx` to use. The certificate issuer is using the `HTTP-01` challenge provider to accomplish the task.
@@ -740,7 +748,7 @@ After deploying the [Backend Services](#step-3---creating-the-nginx-backend-serv
 First, you need to edit the `Helm` values file provided in the `Starter Kit` repository using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://visualstudio.microsoft.com):
 
 ```shell
-code 03-setup-ingress-controller/assets/manifests/nginx-values-v4.0.6.yaml
+code 03-setup-ingress-controller/assets/manifests/nginx-values-v4.0.13.yaml
 ```
 
 Then, uncomment the `annotations` settings from the `service` section, like in the below example:
@@ -769,7 +777,7 @@ config:
 Then, save the values file and apply changes using `Helm`:
 
 ```shell
-NGINX_CHART_VERSION="4.0.6"
+NGINX_CHART_VERSION="4.0.13"
 
 helm upgrade ingress-nginx ingress-nginx/ingress-nginx --version "$NGINX_CHART_VERSION" \
   --namespace ingress-nginx \

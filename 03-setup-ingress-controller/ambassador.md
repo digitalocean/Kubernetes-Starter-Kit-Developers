@@ -80,34 +80,38 @@ Steps to follow:
     ```shell
     helm repo add datawire https://www.getambassador.io
 
+    helm repo update datawire
+
     helm search repo datawire
     ```
 
     The output looks similar to the following:
 
     ```text
-    NAME                            CHART VERSION   APP VERSION     DESCRIPTION                                       
-    datawire/ambassador             6.7.13          1.13.10         A Helm chart for Datawire Ambassador              
-    datawire/ambassador-operator    0.3.0           v1.3.0          A Helm chart for Kubernetes                       
-    datawire/telepresence           2.4.0           2.4.0           A chart for deploying the server-side component...
+    NAME                         CHART VERSION  APP VERSION  DESCRIPTION
+    datawire/ambassador          6.9.3          1.14.2       A Helm chart for Datawire Ambassador
+    datawire/ambassador-operator 0.3.0          v1.3.0       A Helm chart for Kubernetes
+    datawire/edge-stack          7.2.0          2.1.0        A Helm chart for Ambassador Edge Stack
+    datawire/emissary-ingress    7.2.0          2.1.0        A Helm chart for Emissary Ingress
+    datawire/telepresence        2.4.9          2.4.9        A chart for deploying the server-side component
     ```
 
     **Note:**
 
     The chart of interest is `datawire/ambassador`, which will install `Ambassador Edge Stack` on the cluster. Please visit the [ambassador-chart](https://github.com/datawire/ambassador-chart) page, for more details about this chart.
-3. Then, open and inspect the `03-setup-ingress-controller/assets/manifests/ambassador-values-v6.7.13.yaml` file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://code.visualstudio.com):
+3. Then, open and inspect the `03-setup-ingress-controller/assets/manifests/ambassador-values-v6.9.3.yaml` file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://code.visualstudio.com):
 
     ```shell
-    code 03-setup-ingress-controller/assets/manifests/ambassador-values-v6.7.13.yaml
+    code 03-setup-ingress-controller/assets/manifests/ambassador-values-v6.9.3.yaml
     ```
 
     **Note:**
 
-    There are times when you want to re-use the existing `Load Balancer`. This is for preserving your `DNS` settings and other `Load Balancer` configurations. If so, make sure to modify the `ambassador-values-v6.7.13.yaml` file, and add the annotation for your existing `Load Balancer`. Likewise, you can enable `Proxy Protocol` as part of modules section in the `ambassador-values-v6.7.13.yaml` file. Please refer to the `DigitalOcean Kubernetes` guide - [How To Migrate Load Balancers](https://docs.digitalocean.com/products/kubernetes/how-to/migrate-load-balancers) for more details.
+    There are times when you want to re-use the existing `Load Balancer`. This is for preserving your `DNS` settings and other `Load Balancer` configurations. If so, make sure to modify the `ambassador-values-v6.9.3.yaml` file, and add the annotation for your existing `Load Balancer`. Likewise, you can enable `Proxy Protocol` as part of modules section in the `ambassador-values-v6.9.3.yaml` file. Please refer to the `DigitalOcean Kubernetes` guide - [How To Migrate Load Balancers](https://docs.digitalocean.com/products/kubernetes/how-to/migrate-load-balancers) for more details.
 4. Finally, install `Ambassador Edge Stack` using `Helm` (a dedicated `ambassador` namespace will be created as well):
 
     ```shell
-    HELM_CHART_VERSION="6.7.13"
+    HELM_CHART_VERSION="6.9.3"
 
     helm install ambassador datawire/ambassador --version "$HELM_CHART_VERSION" \
         --namespace ambassador \
@@ -117,7 +121,7 @@ Steps to follow:
 
     **Note:**
 
-    A `specific` version for the ambassador `Helm` chart is used. In this case `6.7.13` was picked, which maps to the `1.13.10` release of `Ambassador Edge Stack` (see the output from `Step 2.`). It’s good practice in general, to lock on a specific version. This helps to have predictable results, and allows versioning control via `Git`.
+    A `specific` version for the ambassador `Helm` chart is used. In this case `6.9.3` was picked, which maps to the `1.14.2` release of `Ambassador Edge Stack` (see the output from `Step 2.`). It’s good practice in general, to lock on a specific version. This helps to have predictable results, and allows versioning control via `Git`.
 
 **Observations and results:**
 
@@ -131,7 +135,7 @@ The output looks similar to (notice that the `STATUS` column value is `deployed`
 
 ```text
 NAME         NAMESPACE   REVISION  UPDATED                                STATUS      CHART               APP VERSION
-ambassador   ambassador  1         2021-09-11 15:49:03.499499 +0200 EET   deployed    ambassador-6.7.13   1.13.0
+ambassador   ambassador  1         2021-09-11 15:49:03.499499 +0200 EET   deployed    ambassador-6.9.3   1.14.2
 ```
 
 Next check Kubernetes resources created for the `ambassador` namespace (notice the `deployment` and `replicaset` resources which should be healthy, as well as the `LoadBalancer` resource having an `external IP` assigned):
@@ -507,12 +511,12 @@ The output looks similar to the following (notice the `echo-backend` and `quote-
 
 ```text
 NAME                          SOURCE HOST                SOURCE PREFIX                               DEST SERVICE     STATE   REASON
-ambassador-devportal                                     /documentation/                             127.0.0.1:8500           
-ambassador-devportal-api                                 /openapi/                                   127.0.0.1:8500           
-ambassador-devportal-assets                              /documentation/(assets|styles)/(.*)(.css)   127.0.0.1:8500           
-ambassador-devportal-demo                                /docs/                                      127.0.0.1:8500           
-echo-backend                  echo.starter-kit.online    /echo/                                      echo.backend             
-quote-backend                 quote.starter-kit.online   /quote/                                     quote.backend 
+ambassador-devportal                                     /documentation/                             127.0.0.1:8500
+ambassador-devportal-api                                 /openapi/                                   127.0.0.1:8500
+ambassador-devportal-assets                              /documentation/(assets|styles)/(.*)(.css)   127.0.0.1:8500
+ambassador-devportal-demo                                /docs/                                      127.0.0.1:8500
+echo-backend                  echo.starter-kit.online    /echo/                                      echo.backend
+quote-backend                 quote.starter-kit.online   /quote/                                     quote.backend
 ```
 
 You can further explore some of the concepts you learned so far, by following below links:
@@ -538,7 +542,7 @@ To enable proxy protocol for `AES Backend Services`, you need to run the below s
 2. Edit the `Helm` values file provided in the `Starter Kit` repository using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://visualstudio.microsoft.com):
 
     ```shell
-    code 03-setup-ingress-controller/assets/manifests/ambassador-values-v6.7.13.yaml
+    code 03-setup-ingress-controller/assets/manifests/ambassador-values-v6.9.3.yaml
     ```
 
 3. Uncomment the `annotations` settings from the `service` section, like in the below example:
@@ -553,14 +557,14 @@ To enable proxy protocol for `AES Backend Services`, you need to run the below s
         service.beta.kubernetes.io/do-loadbalancer-tls-passthrough: "true"
     ```
 
- **Note:**
+    **Note:**
 
-You must **NOT** create a load balancer with `Proxy` support by using the `DigitalOcean` web console, as any setting done outside `DOKS` is automatically `overridden` by DOKS `reconciliation`.
+    You must **NOT** create a load balancer with `Proxy` support by using the `DigitalOcean` web console, as any setting done outside `DOKS` is automatically `overridden` by DOKS `reconciliation`.
 
 4. Save the values file and apply changes using `Helm`:
 
     ```shell
-    HELM_CHART_VERSION="6.7.13"
+    HELM_CHART_VERSION="6.9.3"
 
     helm upgrade ambassador datawire/ambassador --version "$HELM_CHART_VERSION" \
     --namespace ambassador  \

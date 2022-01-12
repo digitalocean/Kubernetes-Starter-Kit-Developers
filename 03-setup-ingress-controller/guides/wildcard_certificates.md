@@ -51,10 +51,16 @@ Next, please add the `Jetstack` Helm repository:
 helm repo add jetstack https://charts.jetstack.io
 ```
 
+Next, update the `jetstack` chart repository:
+
+```shell
+helm repo update jetstack
+```
+
 Then, open and inspect the `Helm` values file for `Cert-Manager` provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://code.visualstudio.com):
 
 ```shell
-CERT_MANAGER_HELM_CHART_VERSION="1.5.4"
+CERT_MANAGER_HELM_CHART_VERSION="1.6.1"
 
 code 03-setup-ingress-controller/assets/manifests/cert-manager-values-v${CERT_MANAGER_HELM_CHART_VERSION}.yaml
 ```
@@ -62,7 +68,7 @@ code 03-setup-ingress-controller/assets/manifests/cert-manager-values-v${CERT_MA
 Finally, you can install the `jetstack/cert-manager` chart using Helm:
 
 ```shell
-CERT_MANAGER_HELM_CHART_VERSION="1.5.4"
+CERT_MANAGER_HELM_CHART_VERSION="1.6.1"
 
 helm install cert-manager jetstack/cert-manager --version "$CERT_MANAGER_HELM_CHART_VERSION" \
   --namespace cert-manager \
@@ -80,7 +86,7 @@ The output looks similar to (notice the `STATUS` column which has the `deployed`
 
 ```text
 NAME            NAMESPACE       REVISION        UPDATED                                 STATUS          CHART                   APP VERSION
-cert-manager    cert-manager    1               2021-10-20 12:13:05.124264 +0300 EEST   deployed        cert-manager-v1.5.4     v1.5.4
+cert-manager    cert-manager    1               2021-10-20 12:13:05.124264 +0300 EEST   deployed        cert-manager-v1.6.1     v1.6.1
 ```
 
 Inspect `Kubernetes` resources created by the `cert-manager` Helm release:
@@ -121,12 +127,12 @@ The output looks similar to:
 
 ```text
 NAME                                  CREATED AT
-certificaterequests.cert-manager.io   2021-10-20T09:13:15Z
-certificates.cert-manager.io          2021-10-20T09:13:15Z
-challenges.acme.cert-manager.io       2021-10-20T09:13:16Z
-clusterissuers.cert-manager.io        2021-10-20T09:13:17Z
-issuers.cert-manager.io               2021-10-20T09:13:18Z
-orders.acme.cert-manager.io           2021-10-20T09:13:18Z
+certificaterequests.cert-manager.io   2022-01-07T14:17:55Z
+certificates.cert-manager.io          2022-01-07T14:17:55Z
+challenges.acme.cert-manager.io       2022-01-07T14:17:55Z
+clusterissuers.cert-manager.io        2022-01-07T14:17:55Z
+issuers.cert-manager.io               2022-01-07T14:17:55Z
+orders.acme.cert-manager.io           2022-01-07T14:17:55Z
 ```
 
 Now that `Cert-Manager` is installed and working properly, next it's time to configure required `CRDs` to tell it how to fetch `TLS` certificates from a known `CA` such as `Let's Encrypt`.

@@ -140,7 +140,7 @@ Now, open and inspect the `Helm` values file for your running `Ingress Controlle
 - `Ambassador Edge Stack` ingress:
 
   ```shell
-  HELM_CHART_VERSION="6.7.13"
+  HELM_CHART_VERSION="6.9.3"
 
   code "03-setup-ingress-controller/assets/manifests/ambassador-values-v${HELM_CHART_VERSION}.yaml"
   ```
@@ -148,7 +148,7 @@ Now, open and inspect the `Helm` values file for your running `Ingress Controlle
 - `Nginx` ingress:
 
   ```shell
-  NGINX_CHART_VERSION="4.0.6"
+  NGINX_CHART_VERSION="4.0.13"
 
   code "03-setup-ingress-controller/assets/manifests/nginx-values-v${NGINX_CHART_VERSION}.yaml"
   ```
@@ -183,7 +183,7 @@ Finally, save the `Helm` values file, and apply changes for your `Ingress Contro
 - `Ambassador Edge Stack` ingress:
 
   ```shell
-  HELM_CHART_VERSION="6.7.13"
+  HELM_CHART_VERSION="6.9.3"
 
   helm upgrade ambassador datawire/ambassador --version "$HELM_CHART_VERSION" \
     --namespace ambassador \
@@ -193,7 +193,7 @@ Finally, save the `Helm` values file, and apply changes for your `Ingress Contro
 - `Nginx` ingress:
 
   ```shell
-  NGINX_CHART_VERSION="4.0.6"
+  NGINX_CHART_VERSION="4.0.13"
 
   helm upgrade ingress-nginx ingress-nginx/ingress-nginx --version "$NGINX_CHART_VERSION" \
     --namespace ingress-nginx \
@@ -288,7 +288,7 @@ First, open again the `Helm` values file you modified earlier in [Preparing the 
 - `Ambassador Edge Stack` ingress:
 
   ```shell
-  HELM_CHART_VERSION="6.7.13"
+  HELM_CHART_VERSION="6.9.3"
 
   code "03-setup-ingress-controller/assets/manifests/ambassador-values-v${HELM_CHART_VERSION}.yaml"
   ```
@@ -296,7 +296,7 @@ First, open again the `Helm` values file you modified earlier in [Preparing the 
 - `Nginx` ingress:
 
   ```shell
-  NGINX_CHART_VERSION="4.0.6"
+  NGINX_CHART_VERSION="4.0.13"
 
   code "03-setup-ingress-controller/assets/manifests/nginx-values-v${NGINX_CHART_VERSION}.yaml"
   ```
@@ -318,7 +318,7 @@ Next, save the values file, and `re-install` your `Ingress Controller` of choice
 - `Ambassador Edge Stack` ingress:
 
   ```shell
-  HELM_CHART_VERSION="6.7.13"
+  HELM_CHART_VERSION="6.9.3"
 
   helm install ambassador datawire/ambassador --version "$HELM_CHART_VERSION" \
     --create-namespace \
@@ -329,7 +329,7 @@ Next, save the values file, and `re-install` your `Ingress Controller` of choice
 - `Nginx` ingress:
 
   ```shell
-  NGINX_CHART_VERSION="4.0.6"
+  NGINX_CHART_VERSION="4.0.13"
 
   helm install ingress-nginx ingress-nginx/ingress-nginx --version "$NGINX_CHART_VERSION" \
       --namespace ingress-nginx \

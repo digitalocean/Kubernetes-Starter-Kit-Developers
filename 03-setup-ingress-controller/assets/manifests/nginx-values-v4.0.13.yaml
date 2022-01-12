@@ -1,9 +1,9 @@
 ## Starter Kit nginx configuration
-## Ref: https://github.com/kubernetes/ingress-nginx/tree/helm-chart-4.0.6/charts/ingress-nginx
+## Ref: https://github.com/kubernetes/ingress-nginx/tree/helm-chart-4.0.13/charts/ingress-nginx
 ##
 
 controller:
-  replicaCount: 1
+  replicaCount: 2
   resources:
     requests:
       cpu: 100m
