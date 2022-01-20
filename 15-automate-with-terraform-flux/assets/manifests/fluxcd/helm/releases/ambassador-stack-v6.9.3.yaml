@@ -2,16 +2,16 @@
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
-  name: ingress-nginx
+  name: ambassador-stack
   namespace: flux-system
 spec:
   chart:
     spec:
-      chart: ingress-nginx
+      chart: ambassador
       sourceRef:
         kind: HelmRepository
-        name: kubernetes-community-nginx
-      version: 4.0.6
+        name: ambassador
+      version: 6.9.3
   install:
     createNamespace: true
     remediation:
@@ -19,13 +19,15 @@ spec:
   upgrade:
     remediation:
       retries: 3
-  releaseName: ingress-nginx
-  targetNamespace: ingress-nginx
+  releaseName: ambassador
+  targetNamespace: ambassador
   interval: 1m0s
   values:
-    controller:
-      replicaCount: 1
-      resources:
-        requests:
-          cpu: 100m
-          memory: 90Mi
+    replicaCount: 2
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 600Mi
+      requests:
+        cpu: 200m
+        memory: 200Mi

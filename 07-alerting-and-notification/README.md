@@ -109,7 +109,7 @@ alertmanager:
 Now re-apply the new `prom-stack-values.yaml` using helm upgrade.Apply below upgrading command:
 
 ```shell
-helm upgrade kube-prom-stack prometheus-community/kube-prometheus-stack --version 17.1.3 --namespace monitoring --create-namespace -f prom-stack-values.yaml
+helm upgrade kube-prom-stack prometheus-community/kube-prometheus-stack --version 30.0.1 --namespace monitoring --create-namespace -f prom-stack-values.yaml
 
 ```
 

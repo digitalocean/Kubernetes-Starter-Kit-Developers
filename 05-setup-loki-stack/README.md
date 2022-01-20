@@ -376,7 +376,7 @@ The output window **should not return any data** for any of the above queries.
 
 - You can have as many drop stages as you want by using different regex expressions, or combine them together under a single stage if desired, via the regex `OR` operator (`|`).
 - You can also leverage the power of `ServiceMonitors` and enable Promtail `metrics` collection, as learned in [Step 2 - Configure Prometheus and Grafana](../04-setup-prometheus-stack/README.md#step-2---configure-prometheus-and-grafana) from the `Prometheus` tutorial:
-  - First, make sure to enable both the [Loki ServiceMonitor](../04-setup-prometheus-stack/assets/manifests/prom-stack-values-v17.1.3.yaml#L63) and [Promtail ServiceMonitor](../04-setup-prometheus-stack/assets/manifests/prom-stack-values-v17.1.3.yaml#L75) from `Prometheus Stack`, followed by a `Helm upgrade`.
+  - First, make sure to enable both the [Loki ServiceMonitor](../04-setup-prometheus-stack/assets/manifests/prom-stack-values-v30.0.1.yaml#L63) and [Promtail ServiceMonitor](../04-setup-prometheus-stack/assets/manifests/prom-stack-values-v30.0.1.yaml#L75) from `Prometheus Stack`, followed by a `Helm upgrade`.
   - Next, enable [Promtail Service](assets/manifests/loki-stack-values-v2.5.1.yaml#L33) from `Loki Stack`, followed by a `Helm upgrade`.
   - Then, you can install the [Loki&Promtail](https://grafana.com/grafana/dashboards/10880) Grafana dashboard provided by the community, and inspect the `volume` of data `ingested` by `Loki`. After a while, you can get a visual feedback of what it means to filter unnecessary application logs, as seen in the picture below (`before` fitlering - on the `left` side, and `after` - on the `right` side):
 
