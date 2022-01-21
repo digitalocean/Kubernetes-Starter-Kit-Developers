@@ -1,5 +1,5 @@
 ## Starter Kit configuration for Ambassador stack
-## Ref: https://github.com/emissary-ingress/emissary/tree/chart-v6.7.13/charts/ambassador
+## Ref: https://github.com/emissary-ingress/emissary/tree/chart-v6.9.3/charts/ambassador
 ##
 
 # Deployment replica count
