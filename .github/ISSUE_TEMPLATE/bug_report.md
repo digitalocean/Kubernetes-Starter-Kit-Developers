@@ -20,11 +20,9 @@ https://github.com/digitalocean/Kubernetes-Starter-Kit-Developers/discussions --
 ## Describe the bug
 <!-- A clear and concise description of what the bug is. -->
 
-### Affected Resource(s)
-<!-- Please list the resources, for example:
-- kubectl get nodes
-- helm version
--->
+### Affected Components
+<!-- Please specify the impacted components, if any.
+For example: Prometheus monitoring.-->
 
 ### Expected Behavior
 <!-- What should have happened? -->
