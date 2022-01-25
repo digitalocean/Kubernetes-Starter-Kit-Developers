@@ -35,5 +35,11 @@ terraform.rc
 
 .terraform.lock*
 .DS_Store
-# ignore main.tf - may contain sensitive data
+# Ignore main.tf - may contain sensitive data
 main.tf
+
+# Ignore backend.tf
+backend.tf
+
+# Ignore terraform output plan
+*.out
