@@ -1,0 +1,10 @@
+contact_links:
+  - name: Kubernetes-Starter-Kit-Developers Discussions
+    url: https://github.com/digitalocean/Kubernetes-Starter-Kit-Developers/discussions
+    about: Participate in discussions specific to the official Kubernetes-Starter-Kit-Developers for DigitalOcean
+  - name: DigitalOcean Community Q&A
+    url: https://www.digitalocean.com/community/questions
+    about: Ask general questions about DigitalOcean products and services
+  - name: DigitalOcean Support
+    url: https://www.digitalocean.com/support/
+    about: Use DigitalOcean Support for issues specific to your account
