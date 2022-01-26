@@ -272,17 +272,17 @@ Steps to follow:
 3. Then, create the [echo](assets/manifests/echo_deployment.yaml) and [quote](assets/manifests/quote_deployment.yaml) deployments:
 
     ```shell
-    kubectl apply -f 03-setup-ingress-controller/assets/manifests/echo_deployment.yaml
+    kubectl apply -f 03-setup-ingress-controller/assets/manifests/nginx/echo_deployment.yaml
 
-    kubectl apply -f 03-setup-ingress-controller/assets/manifests/quote_deployment.yaml
+    kubectl apply -f 03-setup-ingress-controller/assets/manifests/nginx/quote_deployment.yaml
     ```
 
 4. Finally, create the corresponding `services`:
 
     ```shell
-    kubectl apply -f 03-setup-ingress-controller/assets/manifests/echo_service.yaml
+    kubectl apply -f 03-setup-ingress-controller/assets/manifests/nginx/echo_service.yaml
 
-    kubectl apply -f 03-setup-ingress-controller/assets/manifests/quote_service.yaml
+    kubectl apply -f 03-setup-ingress-controller/assets/manifests/nginx/quote_service.yaml
     ```
 
 **Observation and results:**
@@ -388,22 +388,22 @@ DESCRIPTION:
   documentation.
 ```
 
-You can define `multiple rules` for different `hosts` and `paths` in a single `ingress` resource. To keep things organized (and for better visibility), `Starter Kit` tutorial provides two ingress manifests for each host: [echo](assets/manifests/echo_host_nginx.yaml) and [quote](assets/manifests/quote_host_nginx.yaml).
+You can define `multiple rules` for different `hosts` and `paths` in a single `ingress` resource. To keep things organized (and for better visibility), `Starter Kit` tutorial provides two ingress manifests for each host: [echo](assets/manifests/echo_host.yaml) and [quote](assets/manifests/quote_host.yaml).
 
 First, `open` and `inspect` each `backend service` ingress manifest using a text editor of your choice (preferably with `YAML` lint support). For example you can use [VS Code](https://code.visualstudio.com):
 
 ```shell
-code 03-setup-ingress-controller/assets/manifests/echo_host_nginx.yaml
+code 03-setup-ingress-controller/assets/manifests/nginx/echo_host.yaml
 
-code 03-setup-ingress-controller/assets/manifests/quote_host_nginx.yaml
+code 03-setup-ingress-controller/assets/manifests/nginx/quote_host.yaml
 ```
 
 Next, go ahead and apply each ingress resource using `kubectl`:
 
 ```shell
-kubectl apply -f 03-setup-ingress-controller/assets/manifests/echo_host_nginx.yaml
+kubectl apply -f 03-setup-ingress-controller/assets/manifests/nginx/echo_host.yaml
 
-kubectl apply -f 03-setup-ingress-controller/assets/manifests/quote_host_nginx.yaml
+kubectl apply -f 03-setup-ingress-controller/assets/manifests/nginx/quote_host.yaml
 ```
 
 Verify `ingress` resources `status`:
@@ -609,7 +609,7 @@ spec:
 You can create the above `Issuer` resource using the template provided in the `Starter Kit` repository (make sure you change directory where the `Starter Kit` repository was cloned on your local machine first):
 
 ```shell
-kubectl apply -f 03-setup-ingress-controller/assets/manifests/cert-manager-nginx-issuer.yaml
+kubectl apply -f 03-setup-ingress-controller/assets/manifests/nginx/cert-manager-issuer.yaml
 ```
 
 Check that the `Issuer` resource was created and that `no error` is reported:
@@ -651,16 +651,16 @@ Explanation for the above configuration:
 - `spec.tls.hosts`: List of hosts included in the TLS certificate.
 - `spec.tls.secretName`: Name of the secret used to terminate TLS traffic on port 443.
 
-Now, please open `echo_host_nginx.yaml` using a text editor of your choice (preferably with `YAML` lint support). Then, uncomment `annotations` and `spec.tls`, as explained above. For example, you can use [VS Code](https://code.visualstudio.com):
+Now, please open `echo_host.yaml` using a text editor of your choice (preferably with `YAML` lint support). Then, uncomment `annotations` and `spec.tls`, as explained above. For example, you can use [VS Code](https://code.visualstudio.com):
 
 ```shell
-code 03-setup-ingress-controller/assets/manifests/echo_host_nginx.yaml
+code 03-setup-ingress-controller/assets/manifests/nginx/echo_host.yaml
 ```
 
-Save the `echo_host_nginx.yaml` file, and apply changes using `kubectl`:
+Save the `echo_host.yaml` file, and apply changes using `kubectl`:
 
 ```shell
-kubectl apply -f 03-setup-ingress-controller/assets/manifests/echo_host_nginx.yaml
+kubectl apply -f 03-setup-ingress-controller/assets/manifests/nginx/echo_host.yaml
 ```
 
 After a few moments, inspect `ingress` object `state`:

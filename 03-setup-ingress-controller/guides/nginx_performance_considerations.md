@@ -187,16 +187,16 @@ If the output looks like above, then you configured the new value for `fs.file-m
 Following steps are required to change `fs.file-max` for `Nginx` via `deployment patching`:
 
 1. First, change directory where the `Starter Kit` Git repository was cloned.
-2. Next, open and inspect the `nginx_deployment_file_max_patch.json` file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `JSON` lint support). It has the required values already set for you to use. For example, you can use [VS Code](https://code.visualstudio.com):
+2. Next, open and inspect the `deployment_file_max_patch.json` file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `JSON` lint support). It has the required values already set for you to use. For example, you can use [VS Code](https://code.visualstudio.com):
 
     ```shell
-    code 03-setup-ingress-controller/assets/manifests/nginx_deployment_file_max_patch.json
+    code 03-setup-ingress-controller/assets/manifests/nginx/deployment_file_max_patch.json
     ```
 
 3. Finally, patch the `Nginx` deployment via `kubectl`:
 
     ```shell
-    kubectl patch deployment -n ingress-nginx ingress-nginx-controller --patch-file 03-setup-ingress-controller/assets/manifests/nginx_deployment_file_max_patch.json
+    kubectl patch deployment -n ingress-nginx ingress-nginx-controller --patch-file 03-setup-ingress-controller/assets/manifests/nginx/deployment_file_max_patch.json
     ```
 
 If everything goes well, please check the `fs.file-max` parameter value again as you learned previously:
@@ -303,16 +303,16 @@ If the output looks like above, then you configured the new value for `net.core.
 Following steps are required to change `net.core.somaxconn` for `Nginx` via `deployment patching`:
 
 1. First, change directory where the `Starter Kit` Git repository was cloned.
-2. Next, open and inspect the `nginx_deployment_somaxconn_patch.json` file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `JSON` lint support). It has the required values already set for you to use. For example, you can use [VS Code](https://code.visualstudio.com):
+2. Next, open and inspect the `deployment_somaxconn_patch.json` file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `JSON` lint support). It has the required values already set for you to use. For example, you can use [VS Code](https://code.visualstudio.com):
 
     ```shell
-    code 03-setup-ingress-controller/assets/manifests/nginx_deployment_somaxconn_patch.json
+    code 03-setup-ingress-controller/assets/manifests/nginx/deployment_somaxconn_patch.json
     ```
 
 3. Finally, patch the `Nginx` deployment via `kubectl`:
 
     ```shell
-    kubectl patch deployment -n ingress-nginx ingress-nginx-controller --patch-file 03-setup-ingress-controller/assets/manifests/nginx_deployment_somaxconn_patch.json
+    kubectl patch deployment -n ingress-nginx ingress-nginx-controller --patch-file 03-setup-ingress-controller/assets/manifests/nginx/deployment_somaxconn_patch.json
     ```
 
 If everything goes well, please check the `net.core.somaxconn` parameter value again as you learned previously:
@@ -417,16 +417,16 @@ If the output looks like above, then you configured the new value for `net.ipv4.
 Following steps are required to change `net.ipv4.ip_local_port_range` for `Nginx` via `deployment patching`:
 
 1. First, change directory where the `Starter Kit` Git repository was cloned.
-2. Next, open and inspect the `nginx_deployment_local_port_range_patch.json` file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `JSON` lint support). It has the required values already set for you to use. For example, you can use [VS Code](https://code.visualstudio.com):
+2. Next, open and inspect the `deployment_local_port_range_patch.json` file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `JSON` lint support). It has the required values already set for you to use. For example, you can use [VS Code](https://code.visualstudio.com):
 
     ```shell
-    code 03-setup-ingress-controller/assets/manifests/nginx_deployment_local_port_range_patch.json
+    code 03-setup-ingress-controller/assets/manifests/nginx/deployment_local_port_range_patch.json
     ```
 
 3. Finally, patch the `Nginx` deployment via `kubectl`:
 
     ```shell
-    kubectl patch deployment -n ingress-nginx ingress-nginx-controller --patch-file 03-setup-ingress-controller/assets/manifests/nginx_deployment_local_port_range_patch.json
+    kubectl patch deployment -n ingress-nginx ingress-nginx-controller --patch-file 03-setup-ingress-controller/assets/manifests/nginx/deployment_local_port_range_patch.json
     ```
 
 If everything goes well, please check the `net.ipv4.ip_local_port_range` parameter value again as you learned previously:

@@ -241,7 +241,7 @@ Then, open and inspect the `Issuer` manifest file provided in the `Starter Kit` 
 - `Nginx` ingress:
 
   ```shell
-  code 03-setup-ingress-controller/assets/manifests/cert-manager-nginx-wcard-issuer.yaml
+  code 03-setup-ingress-controller/assets/manifests/nginx/cert-manager-wcard-issuer.yaml
   ```
 
 Save the file and apply changes for your `Kubernetes` cluster using `kubectl` (please pick only one option, depending on the installed `Ingress Controller`):
@@ -255,7 +255,7 @@ Save the file and apply changes for your `Kubernetes` cluster using `kubectl` (p
 - `Nginx` ingress:
 
   ```shell
-  kubectl apply -f 03-setup-ingress-controller/assets/manifests/cert-manager-nginx-wcard-issuer.yaml
+  kubectl apply -f 03-setup-ingress-controller/assets/manifests/nginx/cert-manager-wcard-issuer.yaml
   ```
 
 Verify `Issuer` status using `kubectl` (please pick only one option, depending on the installed `Ingress Controller`):
@@ -371,12 +371,12 @@ Next, open and inspect the `Certificate` manifest file provided in the `Starter 
 - `Nginx` ingress:
 
   ```shell
-  code 03-setup-ingress-controller/assets/manifests/cert-manager-nginx-wcard-certificate.yaml
+  code 03-setup-ingress-controller/assets/manifests/nginx/wildcard-host.yaml
   ```
 
 **Notes:**
 
-- Explanation for each important field of the `Certificate` CRD, can be found inside the [cert-manager-ambassador-wcard-certificate.yaml](../assets/manifests/cert-manager-ambassador-wcard-certificate.yaml) (or [cert-manager-nginx-wcard-certificate.yaml](../assets/manifests/cert-manager-nginx-wcard-certificate.yaml)) file.
+- Explanation for each important field of the `Certificate` CRD, can be found inside the [cert-manager-ambassador-wcard-certificate.yaml](../assets/manifests/cert-manager-ambassador-wcard-certificate.yaml) (or [cert-manager-wcard-certificate.yaml](../assets/manifests/nginx/cert-manager-wcard-certificate.yaml)) file.
 - The example provided in this tutorial is using `starter-kit.online` domain name (and naming convention). Please make sure to use your own domain name and naming convention.
 
 Next, create the `Certificate` resource in your `DOKS` cluster (please pick only one option, depending on the installed `Ingress Controller`):
@@ -390,7 +390,7 @@ Next, create the `Certificate` resource in your `DOKS` cluster (please pick only
 - `Nginx` ingress:
 
   ```shell
-  kubectl apply -f 03-setup-ingress-controller/assets/manifests/cert-manager-nginx-wcard-certificate.yaml
+  kubectl apply -f 03-setup-ingress-controller/assets/manifests/nginx/cert-manager-wcard-certificate.yaml
   ```
 
 Verify certificate status (please pick only one option, depending on the installed `Ingress Controller`):
@@ -588,16 +588,16 @@ Explanations for the above configuration:
 - `spec.tls.hosts`: Because a wildcard certificate is available, you can use wildcards to match all hosts for a specific domain (e.g.: `*.starter-kit.online`).
 - `spec.tls.secretName`: Reference to `Kubernetes Secret` containing your wildcard `TLS` certificate.
 
-Open and inspect the `03-setup-ingress-controller/assets/manifests/nginx-wildcard-host.yaml` file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://code.visualstudio.com):
+Open and inspect the `03-setup-ingress-controller/assets/manifests/nginx/wildcard-host.yaml` file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://code.visualstudio.com):
 
 ```shell
-code 03-setup-ingress-controller/assets/manifests/nginx-wildcard-host.yaml
+code 03-setup-ingress-controller/assets/manifests/nginx/wildcard-host.yaml
 ```
 
 Then, create the `Nginx` ingress resource using `kubectl`:
 
 ```shell
-kubectl apply -f 03-setup-ingress-controller/assets/manifests/nginx-wildcard-host.yaml
+kubectl apply -f 03-setup-ingress-controller/assets/manifests/nginx/wildcard-host.yaml
 ```
 
 Check that the resource was created:
