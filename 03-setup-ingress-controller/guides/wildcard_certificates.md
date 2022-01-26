@@ -235,7 +235,7 @@ Then, open and inspect the `Issuer` manifest file provided in the `Starter Kit` 
 - `Ambassador Edge Stack` ingress:
 
   ```shell
-  code 03-setup-ingress-controller/assets/manifests/cert-manager-ambassador-wcard-issuer.yaml
+  code 03-setup-ingress-controller/assets/manifests/ambassador/cert-manager-wcard-issuer.yaml
   ```
 
 - `Nginx` ingress:
@@ -249,7 +249,7 @@ Save the file and apply changes for your `Kubernetes` cluster using `kubectl` (p
 - `Ambassador Edge Stack` ingress:
 
   ```shell
-  kubectl apply -f 03-setup-ingress-controller/assets/manifests/cert-manager-ambassador-wcard-issuer.yaml
+  kubectl apply -f 03-setup-ingress-controller/assets/manifests/ambassador/cert-manager-wcard-issuer.yaml
   ```
 
 - `Nginx` ingress:
@@ -365,7 +365,7 @@ Next, open and inspect the `Certificate` manifest file provided in the `Starter 
 - `Ambassador Edge Stack` ingress:
 
   ```shell
-  code 03-setup-ingress-controller/assets/manifests/cert-manager-ambassador-wcard-certificate.yaml
+  code 03-setup-ingress-controller/assets/manifests/ambassador/cert-manager-wcard-certificate.yaml
   ```
 
 - `Nginx` ingress:
@@ -376,7 +376,7 @@ Next, open and inspect the `Certificate` manifest file provided in the `Starter 
 
 **Notes:**
 
-- Explanation for each important field of the `Certificate` CRD, can be found inside the [cert-manager-ambassador-wcard-certificate.yaml](../assets/manifests/cert-manager-ambassador-wcard-certificate.yaml) (or [cert-manager-wcard-certificate.yaml](../assets/manifests/nginx/cert-manager-wcard-certificate.yaml)) file.
+- Explanation for each important field of the `Certificate` CRD, can be found inside the [cert-manager-wcard-certificate.yaml](../assets/manifests/ambassador/cert-manager-wcard-certificate.yaml) (or [cert-manager-wcard-certificate.yaml](../assets/manifests/nginx/cert-manager-wcard-certificate.yaml)) file.
 - The example provided in this tutorial is using `starter-kit.online` domain name (and naming convention). Please make sure to use your own domain name and naming convention.
 
 Next, create the `Certificate` resource in your `DOKS` cluster (please pick only one option, depending on the installed `Ingress Controller`):
@@ -384,7 +384,7 @@ Next, create the `Certificate` resource in your `DOKS` cluster (please pick only
 - `Ambassador Edge Stack` ingress:
 
   ```shell
-  kubectl apply -f 03-setup-ingress-controller/assets/manifests/cert-manager-ambassador-wcard-certificate.yaml
+  kubectl apply -f 03-setup-ingress-controller/assets/manifests/ambassador/cert-manager-wcard-certificate.yaml
   ```
 
 - `Nginx` ingress:
@@ -519,16 +519,16 @@ Explanations for the above configuration:
 - `spec.acmeProvider`: Authority is set to `none`, because you configured an `external` certificate management tool (`cert-manager`).
 - `spec.tlsSecret`: Reference to `Kubernetes Secret` containing your wildcard `TLS` certificate.
 
-Open and inspect the `03-setup-ingress-controller/assets/manifests/ambassador-wildcard-host.yaml` file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://code.visualstudio.com):
+Open and inspect the `03-setup-ingress-controller/assets/manifests/ambassador/wildcard-host.yaml` file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://code.visualstudio.com):
 
 ```shell
-code 03-setup-ingress-controller/assets/manifests/ambassador-wildcard-host.yaml
+code 03-setup-ingress-controller/assets/manifests/ambassador/wildcard-host.yaml
 ```
 
 Then, create the wildcard `Host` resource using `kubectl`:
 
 ```shell
-kubectl apply -f 03-setup-ingress-controller/assets/manifests/ambassador-wildcard-host.yaml
+kubectl apply -f 03-setup-ingress-controller/assets/manifests/ambassador/wildcard-host.yaml
 ```
 
 Check that the resource was created:
@@ -544,7 +544,7 @@ NAME            HOSTNAME               STATE   PHASE COMPLETED   PHASE PENDING  
 wildcard-host   *.starter-kit.online   Ready                                     84m
 ```
 
-After applying the `ambassador-wildcard-host.yaml` manifest, you can go ahead and create the Ambassador `Mappings` for each `backend service` that you're using, as learned in [Step 6 - Configuring the Ambassador Edge Stack Mappings for Hosts](../README.md#step-6---configuring-the-ambassador-edge-stack-mappings-for-hosts).
+After applying the `wildcard-host.yaml` manifest, you can go ahead and create the Ambassador `Mappings` for each `backend service` that you're using, as learned in [Step 6 - Configuring the Ambassador Edge Stack Mappings for Hosts](../README.md#step-6---configuring-the-ambassador-edge-stack-mappings-for-hosts).
 
 Testing the new setup goes the same way as you already learned in [Step 8 - Verifying the Ambassador Edge Stack Setup](../README.md#step-8---verifying-the-ambassador-edge-stack-setup).
 
