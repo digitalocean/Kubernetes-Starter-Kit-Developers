@@ -269,7 +269,7 @@ Steps to follow:
     kubectl create ns backend
     ```
 
-3. Then, create the [echo](assets/manifests/echo_deployment.yaml) and [quote](assets/manifests/quote_deployment.yaml) deployments:
+3. Then, create the [echo](assets/manifests/nginx/echo_deployment.yaml) and [quote](assets/manifests/nginx/quote_deployment.yaml) deployments:
 
     ```shell
     kubectl apply -f 03-setup-ingress-controller/assets/manifests/nginx/echo_deployment.yaml
@@ -388,7 +388,7 @@ DESCRIPTION:
   documentation.
 ```
 
-You can define `multiple rules` for different `hosts` and `paths` in a single `ingress` resource. To keep things organized (and for better visibility), `Starter Kit` tutorial provides two ingress manifests for each host: [echo](assets/manifests/echo_host.yaml) and [quote](assets/manifests/quote_host.yaml).
+You can define `multiple rules` for different `hosts` and `paths` in a single `ingress` resource. To keep things organized (and for better visibility), `Starter Kit` tutorial provides two ingress manifests for each host: [echo](assets/manifests/nginx/echo_host.yaml) and [quote](assets/manifests/nginx/quote_host.yaml).
 
 First, `open` and `inspect` each `backend service` ingress manifest using a text editor of your choice (preferably with `YAML` lint support). For example you can use [VS Code](https://code.visualstudio.com):
 
