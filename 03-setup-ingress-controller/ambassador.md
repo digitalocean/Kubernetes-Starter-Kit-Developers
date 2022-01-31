@@ -229,7 +229,7 @@ Explanations for the above configuration:
 
 For more details, please visit the [AES Host CRD](https://www.getambassador.io/docs/edge-stack/1.13/topics/running/host-crd/) official documentation.
 
-The following examples configure the `TLS` enabled `hosts` for this tutorial: [echo_host](assets/manifests/echo_host.yaml) and [quote_host](assets/manifests/quote_host.yaml).
+The following examples configure the `TLS` enabled `hosts` for this tutorial: [echo_host](assets/manifests/ambassador/echo_host.yaml) and [quote_host](assets/manifests/ambassador/quote_host.yaml).
 
 Steps to follow:
 
@@ -242,9 +242,9 @@ Steps to follow:
 2. Then, apply the manifests:
 
     ```shell
-    kubectl apply -f 03-setup-ingress-controller/assets/manifests/echo_host.yaml
+    kubectl apply -f 03-setup-ingress-controller/assets/manifests/ambassador/echo_host.yaml
 
-    kubectl apply -f 03-setup-ingress-controller/assets/manifests/quote_host.yaml
+    kubectl apply -f 03-setup-ingress-controller/assets/manifests/ambassador/quote_host.yaml
     ```
 
 3. Finally, inspect the `AES` hosts:
@@ -415,20 +415,20 @@ Steps to follow:
     kubectl create ns backend
     ```
 
-3. Then, create the [echo](assets/manifests/echo_deployment.yaml) and [quote](assets/manifests/quote_deployment.yaml) deployments:
+3. Then, create the [echo](/03-setup-ingress-controller/assets/manifests/ambassador/echo_deployment.yaml) and [quote](/03-setup-ingress-controller/assets/manifests/ambassador/quote_deployment.yaml) deployments:
 
     ```shell
-    kubectl apply -f 03-setup-ingress-controller/assets/manifests/echo_deployment.yaml
+    kubectl apply -f 03-setup-ingress-controller/assets/manifests/ambassador/echo_deployment.yaml
 
-    kubectl apply -f 03-setup-ingress-controller/assets/manifests/quote_deployment.yaml
+    kubectl apply -f 03-setup-ingress-controller/assets/manifests/ambassador/quote_deployment.yaml
     ```
 
 4. Finally, create the corresponding `services`:
 
     ```shell
-    kubectl apply -f 03-setup-ingress-controller/assets/manifests/echo_service.yaml
+    kubectl apply -f 03-setup-ingress-controller/assets/manifests/ambassador/echo_service.yaml
 
-    kubectl apply -f 03-setup-ingress-controller/assets/manifests/quote_service.yaml
+    kubectl apply -f 03-setup-ingress-controller/assets/manifests/ambassador/quote_service.yaml
     ```
 
 **Observation and results:**
@@ -491,12 +491,12 @@ First, change directory (if not already) where the `Starter Kit` repository was 
 cd Kubernetes-Starter-Kit-Developers
 ```
 
-Next, create a `Mapping` for [echo](assets/manifests/echo_mapping.yaml) and [quote](assets/manifests/quote_mapping.yaml) backend applications:
+Next, create a `Mapping` for [echo](/03-setup-ingress-controller/assets/manifests/ambassador/echo_mapping.yaml) and [quote](/03-setup-ingress-controller/assets/manifests/ambassador/quote_mapping.yaml) backend applications:
 
 ```shell
-kubectl apply -f 03-setup-ingress-controller/assets/manifests/echo_mapping.yaml
+kubectl apply -f 03-setup-ingress-controller/assets/manifests/ambassador/echo_mapping.yaml
 
-kubectl apply -f 03-setup-ingress-controller/assets/manifests/quote_mapping.yaml
+kubectl apply -f 03-setup-ingress-controller/assets/manifests/ambassador/quote_mapping.yaml
 ```
 
 **Observation and results:**
@@ -571,10 +571,10 @@ To enable proxy protocol for `AES Backend Services`, you need to run the below s
     -f "03-setup-ingress-controller/assets/manifests/ambassador-values-v${HELM_CHART_VERSION}.yaml"
     ```
 
-5. Enable the proxy support in the `Ambassador` stack via the [aes_proxy_module](assets/manifests/aes_proxy_module.yaml) manifest.
+5. Enable the proxy support in the `Ambassador` stack via the [aes_proxy_module](/03-setup-ingress-controller/assets/manifests/ambassador/aes_proxy_module.yaml) manifest.
 
     ```shell
-    kubectl apply -f 03-setup-ingress-controller/assets/manifests/aes_proxy_module.yaml
+    kubectl apply -f 03-setup-ingress-controller/assets/manifests/ambassador/aes_proxy_module.yaml
     ```
 
 Please note that module configuration is a `global` option (enable/disable) for `AES`.
@@ -621,7 +621,7 @@ If pinging `quote.starter-kit.online` or `echo.starter-kit.online` in the termin
 First, inspect the `Ambassador` services:
 
 ```shell
-kubectl get svc -n ambassador 
+kubectl get svc -n ambassador
 ```
 
 The output looks similar to:
