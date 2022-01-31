@@ -386,14 +386,14 @@ Steps to create a `Target` for `TrilioVault`:
 3. Then, open and inspect the `Target` manifest file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). You can use [VS Code](https://code.visualstudio.com) for example:
 
     ```shell
-    code 06-setup-backup-restore/assets/manifests/triliovault-s3-target.yaml
+    code 06-setup-backup-restore/assets/manifests/triliovault/triliovault-s3-target.yaml
     ```
 
 4. Now, please replace the `<>` placeholders accordingly for your DO Spaces `Trilio` bucket, like: `bucketName`, `region`,  `url` and `credentialSecret`.
 5. Finally, save the manifest file and create the `Target` object using `kubectl`:
 
     ```shell
-    kubectl apply -f 06-setup-backup-restore/assets/manifests/triliovault-s3-target.yaml
+    kubectl apply -f 06-setup-backup-restore/assets/manifests/triliovault/triliovault-s3-target.yaml
     ```
 
 What happens next is, `TrilioVault` will spawn a `worker job` named `trilio-s3-target-validator` responsible with validating your S3 bucket (like availability, permissions, etc.). If the job finishes successfully, the bucket is considered to be healthy or available and the `trilio-s3-target-validator` job resource is deleted afterwards. If something bad happens, the S3 target validator job is left up and running so that you can inspect the logs and find the possible issue.
@@ -630,17 +630,17 @@ Steps to initiate the `Ambassador` Helm release one time backup:
 3. Then, open and inspect the Ambassador `BackupPlan` and `Backup` manifest files provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). You can use [VS Code](https://code.visualstudio.com) for example:
 
     ```shell
-    code 06-setup-backup-restore/assets/manifests/ambassador-helm-release-backup-plan.yaml
+    code 06-setup-backup-restore/assets/manifests/triliovault/ambassador-helm-release-backup-plan.yaml
 
-    code 06-setup-backup-restore/assets/manifests/ambassador-helm-release-backup.yaml
+    code 06-setup-backup-restore/assets/manifests/triliovault/ambassador-helm-release-backup.yaml
     ```
 
 4. Finally, create the `BackupPlan` and `Backup` resources, using `kubectl`:
 
     ```shell
-    kubectl apply -f 06-setup-backup-restore/assets/manifests/ambassador-helm-release-backup-plan.yaml
+    kubectl apply -f 06-setup-backup-restore/assets/manifests/triliovault/ambassador-helm-release-backup-plan.yaml
 
-    kubectl apply -f 06-setup-backup-restore/assets/manifests/ambassador-helm-release-backup.yaml
+    kubectl apply -f 06-setup-backup-restore/assets/manifests/triliovault/ambassador-helm-release-backup.yaml
     ```
 
 Now, inspect the `BackupPlan` status (targeting the `ambassador` Helm release), using `kubectl`:
@@ -762,13 +762,13 @@ Explanation for the above configuration:
 First, inspect the `Restore` CRD example from the `Starter Kit` Git repository:
 
 ```shell
-code 06-setup-backup-restore/assets/manifests/ambassador-helm-release-restore.yaml
+code 06-setup-backup-restore/assets/manifests/triliovault/ambassador-helm-release-restore.yaml
 ```
 
 Then, create the `Restore` resource using `kubectl`:
 
 ```shell
-kubectl apply -f 06-setup-backup-restore/assets/manifests/ambassador-helm-release-restore.yaml
+kubectl apply -f 06-setup-backup-restore/assets/manifests/triliovault/ambassador-helm-release-restore.yaml
 ```
 
 Finally, inspect the `Restore` object status:
@@ -911,17 +911,17 @@ Steps to initiate a backup for all important namespaces in your DOKS cluster:
 2. Then, open and inspect the `ClusterBackupPlan` and `ClusterBackup` manifest files provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). You can use [VS Code](https://code.visualstudio.com) for example:
 
     ```shell
-    code 06-setup-backup-restore/assets/manifests/starter-kit-cluster-backup-plan.yaml
+    code 06-setup-backup-restore/assets/manifests/triliovault/starter-kit-cluster-backup-plan.yaml
 
-    code 06-setup-backup-restore/assets/manifests/starter-kit-cluster-backup.yaml
+    code 06-setup-backup-restore/assets/manifests/triliovault/starter-kit-cluster-backup.yaml
     ```
 
 3. Finally, create the `ClusterBackupPlan` and `ClusterBackup` resources, using `kubectl`:
 
     ```shell
-    kubectl apply -f 06-setup-backup-restore/assets/manifests/starter-kit-cluster-backup-plan.yaml
+    kubectl apply -f 06-setup-backup-restore/assets/manifests/triliovault/starter-kit-cluster-backup-plan.yaml
 
-    kubectl apply -f 06-setup-backup-restore/assets/manifests/starter-kit-cluster-backup.yaml
+    kubectl apply -f 06-setup-backup-restore/assets/manifests/triliovault/starter-kit-cluster-backup.yaml
     ```
 
 Now, inspect the `ClusterBackupPlan` status, using `kubectl`:
@@ -1066,7 +1066,7 @@ Looking at the above, you can notice that it's a basic `ClusterBackupPlan` CRD, 
 Now, please go ahead and create the schedule `Policy`, using the sample manifest provided by the `Starter Kit` tutorial (make sure to change directory first, where the Starter Kit Git repository was cloned on your local machine):
 
 ```shell
-kubectl apply -f 06-setup-backup-restore/assets/manifests/scheduled-backup-every-5min.yaml
+kubectl apply -f 06-setup-backup-restore/assets/manifests/triliovault/scheduled-backup-every-5min.yaml
 ```
 
 Check that the policy resource was created:
@@ -1086,10 +1086,10 @@ Finally, create the resources for the `kube-system` namespace scheduled backups:
 
 ```shell
 # Create the backup plan first for kube-system namespace
-kubectl apply -f 06-setup-backup-restore/assets/manifests/kube-system-ns-backup-plan-scheduled.yaml
+kubectl apply -f 06-setup-backup-restore/assets/manifests/triliovault/kube-system-ns-backup-plan-scheduled.yaml
 
 # Create and trigger the scheduled backup for kube-system namespace
-kubectl apply -f 06-setup-backup-restore/assets/manifests/kube-system-ns-backup-scheduled.yaml
+kubectl apply -f 06-setup-backup-restore/assets/manifests/triliovault/kube-system-ns-backup-scheduled.yaml
 ```
 
 Check the scheduled backup plan status for `kube-system`:
