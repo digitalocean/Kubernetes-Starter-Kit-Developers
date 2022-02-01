@@ -124,12 +124,42 @@ In order for `TrilioVault` to work correctly and to backup your `PVCs`, `DOKS` n
 ```shell
 kubectl get storageclass
 ```
-
 The output should look similar to (notice the provisioner is [dobs.csi.digitalocean.com](https://github.com/digitalocean/csi-digitalocean)):
 
 ```text
 NAME                         PROVISIONER                 RECLAIMPOLICY   VOLUMEBINDINGMODE   ALLOWVOLUMEEXPANSION   AGE
 do-block-storage (default)   dobs.csi.digitalocean.com   Delete          Immediate           true                   10d
+```
+The `TrilioVault` installation also need `volumeSnapshot` Custom Resource Definition (CRD) for the successful installation. You can check using below command:
+
+```shell
+kubectl get crd | grep volumesnapshot
+```
+
+The output should look similar to (If not instsalled, refer to [Installing VolumeSnapshot CRDs](https://docs.trilio.io/kubernetes/appendix/csi-drivers/installing-volumesnapshot-crds)):
+
+```text
+volumesnapshotclasses.snapshot.storage.k8s.io         2022-02-01T06:01:14Z
+volumesnapshotcontents.snapshot.storage.k8s.io        2022-02-01T06:01:14Z
+volumesnapshots.snapshot.storage.k8s.io               2022-02-01T06:01:15Z
+```
+Also make sure that the CRD support both `v1beta1` and `v1` API version. You can run below command to check the API version:
+
+```shell
+kubectl get crd volumesnapshots.snapshot.storage.k8s.io -o yaml
+```
+At the end of the CRD yaml, you should output similar to below showing `storedVersions` as `v1beta1` and `v1`:
+
+```text
+...
+- lastTransitionTime: "2022-01-20T07:58:06Z"
+    message: approved in https://github.com/kubernetes-csi/external-snapshotter/pull/419
+    reason: ApprovedAnnotation
+    status: "True"
+    type: KubernetesAPIApprovalPolicyConformant
+  storedVersions:
+  - v1beta1
+  - v1
 ```
 
 ## Step 1 - Installing TrilioVault for Kubernetes
@@ -140,7 +170,7 @@ In this step, you will learn how to deploy `TrilioVault` for `DOKS`, and manage 
 
 - Via the [tvk-oneclick](https://github.com/trilioData/tvk-plugins/blob/main/docs/tvk-oneclick/README.md) `krew` plugin. It has some interesting features, like: checking Kubernetes cluster prerequisites, post install validations, automatic licensing of the product (using the free basic license), application upgrades management, etc.
 - Via the `TrilioVault Operator` (installable via `Helm`). You define a `TrilioVaultManager` CRD, which tells `TrilioVault` operator how to handle the `installation`, `post-configuration` steps, and future `upgrades` of the `Trilio` application components.
-- Fully managed by `Helm`, via the [k8s-triliovault](http://charts.k8strilio.net/trilio-stable/k8s-triliovault) chart (covered in this tutorial).
+##########################- Fully managed by `Helm`, via the [k8s-triliovault](http://charts.k8strilio.net/trilio-stable/k8s-triliovault) chart (covered in this tutorial).
 
 ### Installing TrilioVault using Helm
 
@@ -152,106 +182,94 @@ Please follow the steps below, to install `TrilioVault` via `Helm`:
 
 1. First, clone the `Starter Kit` Git repository and change directory to your local copy:
 
-    ```shell
-    git clone https://github.com/digitalocean/Kubernetes-Starter-Kit-Developers.git
-
-    cd Kubernetes-Starter-Kit-Developers
-    ```
+   ```shell
+   git clone https://github.com/digitalocean/Kubernetes-Starter-Kit-Developers.git
+   cd Kubernetes-Starter-Kit-Developers
+   ```
 
 2. Next, add the `TrilioVault` Helm repository, and list the available charts:
 
-    ```shell
-    helm repo add triliovault http://charts.k8strilio.net/trilio-stable/k8s-triliovault
+   ```shell
+   helm repo add triliovault-operator http://charts.k8strilio.net/trilio-stable/k8s-triliovault-operator
+   helm search repo triliovault-operator
+   ```
+  The output looks similar to the following:
 
-    helm search repo triliovault
-    ```
+  ```text
+  NAME                                            CHART VERSION   APP VERSION     DESCRIPTION
+  triliovault-operator/k8s-triliovault-operator   2.6.7           2.6.7           K8s-TrilioVault-Operator is an operator designe...
+  ```
+   **Note:**
 
-    The output looks similar to the following:
+   The chart of interest is `triliovault-operator/k8s-triliovault-operator`, which will install `TrilioVault for Kubernetes` on the cluster along with the `TrilioVault-Manager`. You can run `helm show values triliovault-operator/k8s-triliovault-operator`, and export to a file to see all the available options.
 
-    ```text
-    NAME                                    CHART VERSION   APP VERSION     DESCRIPTION                                       
-    triliovault/k8s-triliovault             2.6.3           2.6.3           K8s-TrilioVault provides data protection and re...
-    triliovault/k8s-triliovault-operator    0.9.0           0.9.0           K8s-TrilioVault-Operator is an operator designe...
-    ```
-
-    **Note:**
-
-    The chart of interest is `triliovault/k8s-triliovault`, which will install `TrilioVault for Kubernetes` on the cluster. You can run `helm show values triliovault/k8s-triliovault --version 2.6.3`, and export to a file to see all the available options.
 3. Then, open and inspect the TrilioVault `Helm` values file file provided in the `Starter kit` repository, using an editor of your choice (preferably with `YAML` lint support). You can use [VS Code](https://code.visualstudio.com) for example:
 
     ```shell
-    TRILIOVAULT_CHART_VERSION="2.6.3"
-
-    code 06-setup-backup-restore/assets/manifests/triliovault-values-v${TRILIOVAULT_CHART_VERSION}.yaml
+    code 06-setup-backup-restore/assets/manifests/triliovault-values.yaml
     ```
 
 4. Finally, install `TrilioVault for Kubernetes` using `Helm`:
 
     ```shell
-    TRILIOVAULT_CHART_VERSION="2.6.3"
-
-    helm install triliovault triliovault/k8s-triliovault --version "${TRILIOVAULT_CHART_VERSION}" \
-      --namespace tvk \
-      --create-namespace \
-      -f 06-setup-backup-restore/assets/manifests/triliovault-values-v${TRILIOVAULT_CHART_VERSION}.yaml
+    helm install triliovault-operator triliovault-operator/k8s-triliovault-operator --namespace tvk --create-namespace -f 06-setup-backup-restore/assets/manifests/triliovault-values.yaml
     ```
-
-    **Note:**
-
-    A `specific` version for the `TrilioVault` Helm chart is used. In this case `2.6.3` is picked, which maps to the `2.6.3` version of the application (see the output from `Step 2.`). It’s good practice in general, to lock on a specific version. This helps to have predictable results, and allows versioning control via `Git`.
+	**Note:**
+	Above command install both `TrilioVault Operator` and `TriloVault Manager` (TVM) Custom Resource using the parameters provided in the `triliovault-values.yaml`.
 
 Now, please check your `TVK` deployment:
 
 ```shell
 helm ls -n tvk
 ```
-
 The output looks similar to the following (`STATUS` column should display `deployed`):
 
 ```text
-NAME            NAMESPACE       REVISION        UPDATED                                 STATUS          CHART                   APP VERSION
-triliovault     tvk             1               2021-11-23 14:13:41.465225 +0200 EET    deployed        k8s-triliovault-2.6.3   2.6.3
+NAME                    NAMESPACE       REVISION        UPDATED                                 STATUS          CHART                           APP VERSION
+triliovault-manager-tvk tvk             1               2022-02-01 08:55:28.484658123 +0000 UTC deployed        k8s-triliovault-2.6.7           2.6.7
+triliovault-operator    tvk             1               2022-02-01 08:52:34.317153907 +0000 UTC deployed        k8s-triliovault-operator-2.6.7  2.6.7
 ```
-
 Next, verify that `TrilioVault` is up and running:
 
 ```shell
 kubectl get deployments -n tvk
 ```
-
 The output looks similar to the following (all deployments pods must be in the `Ready` state):
 
 ```text
-NAME                                READY   UP-TO-DATE   AVAILABLE   AGE
-k8s-triliovault-admission-webhook   1/1     1            1           32m
-k8s-triliovault-control-plane       1/1     1            1           32m
-k8s-triliovault-exporter            1/1     1            1           32m
-k8s-triliovault-ingress-gateway     1/1     1            1           32m
-k8s-triliovault-web                 1/1     1            1           32m
-k8s-triliovault-web-backend         1/1     1            1           32m
+NAME                                            READY   UP-TO-DATE   AVAILABLE   AGE
+k8s-triliovault-admission-webhook               1/1     1            1           83s
+k8s-triliovault-control-plane                   1/1     1            1           83s
+k8s-triliovault-exporter                        1/1     1            1           83s
+k8s-triliovault-ingress-gateway                 1/1     1            1           83s
+k8s-triliovault-web                             1/1     1            1           83s
+k8s-triliovault-web-backend                     1/1     1            1           83s
+triliovault-operator-k8s-triliovault-operator   1/1     1            1           4m22s
 ```
-
 If the output looks like above, you installed `TVK` successfully. Next, you will learn how to check license type and validity, as well as how to renew.
 
 ### TrilioVault Application Licensing
 
-By default, when installing `TVK` via `Helm`, a `Free Trial` license is generated and activated automatically. A free trial license lets you run `TVK` for `one month` on `unlimited` cluster nodes. You can always go to the `Trilio` website and generate a new [license](https://www.trilio.io/plans) for your cluster that suits your needs (for example, you can pick the `basic license` type that lets you run `TrilioVault` indefinetly if your `cluster capacity` doesn't exceed `10 nodes`).
+By default, when installing `TVK` via `Helm`, there is no `Free Trial` license installed automatically. You can always go to the `Trilio` website and generate a new [license](https://www.trilio.io/plans) for your cluster that suits your needs (for example, you can pick the `basic license` type that lets you run `TrilioVault` indefinetly if your `cluster capacity` doesn't exceed `10 nodes`). A free trial license lets you run `TVK` for `one month` on `unlimited` cluster nodes.
 
 **Notes:**
-
 - **TrilioVault is free of charge for Kubernetes clusters with up to 10000 nodes for DigitalOcean users.**
 - `Starter Kit` examples rely on a `Cluster` license type to function properly.
 
 ### Checking TVK Application Licensing
 
-Please run below command to see what license is available for your cluster (it is managed via the `License` CRD):
+Please run below command to see if license is available for your cluster (it is managed via the `License` CRD):
 
 ```shell
 kubectl get license -n tvk
 ```
 
-The output looks similar to (notice the `STATUS` which should be `Active`, as well as the license type in the `EDITION` column and `EXPIRATION TIME`):
+Afer you download a free license from Trilio's website, apply it using below command:
 
+```shell
+kubectl apply -f <YOUR_LICENSE_FILE_NAME>.yaml -n tvk
+```
+The output looks similar to (notice the `STATUS` which should be `Active`, as well as the license type in the `EDITION` column and `EXPIRATION TIME`):
 ```text
 NAME             STATUS   MESSAGE                                   CURRENT NODE COUNT   EDITION     CAPACITY   EXPIRATION TIME        MAX NODES
 test-license-1   Active   Cluster License Activated successfully.   2                    FreeTrial   1000       2021-12-23T00:00:00Z   2
@@ -293,9 +311,7 @@ Current Node Count:    2
     Scope:                         Cluster
 ...
 ```
-
 The above output will also tell you when the license is going to expire in the `Expiration Timestamp` field, and the `Scope` (`Cluster` based in this case). You can opt for a `cluster` wide license type, or for a `namespace` based license. More details can be found on the [Trilio Licensing](https://docs.trilio.io/kubernetes/overview/licensing) documentation page.
-
 ### Creating/Renewing TVK Application License
 
 To create or renew the license, you will have to request a new one from the `Trilio` website, by navigating to the [licensing](https://www.trilio.io/plans) page. After completing the form, you should receive the `License` YAML manifest, which can be applied to your cluster using `kubectl`. Below commands assume that TVK is installed in the default `tvk` namespace (please replace the `<>` placeholders accordingly, where required):
@@ -303,7 +319,6 @@ To create or renew the license, you will have to request a new one from the `Tri
 ```shell
 kubectl apply -f <YOUR_LICENSE_FILE_NAME>.yaml -n tvk
 ```
-
 Then, you can check the new license status as you already learned via:
 
 ```shell
@@ -313,7 +328,6 @@ kubectl get license -n tvk
 # Get information about a specific license from the `tvk` namespace
 kubectl describe license <YOUR_LICENSE_NAME_HERE> -n tvk 
 ```
-
 In the next step, you will learn how to define the storage backend for `TrilioVault` to store backups, called a `target`.
 
 ## Step 2 - Creating a TrilioVault Target to Store Backups
@@ -422,7 +436,7 @@ In case the target object fails to become healthy, you can inspect the logs from
 kubectl get pods -n tvk | grep trilio-s3-target-validator
 
 # Output looks similar to:
-# trilio-s3-target-validator-tio99a-6lz4q              1/1     Running     0          104s
+trilio-s3-target-validator-tio99a-6lz4q              1/1     Running     0          104s
 
 # Now, fetch logs data
 kubectl logs pod/trilio-s3-target-validator-tio99a-6lz4q -n tvk
@@ -470,34 +484,31 @@ kubectl get svc -n tvk
 The output looks similar to (search for the `k8s-triliovault-ingress-gateway` line, and notice that it listens on port `80` in the `PORT(S)` column):
 
 ```text
-NAME                                TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)                      AGE
-k8s-triliovault-admission-webhook   ClusterIP   10.245.121.127   <none>        443/TCP                      22m
-k8s-triliovault-ingress-gateway     NodePort    10.245.186.164   <none>        80:31872/TCP,443:30421/TCP   22m
-k8s-triliovault-web                 ClusterIP   10.245.62.14     <none>        80/TCP                       22m
-k8s-triliovault-web-backend         ClusterIP   10.245.69.118    <none>        80/TCP                       22m
-trilio-s3-target-browser-u8wf5f     ClusterIP   10.245.7.116     <none>        80/TCP                       38s
+NAME                                                            TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)                      AGE
+k8s-triliovault-admission-webhook                               ClusterIP   10.245.202.17    <none>        443/TCP                      13m
+k8s-triliovault-ingress-gateway                                 NodePort    10.245.192.140   <none>        80:32448/TCP,443:32588/TCP   13m
+k8s-triliovault-web                                             ClusterIP   10.245.214.13    <none>        80/TCP                       13m
+k8s-triliovault-web-backend                                     ClusterIP   10.245.10.221    <none>        80/TCP                       13m
+triliovault-operator-k8s-triliovault-operator-webhook-service   ClusterIP   10.245.186.59    <none>        443/TCP                      16m
 ```
-
 `TVK` is using an `Nginx Ingress Controller` to route traffic to the management web console services. Routing is host based, and the host name is `tvk-doks.com` as defined in the `Helm` values file from the `Starter Kit`:
 
 ```yaml
 # The host name to use when accessing the web console via the TVK ingress gateway
-ingressConfig:
-  host: "tvk-doks.com"
+installTVK:
+  ingressConfig:
+    host: "tvk-doks.com"
 ```
-
 Having the above information at hand, please go ahead and edit the `/etc/hosts` file, and add this entry:
 
 ```text
 127.0.0.1 tvk-doks.com
 ```
-
 Next, create the port forward for the TVK ingress gateway service:
 
 ```shell
 kubectl port-forward svc/k8s-triliovault-ingress-gateway 8080:80 -n tvk
 ```
-
 Finally export the `kubeconfig` file for your DOKS cluster. This step is required so that the web console can authenticate you:
 
 ```shell
@@ -507,7 +518,6 @@ doctl k8s cluster list
 # Save cluster configuration to YAML
 doctl kubernetes cluster kubeconfig show <YOUR_CLUSTER_NAME_HERE> > config_<YOUR_CLUSTER_NAME_HERE>.yaml
 ```
-
 **Hint:**
 
 If you have only one cluster, the below command can be used:
@@ -517,11 +527,9 @@ DOKS_CLUSTER_NAME="$(doctl k8s cluster list --no-header --format Name)"
 
 doctl kubernetes cluster kubeconfig show $DOKS_CLUSTER_NAME > config_${DOKS_CLUSTER_NAME}.yaml
 ```
-
 After following the above presented steps, you can access the console in your web browser by navigating to: http://tvk-doks.com:8080. When asked for the `kubeconfig` file, please select the one that you created in the last command from above.
 
 **Note:**
-
 Please keep the generated `kubeconfig` file safe because it contains sensitive data.
 
 ### Exploring the TVK Web Console User Interface
@@ -626,49 +634,40 @@ Steps to initiate the `Ambassador` Helm release one time backup:
     ```shell
     cd Kubernetes-Starter-Kit-Developers
     ```
-
 3. Then, open and inspect the Ambassador `BackupPlan` and `Backup` manifest files provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). You can use [VS Code](https://code.visualstudio.com) for example:
 
     ```shell
     code 06-setup-backup-restore/assets/manifests/ambassador-helm-release-backup-plan.yaml
-
     code 06-setup-backup-restore/assets/manifests/ambassador-helm-release-backup.yaml
     ```
-
 4. Finally, create the `BackupPlan` and `Backup` resources, using `kubectl`:
 
     ```shell
     kubectl apply -f 06-setup-backup-restore/assets/manifests/ambassador-helm-release-backup-plan.yaml
-
     kubectl apply -f 06-setup-backup-restore/assets/manifests/ambassador-helm-release-backup.yaml
     ```
-
 Now, inspect the `BackupPlan` status (targeting the `ambassador` Helm release), using `kubectl`:
 
 ```shell
 kubectl get backupplan ambassador-helm-release-backup-plan -n ambassador
 ```
-
 The output looks similar to (notice the `STATUS` column value which should be set to `Available`):
 
 ```text
 NAME                                  TARGET             ...   STATUS
 ambassador-helm-release-backup-plan   trilio-s3-target   ...   Available
 ```
-
 Next, check the `Backup` object status, using `kubectl`:
 
 ```shell
 kubectl get backup ambassador-helm-release-full-backup -n ambassador
 ```
-
 The output looks similar to (notice the `STATUS` column value which should be set to `InProgress`, as well as the `BACKUP TYPE` set to `Full`):
 
 ```text
 NAME                                  BACKUPPLAN                            BACKUP TYPE   STATUS       ...
 ambassador-helm-release-full-backup   ambassador-helm-release-backup-plan   Full          InProgress   ...                                  
 ```
-
 After all the `ambassador` Helm release components finish uploading to the `S3` target, you should get below results:
 
 ```shell
@@ -679,13 +678,11 @@ kubectl get backup ambassador-helm-release-full-backup -n ambassador
 NAME                                  BACKUPPLAN                            BACKUP TYPE   STATUS      ...   PERCENTAGE
 ambassador-helm-release-full-backup   ambassador-helm-release-backup-plan   Full          Available   ...   100
 ```
-
 If the output looks like above, you successfully backed up the `ambassador` Helm release. You can go ahead and see how `TrilioVault` stores `Kubernetes` metadata by listing the `TrilioVault S3 Bucket` contents. For example, you can use [s3cmd](https://docs.digitalocean.com/products/spaces/resources/s3cmd):
 
 ```shell
 s3cmd ls s3://trilio-starter-kit --recursive
 ```
-
 The output looks similar to (notice that the listing contains the json manifests and UIDs, representing Kubernetes objects):
 
 ```text
@@ -699,7 +696,6 @@ The output looks similar to (notice that the listing contains the json manifests
 2021-11-25 07:04          330  s3://trilio-starter-kit/6c68af15-5392-45bb-a70b-b26a93605bd9/5ebfffb5-442a-455c-b0de-1db98e18b425/custom/metadata-snapshot/metadata.json.manifest.00000002
 ...
 ```
-
 Finally, you can check that the backup is available in the web console as well, by navigating to `Resource Management -> ambassador -> Backup Plans` (notice that it's in the `Available` state, and that the `ambassador` Helm release was backed up in the `Component Details` sub-view):
 
 ![Ambassador Helm Release Backup](assets/images/ambassador_tvk_backup.png)
@@ -711,13 +707,11 @@ Now, go ahead and simulate a disaster, by intentionally deleting the `ambassador
 ```shell
 helm delete ambassador -n ambassador
 ```
-
 Next, check that the namespace resources were deleted (listing should be empty):
 
 ```shell
 kubectl get all -n ambassador
 ```
-
 Finally, verify that the `echo` and `quote` backend services `endpoint` is `DOWN` (please refer to [Creating the Ambassador Edge Stack Backend Services](../03-setup-ingress-controller/ambassador.md#step-4---creating-the-ambassador-edge-stack-backend-services)), regarding the `backend applications` used in the `Starter Kit` tutorial). You can use `curl` to test (or you can use your web browser):
 
 ```shell
@@ -729,7 +723,6 @@ curl -Li http://echo.starter-kit.online/echo/
 ### Restoring the Ambassador Helm Release Backup
 
 **Important notes:**
-
 - If restoring into the same namespace, ensure that the original application components have been removed. Especially the PVC of application are deleted.
 - If restoring to another cluster (migration scenario), ensure that TrilioVault for Kubernetes is running in the remote namespace/cluster as well. To restore into a new cluster (where the Backup CR does not exist), `source.type` must be set to `location`. Please refer to the [Custom Resource Definition Restore Section](https://docs.trilio.io/kubernetes/architecture/apis-and-command-line-reference/custom-resource-definitions-application-1/triliovault-crds#example-5-restore-from-specific-location-migration-scenario) to view a `restore` by `location` example.
 - When you delete the `ambassador` namespace, the load balancer resource associated with the ambassador service will be deleted as well. So, when you restore the `ambassador` service, the `LB` will be recreated by `DigitalOcean`. The issue is that you will get a `NEW IP` address for your `LB`, so you will need to `adjust` the `A records` for getting `traffic` into your domains hosted on the cluster.
@@ -750,7 +743,6 @@ spec:
       namespace: ambassador
   skipIfAlreadyExists: true
 ```
-
 Explanation for the above configuration:
 
 - `spec.source.type`: Specifies what backup type to restore from.
@@ -764,26 +756,22 @@ First, inspect the `Restore` CRD example from the `Starter Kit` Git repository:
 ```shell
 code 06-setup-backup-restore/assets/manifests/ambassador-helm-release-restore.yaml
 ```
-
 Then, create the `Restore` resource using `kubectl`:
 
 ```shell
 kubectl apply -f 06-setup-backup-restore/assets/manifests/ambassador-helm-release-restore.yaml
 ```
-
 Finally, inspect the `Restore` object status:
 
 ```shell
 kubectl get restore ambassador-helm-release-restore -n ambassador
 ```
-
 The output looks similar to (notice the STATUS column set to `Completed`, as well as the `PERCENTAGE COMPLETED` set to `100`):
 
 ```text
 NAME                              STATUS      DATA SIZE   START TIME             END TIME               PERCENTAGE COMPLETED   DURATION
 ambassador-helm-release-restore   Completed   0           2021-11-25T15:06:52Z   2021-11-25T15:07:35Z   100                    43.524191306s
 ```
-
 If the output looks like above, then the `ambassador` Helm release `restoration` process completed successfully.
 
 ### Verifying Applications Integrity after Restoration
@@ -793,7 +781,6 @@ Check that all the `ambassador` namespace `resources` are in place and running:
 ```shell
 kubectl get all -n ambassador
 ```
-
 The output looks similar to:
 
 ```text
@@ -818,13 +805,11 @@ replicaset.apps/ambassador-5bdc64f9f6         2         2         2       9m59s
 replicaset.apps/ambassador-agent-bcdd8ccc8    1         1         1       9m59s
 replicaset.apps/ambassador-redis-64b7c668b9   1         1         1       9m59s
 ```
-
 Ambassador `Hosts`:
 
 ```shell
 kubectl get hosts -n ambassador
 ```
-
 The output looks similar to (`STATE` should be `Ready`, as well as the `HOSTNAME` column pointing to the fully qualified host name):
 
 ```text
@@ -832,13 +817,11 @@ NAME         HOSTNAME                   STATE   PHASE COMPLETED   PHASE PENDING 
 echo-host    echo.starter-kit.online    Ready                                     11m
 quote-host   quote.starter-kit.online   Ready                                     11m
 ```
-
 Ambassador `Mappings`:
 
 ```shell
 kubectl get mappings -n ambassador
 ```
-
 The output looks similar to (notice the `echo-backend` which is mapped to the `echo.starter-kit.online` host and `/echo/` source prefix, same for `quote-backend`):
 
 ```text
@@ -850,17 +833,14 @@ ambassador-devportal-demo                                /docs/                 
 echo-backend                  echo.starter-kit.online    /echo/                                      echo.backend
 quote-backend                 quote.starter-kit.online   /quote/                                     quote.backend
 ```
-
 Now, you need to update your DNS `A records`, because the DigitalOcean load balancer resource was recreated, and it has a new external `IP` assigned.
 
 Finally, check if the `backend applications` respond to `HTTP` requests as well (please refer to [Creating the Ambassador Edge Stack Backend Services](../03-setup-ingress-controller/ambassador.md#step-4---creating-the-ambassador-edge-stack-backend-services)), regarding the `backend applications` used in the `Starter Kit` tutorial):
 
 ```shell
 curl -Li http://quote.starter-kit.online/quote/
-
 curl -Li http://echo.starter-kit.online/echo/
 ```
-
 Next step deals with whole cluster backup and restore, thus covering a disaster recovery scenario.
 
 ## Step 5 - Backup and Restore Whole Cluster Example
@@ -897,7 +877,6 @@ spec:
     - namespace: backend
     - namespace: monitoring
 ```
-
 Notice that `kube-system` (or other DOKS cluster related namespaces) is not included in the list. Usually, those are not required, unless there is a special case requiring some settings to be persisted at that level.
 
 Steps to initiate a backup for all important namespaces in your DOKS cluster:
@@ -907,49 +886,40 @@ Steps to initiate a backup for all important namespaces in your DOKS cluster:
     ```shell
     cd Kubernetes-Starter-Kit-Developers
     ```
-
 2. Then, open and inspect the `ClusterBackupPlan` and `ClusterBackup` manifest files provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). You can use [VS Code](https://code.visualstudio.com) for example:
 
     ```shell
     code 06-setup-backup-restore/assets/manifests/starter-kit-cluster-backup-plan.yaml
-
     code 06-setup-backup-restore/assets/manifests/starter-kit-cluster-backup.yaml
     ```
-
 3. Finally, create the `ClusterBackupPlan` and `ClusterBackup` resources, using `kubectl`:
 
     ```shell
     kubectl apply -f 06-setup-backup-restore/assets/manifests/starter-kit-cluster-backup-plan.yaml
-
     kubectl apply -f 06-setup-backup-restore/assets/manifests/starter-kit-cluster-backup.yaml
     ```
-
 Now, inspect the `ClusterBackupPlan` status, using `kubectl`:
 
 ```shell
 kubectl get clusterbackupplan starter-kit-cluster-backup-plan -n tvk
 ```
-
 The output looks similar to (notice the `STATUS` column value which should be set to `Available`):
 
 ```text
 NAME                              TARGET             ...   STATUS
 starter-kit-cluster-backup-plan   trilio-s3-target   ...   Available
 ```
-
 Next, check the `ClusterBackup` status, using `kubectl`:
 
 ```shell
 kubectl get clusterbackup starter-kit-cluster-backup -n tvk
 ```
-
 The output looks similar to (notice the `STATUS` column value which should be set to `Available`, as well as the `PERCENTAGE COMPLETE` set to `100`):
 
 ```text
 NAME                        BACKUPPLAN                        BACKUP TYPE   STATUS      ...   PERCENTAGE COMPLETE
 starter-kit-cluster-backup  starter-kit-cluster-backup-plan   Full          Available   ...   100                               
 ```
-
 If the output looks like above then all your important application namespaces were backed up successfully.
 
 **Note:**
@@ -969,7 +939,6 @@ Now, delete the whole `DOKS` cluster (make sure to replace the `<>` placeholders
 ```shell
 doctl kubernetes cluster delete <DOKS_CLUSTER_NAME>
 ```
-
 Next, re-create the cluster as described in [Section 1 - Set up DigitalOcean Kubernetes](../01-setup-DOKS/README.md).
 
 To perform the restore operation, you need to install the `TVK` application as described in [Step 1 - Installing TrilioVault for Kubernetes](#step-1---installing-triliovault-for-kubernetes). Please make sure to use the `same Helm Chart version` - this is important!
@@ -1007,17 +976,14 @@ First, verify all cluster `Kubernetes` resources (you should have everything in 
 ```shell
 kubectl get all --all-namespaces
 ```
-
 Then, make sure that your DNS A records are updated to point to your new load balancer external IP.
 
 Finally, the `backend applications` should respond to `HTTP` requests as well (please refer to [Creating the Ambassador Edge Stack Backend Services](../03-setup-ingress-controller/ambassador.md#step-4---creating-the-ambassador-edge-stack-backend-services)), regarding the `backend applications` used in the `Starter Kit` tutorial):
 
 ```shell
 curl -Li http://quote.starter-kit.online/quote/
-
 curl -Li http://echo.starter-kit.online/echo/
 ```
-
 In the next step, you will learn how to perform scheduled (or automatic) backups for your `DOKS` cluster applications.
 
 ## Step 6 - Scheduled Backups
@@ -1038,7 +1004,6 @@ spec:
     schedule:
       - "*/5 * * * *" # trigger every 5 minutes
 ```
-
 Next, you can apply the schedule policy to a `ClusterBackupPlan` CRD for example, as seen below:
 
 ```yaml
@@ -1060,7 +1025,6 @@ spec:
     - namespace: kube-system
     - namespace: backend
 ```
-
 Looking at the above, you can notice that it's a basic `ClusterBackupPlan` CRD, referencing the `Policy` CRD defined earlier via the `spec.backupConfig.schedulePolicy` field. You can have separate policies created for `full` or `incremental` backups, hence the `fullBackupPolicy` or `incrementalBackupPolicy` can be specified in the spec.
 
 Now, please go ahead and create the schedule `Policy`, using the sample manifest provided by the `Starter Kit` tutorial (make sure to change directory first, where the Starter Kit Git repository was cloned on your local machine):
@@ -1068,20 +1032,17 @@ Now, please go ahead and create the schedule `Policy`, using the sample manifest
 ```shell
 kubectl apply -f 06-setup-backup-restore/assets/manifests/scheduled-backup-every-5min.yaml
 ```
-
 Check that the policy resource was created:
 
 ```shell
 kubectl get policies -n tvk
 ```
-
 The output looks similar to (notice the `POLICY` type set to `Schedule`):
 
 ```text
 NAME                          POLICY     DEFAULT
 scheduled-backup-every-5min   Schedule   false
 ```
-
 Finally, create the resources for the `kube-system` namespace scheduled backups:
 
 ```shell
@@ -1091,33 +1052,28 @@ kubectl apply -f 06-setup-backup-restore/assets/manifests/kube-system-ns-backup-
 # Create and trigger the scheduled backup for kube-system namespace
 kubectl apply -f 06-setup-backup-restore/assets/manifests/kube-system-ns-backup-scheduled.yaml
 ```
-
 Check the scheduled backup plan status for `kube-system`:
 
 ```shell
 kubectl get clusterbackupplan kube-system-ns-backup-plan-5min-schedule -n tvk
 ```
-
 The output looks similar to (notice the `FULL BACKUP POLICY` value set to the previously created `scheduled-backup-every-5min` policy resource, as well as the `STATUS` which should be `Available`):
 
 ```text
 NAME                                       TARGET             ...   FULL BACKUP POLICY            STATUS
 kube-system-ns-backup-plan-5min-schedule   trilio-s3-target   ...   scheduled-backup-every-5min   Available
 ```
-
 Check the scheduled backup status for `kube-system`:
 
 ```shell
 kubectl get clusterbackup kube-system-ns-full-backup-scheduled -n tvk
 ```
-
 The output looks similar to (notice the `BACKUPPLAN` value set to the previously created backup plan resource, as well as the `STATUS` which should be `Available`):
 
 ```text
 NAME                                   BACKUPPLAN                                 BACKUP TYPE   STATUS      ...
 kube-system-ns-full-backup-scheduled   kube-system-ns-backup-plan-5min-schedule   Full          Available   ...
 ```
-
 Now, you can check that backups are performed on a regular interval (5 minutes), by querying the cluster backup resource and inspect the `START TIME` column (`kubectl get clusterbackup -n tvk`). It should reflect the 5 minute delta, as highlighted in the picture below:
 
 ![TVK Every 5 Minute Backups](assets/images/tvk_scheduled_backups_5min.png)
@@ -1148,7 +1104,6 @@ spec:
     monthOfYear: March
     yearly: 1
 ```
-
 Explanation for the above configuration:
 
 - `spec.type`: Defines policy type. Can be: `Retention` or `Schedule`.
@@ -1191,7 +1146,6 @@ spec:
     - namespace: kube-system
     - namespace: backend
 ```
-
 Notice that it uses a `retentionPolicy` field to reference the policy in question. Of course, you can have a backup plan that has both types of policies set, so that it is able to perform scheduled backups, as well as to deal with retention strategies.
 
 ### Using Cleanup Policies
@@ -1210,7 +1164,6 @@ spec:
   cleanupConfig:
     backupDays: 5
 ```
-
 The above cleanup policy must be defined in the `TVK` install namespace. Then, a `cron job` is created automatically for you that runs `every 30 mins`, and `deletes failed backups` based on the value specified for `backupdays` within the spec field.
 
 This is a very neat feature that TVK provides to help you deal with this kind of situation.
