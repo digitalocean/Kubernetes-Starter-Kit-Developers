@@ -170,7 +170,7 @@ In this step, you will learn how to deploy `TrilioVault` for `DOKS`, and manage 
 
 - Via the [tvk-oneclick](https://github.com/trilioData/tvk-plugins/blob/main/docs/tvk-oneclick/README.md) `krew` plugin. It has some interesting features, like: checking Kubernetes cluster prerequisites, post install validations, automatic licensing of the product (using the free basic license), application upgrades management, etc.
 - Via the `TrilioVault Operator` (installable via `Helm`). You define a `TrilioVaultManager` CRD, which tells `TrilioVault` operator how to handle the `installation`, `post-configuration` steps, and future `upgrades` of the `Trilio` application components.
-##########################- Fully managed by `Helm`, via the [k8s-triliovault](http://charts.k8strilio.net/trilio-stable/k8s-triliovault) chart (covered in this tutorial).
+- Fully managed by `Helm`, via the [triliovault-operator](http://charts.k8strilio.net/trilio-stable/k8s-triliovault-operator) chart (covered in this tutorial).
 
 ### Installing TrilioVault using Helm
 
@@ -193,29 +193,32 @@ Please follow the steps below, to install `TrilioVault` via `Helm`:
    helm repo add triliovault-operator http://charts.k8strilio.net/trilio-stable/k8s-triliovault-operator
    helm search repo triliovault-operator
    ```
-  The output looks similar to the following:
+   The output looks similar to the following:
 
-  ```text
-  NAME                                            CHART VERSION   APP VERSION     DESCRIPTION
-  triliovault-operator/k8s-triliovault-operator   2.6.7           2.6.7           K8s-TrilioVault-Operator is an operator designe...
-  ```
+   ```text
+   NAME                                            CHART VERSION   APP VERSION     DESCRIPTION
+   triliovault-operator/k8s-triliovault-operator   2.6.7           2.6.7           K8s-TrilioVault-Operator is an operator designe...
+   ```
    **Note:**
 
    The chart of interest is `triliovault-operator/k8s-triliovault-operator`, which will install `TrilioVault for Kubernetes` on the cluster along with the `TrilioVault-Manager`. You can run `helm show values triliovault-operator/k8s-triliovault-operator`, and export to a file to see all the available options.
 
 3. Then, open and inspect the TrilioVault `Helm` values file file provided in the `Starter kit` repository, using an editor of your choice (preferably with `YAML` lint support). You can use [VS Code](https://code.visualstudio.com) for example:
 
-    ```shell
-    code 06-setup-backup-restore/assets/manifests/triliovault-values.yaml
-    ```
+   ```shell
+   code 06-setup-backup-restore/assets/manifests/triliovault-values.yaml
+   ```
 
 4. Finally, install `TrilioVault for Kubernetes` using `Helm`:
 
-    ```shell
-    helm install triliovault-operator triliovault-operator/k8s-triliovault-operator --namespace tvk --create-namespace -f 06-setup-backup-restore/assets/manifests/triliovault-values.yaml
-    ```
-	**Note:**
-	Above command install both `TrilioVault Operator` and `TriloVault Manager` (TVM) Custom Resource using the parameters provided in the `triliovault-values.yaml`.
+   ```shell
+   helm install triliovault-operator triliovault-operator/k8s-triliovault-operator \
+   --namespace tvk \
+   --create-namespace \
+   -f 06-setup-backup-restore/assets/manifests/triliovault-values.yaml
+   ```
+   **Note:**
+   Above command install both `TrilioVault Operator` and `TriloVault Manager` (TVM) Custom Resource using the parameters provided in the `triliovault-values.yaml`.
 
 Now, please check your `TVK` deployment:
 
@@ -263,7 +266,6 @@ Please run below command to see if license is available for your cluster (it is 
 ```shell
 kubectl get license -n tvk
 ```
-
 Afer you download a free license from Trilio's website, apply it using below command:
 
 ```shell
@@ -274,13 +276,11 @@ The output looks similar to (notice the `STATUS` which should be `Active`, as we
 NAME             STATUS   MESSAGE                                   CURRENT NODE COUNT   EDITION     CAPACITY   EXPIRATION TIME        MAX NODES
 test-license-1   Active   Cluster License Activated successfully.   2                    FreeTrial   1000       2021-12-23T00:00:00Z   2
 ```
-
 The license is managed via a special `CRD`, namely the `License` object. You can inspect it by running below command:
 
 ```shell
 kubectl describe license test-license-1 -n tvk 
 ```
-
 The output looks similar to (notice the `Message` and `Capacity` fields, as well as the `Edition`):
 
 ```yaml
@@ -417,18 +417,15 @@ Now, please go ahead and check if the `Target` resource created earlier is `heal
 ```shell
 kubectl get target trilio-s3-target  -n tvk
 ```
-
 The output looks similar to (notice the `STATUS` column value - should be `Available`, meaning it's in a `healthy` state):
 
 ```text
 NAME               TYPE          THRESHOLD CAPACITY   VENDOR   STATUS      BROWSING ENABLED
 trilio-s3-target   ObjectStore   10Gi                 Other    Available
 ```
-
 If the output looks like above, then you configured the S3 target object successfully.
 
 **Hint:**
-
 In case the target object fails to become healthy, you can inspect the logs from the `trilio-s3-target-validator` Pod to find the issue:
 
 ```shell
@@ -441,7 +438,6 @@ trilio-s3-target-validator-tio99a-6lz4q              1/1     Running     0      
 # Now, fetch logs data
 kubectl logs pod/trilio-s3-target-validator-tio99a-6lz4q -n tvk
 ```
-
 The output looks similar to (notice the exception as an example):
 
 ```text
@@ -480,7 +476,6 @@ First, you need to identify the `ingress-gateway` service from the `tvk` namespa
 ```shell
 kubectl get svc -n tvk
 ```
-
 The output looks similar to (search for the `k8s-triliovault-ingress-gateway` line, and notice that it listens on port `80` in the `PORT(S)` column):
 
 ```text
@@ -519,12 +514,10 @@ doctl k8s cluster list
 doctl kubernetes cluster kubeconfig show <YOUR_CLUSTER_NAME_HERE> > config_<YOUR_CLUSTER_NAME_HERE>.yaml
 ```
 **Hint:**
-
 If you have only one cluster, the below command can be used:
 
 ```shell
 DOKS_CLUSTER_NAME="$(doctl k8s cluster list --no-header --format Name)"
-
 doctl kubernetes cluster kubeconfig show $DOKS_CLUSTER_NAME > config_${DOKS_CLUSTER_NAME}.yaml
 ```
 After following the above presented steps, you can access the console in your web browser by navigating to: http://tvk-doks.com:8080. When asked for the `kubeconfig` file, please select the one that you created in the last command from above.
@@ -599,7 +592,6 @@ spec:
     helmReleases:
       - ambassador
 ```
-
 Explanation for the above configuration:
 
 - `spec.backupConfig.target.name`: Tells `TVK` what target `name` to use for storing backups.
@@ -620,7 +612,6 @@ spec:
     name: ambassador-helm-release-backup-plan
     namespace: ambassador
 ```
-
 Explanation for the above configuration:
 
 - `spec.type`: Specifies backup type (e.g. `Full` or `Incremental`).
@@ -716,7 +707,6 @@ Finally, verify that the `echo` and `quote` backend services `endpoint` is `DOWN
 
 ```shell
 curl -Li http://quote.starter-kit.online/quote/
-
 curl -Li http://echo.starter-kit.online/echo/
 ```
 
