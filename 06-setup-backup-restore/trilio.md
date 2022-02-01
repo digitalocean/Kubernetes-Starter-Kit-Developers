@@ -213,9 +213,9 @@ Please follow the steps below, to install `TrilioVault` via `Helm`:
 
    ```shell
    helm install triliovault-operator triliovault-operator/k8s-triliovault-operator \
-   --namespace tvk \
-   --create-namespace \
-   -f 06-setup-backup-restore/assets/manifests/triliovault-values.yaml
+     --namespace tvk \
+     --create-namespace \
+     -f 06-setup-backup-restore/assets/manifests/triliovault-values.yaml
    ```
    **Note:**
    Above command install both `TrilioVault Operator` and `TriloVault Manager` (TVM) Custom Resource using the parameters provided in the `triliovault-values.yaml`.
