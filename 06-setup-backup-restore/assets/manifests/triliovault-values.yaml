@@ -1,0 +1,76 @@
+## TrilioVault Operator
+registry: "eu.gcr.io/amazing-chalice-243510"
+
+operator-webhook-init:
+  repository: operator-webhook-init
+
+k8s-triliovault-operator:
+  repository: k8s-triliovault-operator
+
+tag: "2.6.7"
+
+tvkHelmRepo: ""
+
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/arch
+              operator: In
+              values:
+                - amd64
+
+image:
+  pullPolicy: Always
+tls:
+  secretName: "helm-client-certs"
+  verify: false
+  enable: false
+  keyFile: "tls.key"
+  certFile: "tls.crt"
+  caContent: ""
+  hostname: ""
+
+nameOverride: ""
+
+replicaCount: 1
+
+proxySettings:
+  PROXY_ENABLED: false
+  NO_PROXY: ""
+  HTTP_PROXY: ""
+  HTTPS_PROXY: ""
+  CA_BUNDLE_CONFIGMAP: ""
+
+podSpec:
+  hostIPC: false
+  hostNetwork: false
+  hostPID: false
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1001
+
+securityContext:
+  allowPrivilegeEscalation: false
+  privileged: false
+  readOnlyRootFilesystem: false
+  runAsNonRoot: true
+  runAsUser: 1001
+  capabilities:
+    drop:
+      - ALL
+
+installTVK:
+  enabled: true
+  applicationScope: Cluster
+  ingressConfig:
+    host: "tvk-doks.com"
+    tlsSecretName: ""
+    annotations: {}
+    ingressClass: ""
+  ComponentConfiguration:
+    ingressController:
+      enabled: true
+      service:
+        type: NodePort
