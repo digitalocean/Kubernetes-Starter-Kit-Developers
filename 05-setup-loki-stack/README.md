@@ -199,7 +199,7 @@ kubectl --namespace monitoring port-forward svc/kube-prom-stack-grafana 3000:80
 Next, point your web browser to [localhost:3000](http://localhost:3000), and navigate to the `Explore` tab from the left panel. Select `Loki` from the data source menu, and run this query:
 
   ```json
-  {container="ambassador", namespace="ambassador"}
+  {container="emissary-ingress", namespace="ambassador"}
   ```
 
   The output looks similar to the following:
@@ -209,7 +209,7 @@ Next, point your web browser to [localhost:3000](http://localhost:3000), and nav
 Perform another query, but this time filter the results to include only the `warning` message:
 
   ```json
-  {container="ambassador", namespace="ambassador"} |= "warning"
+  {container="emissary-ingress", namespace="ambassador"} |= "warning"
   ```
 
   The output looks similar to (notice how the `warning` word is being highlighted in the query results panel):
@@ -218,7 +218,7 @@ Perform another query, but this time filter the results to include only the `war
 
 As you can see in the above examples, each query is composed of:
 
-- A `log stream` selector `{container="ambassador",namespace="ambassador"}`, which targets the `ambassador container` from the `ambassador namespace`.
+- A `log stream` selector `{container="emissary-ingress", namespace="ambassador"}`, which targets the `ambassador container` from the `ambassador namespace`.
 - A `filter` - e.g.: `|= "warning"`, which shows only the lines containing the `warning` word.
 
 More complex queries can be created using `aggregation` operators. For more details on the topic, and other advanced features, please visit the official [LogQL](https://grafana.com/docs/loki/latest/logql) page.
