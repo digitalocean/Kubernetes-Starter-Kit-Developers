@@ -173,7 +173,7 @@ You already deployed `Prometheus` and `Grafana` into the cluster. In this step, 
 
 The [Ambassador Edge Stack Deployment](../03-setup-ingress-controller/ambassador.md#step-1---installing-the-ambassador-edge-stack) created earlier in the tutorial, provides the `/metrics` endpoint by default on port `8877` via a `Kubernetes` service.
 
-Next, you will discover the `Ambassador` service responsible with exposing metrics data for `Prometheus` to consume. The service in question is called `ambassador-admin` (note that it's using the `ambassador` namespace):
+Next, you will discover the `Ambassador` service responsible with exposing metrics data for `Prometheus` to consume. The service in question is called `edge-stack-admin` (note that it's using the `ambassador` namespace):
 
 ```shell
 kubectl get svc -n ambassador
@@ -183,9 +183,9 @@ The output looks similar to the following:
 
 ```text
 NAME               TYPE           CLUSTER-IP     EXTERNAL-IP      PORT(S)                      AGE
-ambassador         LoadBalancer   10.245.39.13   68.183.252.190   80:31499/TCP,443:30759/TCP   3d3h
-ambassador-admin   ClusterIP      10.245.68.14   <none>           8877/TCP,8005/TCP            3d3h
-ambassador-redis   ClusterIP      10.245.9.81    <none>           6379/TCP                     3d3h
+edge-stack         LoadBalancer   10.245.39.13   68.183.252.190   80:31499/TCP,443:30759/TCP   3d3h
+edge-stack-admin   ClusterIP      10.245.68.14   <none>           8877/TCP,8005/TCP            3d3h
+edge-stack-redis   ClusterIP      10.245.9.81    <none>           6379/TCP                     3d3h
 ```
 
 Next, please perform a `port-forward`, to inspect the metrics:
@@ -244,8 +244,6 @@ Steps required to add the `Ambassador` service, for `Prometheus` to monitor:
             - ambassador
         endpoints:
         - port: "ambassador-admin"
-          path: /metrics
-          scheme: http
     ```
 
     Explanations for the above configuration:
@@ -276,7 +274,7 @@ Then, navigate to `Status -> Targets` page, and inspect the results (notice the 
 
 **Note:**
 
-There are **2 entries** under the discovered target because the `AES` deployment consists of 2 `Pods`. Verify it via:
+There are **3 entries** under the discovered target because the `AES` deployment consists of 3 `Pods`. Verify it via:
 
 ```shell
 kubectl get deployments -n ambassador
@@ -286,9 +284,9 @@ The output looks similar to the following (notice the `ambassador` line):
 
 ```text
 NAME               READY   UP-TO-DATE   AVAILABLE   AGE
-ambassador         2/2     2            2           4d17h
-ambassador-agent   1/1     1            1           4d17h
-ambassador-redis   1/1     1            1           4d17h
+edge-stack         3/3     3            3           7h17m
+edge-stack-agent   1/1     1            1           7h17m
+edge-stack-redis   1/1     1            1           7h17m
 ```
 
 In the next step, you'll discover `PromQL` along with some simple examples, to get you started, and discover the language.

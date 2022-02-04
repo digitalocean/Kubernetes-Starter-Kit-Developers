@@ -295,7 +295,7 @@ Metadata:
   Generation:          24
   Managed Fields:
     API Version:  getambassador.io/v3alpha1
-....
+...
 Spec:
   Host Binding:
     Namespace:
@@ -305,6 +305,16 @@ Spec:
   Security Model:  SECURE
   Stats Prefix:    http-listener
   Events:            <none>
+...
+Spec:
+  Host Binding:
+    Namespace:
+      From:        ALL
+  Port:            8443
+  Protocol:        HTTPS
+  Security Model:  SECURE
+  Stats Prefix:    https-listener
+Events:            <none>
 ```
 
 In the next step, you will create two simple `Host`s that are required for the Ambassador Edge Stack to work.
