@@ -41,21 +41,21 @@ To complete this guide, you will need:
 
 Based on our findings, a value of `2` should suffice in case of small `development` environments.
 
-Next, you're going to scale the `Ambassador Edge Stack` deployment, and adjust the `replicaCount` value, via the [ambassador-values.yaml](../assets/manifests/ambassador-values-v6.9.3.yaml) file provided in the `Starter Kit` Git repository.
+Next, you're going to scale the `Ambassador Edge Stack` deployment, and adjust the `replicaCount` value, via the [ambassador-values.yaml](../assets/manifests/ambassador-values-v7.2.2.yaml) file provided in the `Starter Kit` Git repository.
 
 Steps to follow:
 
 1. First, change directory where the `Starter Kit` Git repository was cloned.
-2. Next, open and inspect the `replicaCount` section, from the `03-setup-ingress-controller/assets/manifests/ambassador-values-v6.9.3.yaml` file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support). It has the required values already set for you to use. For example, you can use [VS Code](https://code.visualstudio.com):
+2. Next, open and inspect the `replicaCount` section, from the `03-setup-ingress-controller/assets/manifests/ambassador-values-v7.2.2.yaml` file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support). It has the required values already set for you to use. For example, you can use [VS Code](https://code.visualstudio.com):
 
    ```shell
-   code 03-setup-ingress-controller/assets/manifests/ambassador-values-v6.9.3.yaml
+   code 03-setup-ingress-controller/assets/manifests/ambassador-values-v7.2.2.yaml
    ```
 
 3. Then, apply changes using `Helm` upgrade:
 
     ```shell
-    AMBASSADOR_CHART_VERSION="6.9.3"
+    AMBASSADOR_CHART_VERSION="7.2.2"
 
     helm upgrade ambassador datawire/ambassador --version "$AMBASSADOR_CHART_VERSION" \
         --namespace ambassador \
@@ -79,23 +79,23 @@ Steps to follow:
 
 ## Adjusting Resource Requests
 
-In this section, you're going to adjust resource requests via `Helm`, and tune the `memory` requests value to a reasonable value, by using the [ambassador-values.yaml](../assets/manifests/ambassador-values-v6.9.3.yaml) file provided in the `Starter Kit` Git repository.
+In this section, you're going to adjust resource requests via `Helm`, and tune the `memory` requests value to a reasonable value, by using the [ambassador-values.yaml](../assets/manifests/ambassador-values-v7.2.2.yaml) file provided in the `Starter Kit` Git repository.
 
 Based on our findings, the memory requests should be adjusted to a value of `200m`, which satisfies most development needs in general.
 
 Steps to follow:
 
 1. First, change directory where the `Starter Kit` Git repository was cloned.
-2. Next, open and inspect the `resources` section, from the `03-setup-ingress-controller/assets/manifests/ambassador-values-v6.9.3.yaml` file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support). It has the required values already set for you to use. For example, you can use [VS Code](https://code.visualstudio.com):
+2. Next, open and inspect the `resources` section, from the `03-setup-ingress-controller/assets/manifests/ambassador-values-v7.2.2.yaml` file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support). It has the required values already set for you to use. For example, you can use [VS Code](https://code.visualstudio.com):
 
    ```shell
-   code 03-setup-ingress-controller/assets/manifests/ambassador-values-v6.9.3.yaml
+   code 03-setup-ingress-controller/assets/manifests/ambassador-values-v7.2.2.yaml
    ```
 
 3. Then, run a `Helm` upgrade to apply changes:
 
     ```shell
-    HELM_CHART_VERSION="6.9.3"
+    HELM_CHART_VERSION="7.2.2"
 
     helm upgrade ambassador datawire/ambassador --version "$HELM_CHART_VERSION" \
         --namespace ambassador \

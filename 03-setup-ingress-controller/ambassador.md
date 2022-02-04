@@ -37,12 +37,13 @@ After finishing this tutorial, you will be able to:
 - [Introduction](#introduction)
 - [Prerequisites](#prerequisites)
 - [Step 1 - Installing the Ambassador Edge Stack](#step-1---installing-the-ambassador-edge-stack)
-- [Step 2 - Defining the Hosts for Ambassador Edge Stack](#step-2---defining-the-hosts-for-ambassador-edge-stack)
-- [Step 3 - Configuring DNS for Ambassador Edge Stack](#step-3---configuring-dns-for-ambassador-edge-stack)
-- [Step 4 - Creating the Ambassador Edge Stack Backend Services](#step-4---creating-the-ambassador-edge-stack-backend-services)
-- [Step 5 - Configuring the Ambassador Edge Stack Mappings for Hosts](#step-5---configuring-the-ambassador-edge-stack-mappings-for-hosts)
-- [Step 6 - Enabling Proxy Protocol](#step-6---enabling-proxy-protocol)
-- [Step 7 - Verifying the Ambassador Edge Stack Setup](#step-7---verifying-the-ambassador-edge-stack-setup)
+- [Step 2 - Defining the Listener for Ambassador Edge Stack](#step-2---defining-the-listener-for-ambassador-edge-stack)
+- [Step 3 - Defining the Hosts for Ambassador Edge Stack](#step-3---defining-the-hosts-for-ambassador-edge-stack)
+- [Step 4 - Configuring DNS for Ambassador Edge Stack](#step-4---configuring-dns-for-ambassador-edge-stack)
+- [Step 5 - Creating the Ambassador Edge Stack Backend Services](#step-5---creating-the-ambassador-edge-stack-backend-services)
+- [Step 6 - Configuring the Ambassador Edge Stack Mappings for Hosts](#step-6---configuring-the-ambassador-edge-stack-mappings-for-hosts)
+- [Step 7 - Enabling Proxy Protocol](#step-7---enabling-proxy-protocol)
+- [Step 8 - Verifying the Ambassador Edge Stack Setup](#step-8---verifying-the-ambassador-edge-stack-setup)
 - [How To Guides](#how-to-guides)
   - [Setting up Ingress to use Wildcard Certificates](guides/wildcard_certificates.md)
   - [Ingress Controller LoadBalancer Migration](guides/ingress_loadbalancer_migration.md)
@@ -91,29 +92,38 @@ Steps to follow:
     NAME                         CHART VERSION  APP VERSION  DESCRIPTION
     datawire/ambassador          6.9.3          1.14.2       A Helm chart for Datawire Ambassador
     datawire/ambassador-operator 0.3.0          v1.3.0       A Helm chart for Kubernetes
-    datawire/edge-stack          7.2.0          2.1.0        A Helm chart for Ambassador Edge Stack
-    datawire/emissary-ingress    7.2.0          2.1.0        A Helm chart for Emissary Ingress
-    datawire/telepresence        2.4.9          2.4.9        A chart for deploying the server-side component
+    datawire/edge-stack          7.2.2          2.1.2        A Helm chart for Ambassador Edge Stack
+    datawire/emissary-ingress    7.2.2          2.1.2        A Helm chart for Emissary Ingress
+    datawire/telepresence        2.4.10         2.4.10        A chart for deploying the server-side component
     ```
 
     **Note:**
 
-    The chart of interest is `datawire/ambassador`, which will install `Ambassador Edge Stack` on the cluster. Please visit the [ambassador-chart](https://github.com/datawire/ambassador-chart) page, for more details about this chart.
-3. Then, open and inspect the `03-setup-ingress-controller/assets/manifests/ambassador-values-v6.9.3.yaml` file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://code.visualstudio.com):
+    The chart of interest is `datawire/ambassador`, which will install `Ambassador Edge Stack` on the cluster. Please visit the [ambassador-edge-stack](https://github.com/emissary-ingress/emissary) page, for more details about this chart.
+3. Before installing Ambassador Edge Stack 2.X itself, you must configure your Kubernetes cluster to support the `getambassador.io/v3alpha1` and `getambassador.io/v2` configuration resources. This is required.
 
     ```shell
-    code 03-setup-ingress-controller/assets/manifests/ambassador-values-v6.9.3.yaml
+    kubectl apply -f https://app.getambassador.io/yaml/edge-stack/2.1.2/aes-crds.yaml
     ```
 
     **Note:**
 
-    There are times when you want to re-use the existing `Load Balancer`. This is for preserving your `DNS` settings and other `Load Balancer` configurations. If so, make sure to modify the `ambassador-values-v6.9.3.yaml` file, and add the annotation for your existing `Load Balancer`. Likewise, you can enable `Proxy Protocol` as part of modules section in the `ambassador-values-v6.9.3.yaml` file. Please refer to the `DigitalOcean Kubernetes` guide - [How To Migrate Load Balancers](https://docs.digitalocean.com/products/kubernetes/how-to/migrate-load-balancers) for more details.
-4. Finally, install `Ambassador Edge Stack` using `Helm` (a dedicated `ambassador` namespace will be created as well):
+    Ambassador Edge Stack 2.X includes a Deployment in the `emissary-system` namespace called `edge-stack-apiext`. This is the APIserver extension that supports converting Ambassador Edge Stack CRDs between `getambassador.io/v3alpha1` and `getambassador.io/v2`. This Deployment needs to be running at all times.
+4. Then, open and inspect the `03-setup-ingress-controller/assets/manifests/ambassador-values-v7.2.2.yaml` file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://code.visualstudio.com):
 
     ```shell
-    HELM_CHART_VERSION="6.9.3"
+    code 03-setup-ingress-controller/assets/manifests/ambassador-values-v7.2.2.yaml
+    ```
 
-    helm install ambassador datawire/ambassador --version "$HELM_CHART_VERSION" \
+    **Note:**
+
+    There are times when you want to re-use the existing `Load Balancer`. This is for preserving your `DNS` settings and other `Load Balancer` configurations. If so, make sure to modify the `ambassador-values-v7.2.2.yaml` file, and add the annotation for your existing `Load Balancer`. Likewise, you can enable `Proxy Protocol` as part of modules section in the `ambassador-values-v7.2.2.yaml` file. Please refer to the `DigitalOcean Kubernetes` guide - [How To Migrate Load Balancers](https://docs.digitalocean.com/products/kubernetes/how-to/migrate-load-balancers) for more details.
+5. Finally, install `Ambassador Edge Stack` using `Helm` (a dedicated `ambassador` namespace will be created as well):
+
+    ```shell
+    HELM_CHART_VERSION="7.2.2"
+
+    helm install edge-stack datawire/edge-stack --version "$HELM_CHART_VERSION" \
         --namespace ambassador \
         --create-namespace \
         -f "03-setup-ingress-controller/assets/manifests/ambassador-values-v${HELM_CHART_VERSION}.yaml"
@@ -121,7 +131,7 @@ Steps to follow:
 
     **Note:**
 
-    A `specific` version for the ambassador `Helm` chart is used. In this case `6.9.3` was picked, which maps to the `1.14.2` release of `Ambassador Edge Stack` (see the output from `Step 2.`). It’s good practice in general, to lock on a specific version. This helps to have predictable results, and allows versioning control via `Git`.
+    A `specific` version for the ambassador `Helm` chart is used. In this case `7.2.2` was picked, which maps to the `2.1.2` release of `Ambassador Edge Stack` (see the output from `Step 2.`). It’s good practice in general, to lock on a specific version. This helps to have predictable results, and allows versioning control via `Git`.
 
 **Observations and results:**
 
@@ -135,7 +145,7 @@ The output looks similar to (notice that the `STATUS` column value is `deployed`
 
 ```text
 NAME         NAMESPACE   REVISION  UPDATED                                STATUS      CHART               APP VERSION
-ambassador   ambassador  1         2021-09-11 15:49:03.499499 +0200 EET   deployed    ambassador-6.9.3   1.14.2
+edge-stack   ambassador  1         2022-02-03 09:56:55.80197 +0200 EET   deployed    edge-stack-7.2.2   2.1.2
 ```
 
 Next check Kubernetes resources created for the `ambassador` namespace (notice the `deployment` and `replicaset` resources which should be healthy, as well as the `LoadBalancer` resource having an `external IP` assigned):
@@ -148,25 +158,25 @@ The output looks similar to:
 
 ```text
 NAME                                    READY   STATUS    RESTARTS   AGE
-pod/ambassador-5bdc64f9f6-hhwdc         1/1     Running   0          6m14s
-pod/ambassador-5bdc64f9f6-xz9jl         1/1     Running   0          6m14s
-pod/ambassador-agent-bcdd8ccc8-m9blv    1/1     Running   0          6m14s
-pod/ambassador-redis-64b7c668b9-69c5p   1/1     Running   0          6m14s
+pod/edge-stack-5bdc64f9f6-hhwdc         1/1     Running   0          6m14s
+pod/edge-stack-5bdc64f9f6-xz9jl         1/1     Running   0          6m14s
+pod/edge-stack-agent-bcdd8ccc8-m9blv    1/1     Running   0          6m14s
+pod/edge-stack-redis-64b7c668b9-69c5p   1/1     Running   0          6m14s
 
 NAME                       TYPE           CLUSTER-IP       EXTERNAL-IP       PORT(S)                      AGE
-service/ambassador         LoadBalancer   10.245.189.240   68.183.252.190    80:30323/TCP,443:30510/TCP   6m14s
-service/ambassador-admin   ClusterIP      10.245.170.181   <none>            8877/TCP,8005/TCP            6m14s
-service/ambassador-redis   ClusterIP      10.245.205.49    <none>            6379/TCP                     6m14s
+service/edge-stack         LoadBalancer   10.245.189.240   68.183.252.190    80:30323/TCP,443:30510/TCP   6m14s
+service/edge-stack-admin   ClusterIP      10.245.170.181   <none>            8877/TCP,8005/TCP            6m14s
+service/edge-stack-redis   ClusterIP      10.245.205.49    <none>            6379/TCP                     6m14s
 
 NAME                               READY   UP-TO-DATE   AVAILABLE   AGE
-deployment.apps/ambassador         2/2     2            2           6m14s
-deployment.apps/ambassador-agent   1/1     1            1           6m14s
-deployment.apps/ambassador-redis   1/1     1            1           6m14s
+deployment.apps/edge-stack         2/2     2            2           6m14s
+deployment.apps/edge-stack-agent   1/1     1            1           6m14s
+deployment.apps/edge-stack-redis   1/1     1            1           6m14s
 
 NAME                                          DESIRED   CURRENT   READY   AGE
-replicaset.apps/ambassador-5bdc64f9f6         2         2         2       6m14s
-replicaset.apps/ambassador-agent-bcdd8ccc8    1         1         1       6m14s
-replicaset.apps/ambassador-redis-64b7c668b9   1         1         1       6m14s
+replicaset.apps/edge-stack-5bdc64f9f6         2         2         2       6m14s
+replicaset.apps/edge-stack-agent-bcdd8ccc8    1         1         1       6m14s
+replicaset.apps/edge-stack-redis-64b7c668b9   1         1         1       6m14s
 ```
 
 Finally, list all load balancer resources from your `DigitalOcean` account, and print the `IP`, `ID`, `Name` and `Status`:
@@ -184,9 +194,124 @@ IP                 ID                                      Name                 
 
 In the next step, you will learn how to create the `Host` CRDs which tell `Ambassador` how to expose backend hosts (services) to the outside world.
 
-## Step 2 - Defining the Hosts for Ambassador Edge Stack
+## Step 2 - Defining the Listener for Ambassador Edge Stack
 
-In a real world scenario each `host` maps to a `service`, so you need a way to tell `AES` about your intentions - meet the [Host](https://www.getambassador.io/docs/edge-stack/1.13/topics/running/host-crd/) CRD. The `Host` CRD can handle `TLS termination` automatically, by using `HTTP-01` ACME challenge to request `TLS certificates` from a well known `Certificate Authority` (like [Let's Encrypt](https://letsencrypt.org/)). Certificates creation and renewal happens automatically once you configure and enable this feature in the `Host` CRD.
+The `Listener` CRD defines where, and how, Ambassador Edge Stack should listen for requests from the network (eg DO Load Balancer), and which Host definitions should be used to process those requests.
+
+**Note:**
+
+The `Listener`s are never created at the installation, the below steps will guide you how to do it.
+
+A typical `Listener` configuration looks like below:
+
+```yaml
+apiVersion: getambassador.io/v3alpha1
+kind: Listener
+metadata:
+  name: http-listener
+spec:
+  port: 8080
+  protocol: HTTPS
+  securityModel: SECURE
+  # protocolStack:
+  # - PROXY
+  # - HTTP
+  # - TCP
+  hostBinding:
+    namespace:
+      from: ALL
+---
+```
+
+Explanations for the above configuration:
+
+- `port`: The network port on which Ambassador Edge Stack should listen.
+- `protocol`: The protocol Type on which Ambassador Edge Stack will use.
+- `protocolStack`: Allows configuring exactly which protocols will be layered together. `protocolStack` is not recommended if you can instead use `protocol`.
+- `securityModel`: Defines how the Listener will decide whether a request is secure or insecure.
+- `hostBinding`: Mechanism for determining which Hosts will be associated with this Listener.
+
+For more details, please visit the [AES LISTENER CRD](https://www.getambassador.io/docs/edge-stack/2.1/topics/running/listener/) official documentation.
+
+First, change directory (if not already) where you cloned the `Starter Kit` repository.
+
+```shell
+cd Kubernetes-Starter-Kit-Developers
+```
+
+Next, apply the manifest to create the `Listener`:
+
+```shell
+kubectl apply -f 03-setup-ingress-controller/assets/manifests/ambassador/ambassador_listener.yaml
+```
+
+**Note:**
+
+Port `8080` and port `8443` are the default endpoint ports used by the Ambassador Edge Stack.
+```text
+apiVersion: v1
+kind: Endpoints
+metadata:
+  creationTimestamp: "2022-02-04T08:29:26Z"
+  labels:
+    app.kubernetes.io/instance: edge-stack
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: edge-stack
+    app.kubernetes.io/part-of: edge-stack
+    helm.sh/chart: emissary-ingress-7.2.2
+    product: aes
+  name: edge-stack
+  namespace: ambassador
+....
+  ports:
+  - name: https
+    port: 8443
+    protocol: TCP
+  - name: http
+    port: 8080
+    protocol: TCP
+```
+
+
+**Observations and results:**
+
+Inspect the AES listener:
+
+```shell
+kubectl describe listener.getambassador.io
+```
+
+The output looks similar to the following:
+
+```text
+Name:         http-listener
+Namespace:    default
+Labels:       <none>
+Annotations:  <none>
+API Version:  getambassador.io/v3alpha1
+Kind:         Listener
+Metadata:
+  Creation Timestamp:  2022-02-04T08:40:56Z
+  Generation:          24
+  Managed Fields:
+    API Version:  getambassador.io/v3alpha1
+....
+Spec:
+  Host Binding:
+    Namespace:
+      From:        ALL
+  Port:            8080
+  Protocol:        HTTPS
+  Security Model:  SECURE
+  Stats Prefix:    http-listener
+  Events:            <none>
+```
+
+In the next step, you will create two simple `Host`s that are required for the Ambassador Edge Stack to work.
+
+## Step 3 - Defining the Hosts for Ambassador Edge Stack
+
+In a real world scenario each `host` maps to a `service`, so you need a way to tell `AES` about your intentions - meet the [Host](https://www.getambassador.io/docs/edge-stack/2.1/topics/running/host-crd/) CRD. The `Host` CRD can handle `TLS termination` automatically, by using `HTTP-01` ACME challenge to request `TLS certificates` from a well known `Certificate Authority` (like [Let's Encrypt](https://letsencrypt.org/)). Certificates creation and renewal happens automatically once you configure and enable this feature in the `Host` CRD.
 
 The custom `Host` resource defines how `Ambassador Edge Stack` will be visible to the outside world. It collects all the following information in a single configuration resource. The most relevant parts are:
 
@@ -197,7 +322,7 @@ The custom `Host` resource defines how `Ambassador Edge Stack` will be visible t
 A typical `Host` configuration looks like below:
 
 ```yaml
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Host
 metadata:
   name: echo-host
@@ -210,7 +335,7 @@ spec:
     name: tls2-cert
   requestPolicy:
     insecure:
-      action: Redirect
+      action: Route
       additionalPort: 8080
 ```
 
@@ -227,7 +352,7 @@ Explanations for the above configuration:
 - In general the `registrant email address` is mandatory when using `ACME`, and it should be a valid one in order to receive notifications when the certificates are going to expire.
 - The Ambassador Edge Stack built-in `ACME` client knows to handle `HTTP-01` challenges only. For other `ACME` challenge types like `DNS-01` for example, an `external` certificate management tool is required (e.g. [Cert-Manager](https://cert-manager.io)).
 
-For more details, please visit the [AES Host CRD](https://www.getambassador.io/docs/edge-stack/1.13/topics/running/host-crd/) official documentation.
+For more details, please visit the [AES Host CRD](https://www.getambassador.io/docs/edge-stack/2.1/topics/running/host-crd/) official documentation.
 
 The following examples configure the `TLS` enabled `hosts` for this tutorial: [echo_host](assets/manifests/ambassador/echo_host.yaml) and [quote_host](assets/manifests/ambassador/quote_host.yaml).
 
@@ -293,7 +418,7 @@ Events:
 
 As seen above, the last `event` tells that there's no `A` record to point to the `echo` host for the `starter-kit.online` domain, which results in a lookup failure. You will learn how to fix this issue, in the next step of the tutorial.
 
-## Step 3 - Configuring DNS for Ambassador Edge Stack
+## Step 4 - Configuring DNS for Ambassador Edge Stack
 
 In this step, you will configure `DNS` within your `DigitalOcean` account, using a `domain` that you own. Then, you will create the domain `A` records for each host: `echo` and `quote`. Please bear in mind that `DigitalOcean` is not a domain name registrar. You need to buy a domain name first from [Google](https://domains.google), [GoDaddy](https://uk.godaddy.com), etc.
 
@@ -324,9 +449,9 @@ The output looks similar to (notice the `EXTERNAL-IP` column value for the `amba
 
 ```text
 NAME               TYPE           CLUSTER-IP       EXTERNAL-IP       PORT(S)                      AGE
-ambassador         LoadBalancer   10.245.189.240   68.183.252.190    80:30323/TCP,443:30510/TCP   6m14s
-ambassador-admin   ClusterIP      10.245.170.181   <none>            8877/TCP,8005/TCP            6m14s
-ambassador-redis   ClusterIP      10.245.205.49    <none>            6379/TCP                     6m14s
+edge-stack         LoadBalancer   10.245.189.240   68.183.252.190    80:30323/TCP,443:30510/TCP   6m14s
+edge-stack-admin   ClusterIP      10.245.170.181   <none>            8877/TCP,8005/TCP            6m14s
+edge-stack-redis   ClusterIP      10.245.205.49    <none>            6379/TCP                     6m14s
 ```
 
 Then, add the records (please replace the `<>` placeholders accordingly). You can change the `TTL` value as per your requirement:
@@ -393,7 +518,7 @@ Please visit the [How to Create, Edit and Delete DNS Records](https://docs.digit
 
 In the next step, you will create two simple `backend` services, to help you test the `Ambassador Edge Stack` setup.
 
-## Step 4 - Creating the Ambassador Edge Stack Backend Services
+## Step 5 - Creating the Ambassador Edge Stack Backend Services
 
 In this step, you will deploy two example `backend` services (applications), named `echo` and `quote` to test the `Ambassador Edge Stack` setup.
 
@@ -461,14 +586,14 @@ quote   ClusterIP   10.245.158.116   <none>        80/TCP    2m33s
 
 In the next step, you will create the AES `Mappings` for the `quote` and `echo` backend applications.
 
-## Step 5 - Configuring the Ambassador Edge Stack Mappings for Hosts
+## Step 6 - Configuring the Ambassador Edge Stack Mappings for Hosts
 
-In this step, you will learn how to create the `Ambassador Edge Stack` mappings, so that your `backend` applications are ready for inbound/outbound `traffic`. The main goal here is to have a basic understanding on how the `AES` stack will `route` requests to each `application`, by introducing a new custom `AES` resource. Meet the [Mapping]((https://www.getambassador.io/docs/edge-stack/1.13/topics/using/intro-mappings)) CRD.
+In this step, you will learn how to create the `Ambassador Edge Stack` mappings, so that your `backend` applications are ready for inbound/outbound `traffic`. The main goal here is to have a basic understanding on how the `AES` stack will `route` requests to each `application`, by introducing a new custom `AES` resource. Meet the [Mapping]((https://www.getambassador.io/docs/edge-stack/2.1/topics/using/intro-mappings)) CRD.
 
 A typical `Mapping` definition looks like below:
 
 ```yaml
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
   name: quote-backend
@@ -511,22 +636,22 @@ The output looks similar to the following (notice the `echo-backend` and `quote-
 
 ```text
 NAME                          SOURCE HOST                SOURCE PREFIX                               DEST SERVICE     STATE   REASON
-ambassador-devportal                                     /documentation/                             127.0.0.1:8500
-ambassador-devportal-api                                 /openapi/                                   127.0.0.1:8500
-ambassador-devportal-assets                              /documentation/(assets|styles)/(.*)(.css)   127.0.0.1:8500
-ambassador-devportal-demo                                /docs/                                      127.0.0.1:8500
+edge-stack-devportal                                     /documentation/                             127.0.0.1:8500
+edge-stack-devportal-api                                 /openapi/                                   127.0.0.1:8500
+edge-stack-devportal-assets                              /documentation/(assets|styles)/(.*)(.css)   127.0.0.1:8500
+edge-stack-devportal-demo                                /docs/                                      127.0.0.1:8500
 echo-backend                  echo.starter-kit.online    /echo/                                      echo.backend
 quote-backend                 quote.starter-kit.online   /quote/                                     quote.backend
 ```
 
 You can further explore some of the concepts you learned so far, by following below links:
 
-- [Mapping](https://www.getambassador.io/docs/edge-stack/1.13/topics/using/intro-mappings/) resource: `routes` traffic from the `edge` of your cluster to a `Kubernetes` service
-- [Host](https://www.getambassador.io/docs/edge-stack/1.13/topics/running/host-crd/) resource: sets the `hostname` by which `Ambassador Edge Stack` will be accessed and secured with `TLS` certificates.
+- [Mapping](https://www.getambassador.io/docs/edge-stack/2.1/topics/using/intro-mappings/) resource: `routes` traffic from the `edge` of your cluster to a `Kubernetes` service
+- [Host](https://www.getambassador.io/docs/edge-stack/2.1/topics/running/host-crd/) resource: sets the `hostname` by which `Ambassador Edge Stack` will be accessed and secured with `TLS` certificates.
 
 In the next step, you will learn how to use the `DigitalOcean Proxy Protocol` with `Ambassador Edge Stack`.
 
-## Step 6 - Enabling Proxy Protocol
+## Step 7 - Enabling Proxy Protocol
 
 A `L4` load balancer replaces the original `client IP` with its `own IP` address. This is a problem, as you will lose the `client IP` visibility in the application, so you need to enable `proxy protocol`. Proxy protocol enables a `L4 Load Balancer` to communicate the `original` client `IP`. For this to work, you need to configure both `DigitalOcean Load Balancer` and `AES`. After deploying the [AES Backend Services](#step-5---creating-the-ambassador-edge-stack-backend-services), and manually enabling the `proxy protocol`, you need to configure `Ambassador Module` to enable `AES` to use the `proxy protocol`.
 
@@ -542,19 +667,20 @@ To enable proxy protocol for `AES Backend Services`, you need to run the below s
 2. Edit the `Helm` values file provided in the `Starter Kit` repository using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://visualstudio.microsoft.com):
 
     ```shell
-    code 03-setup-ingress-controller/assets/manifests/ambassador-values-v6.9.3.yaml
+    code 03-setup-ingress-controller/assets/manifests/ambassador-values-v7.2.2.yaml
     ```
 
 3. Uncomment the `annotations` settings from the `service` section, like in the below example:
 
     ```yaml
-    service:
-      type: LoadBalancer
-      annotations:
-        # Enable proxy protocol
-        service.beta.kubernetes.io/do-loadbalancer-enable-proxy-protocol: "true"
-        # Specify whether the DigitalOcean Load Balancer should pass encrypted data to backend droplets
-        service.beta.kubernetes.io/do-loadbalancer-tls-passthrough: "true"
+    emissary-ingress:
+      service:
+        type: LoadBalancer
+        annotations:
+          # Enable proxy protocol
+          service.beta.kubernetes.io/do-loadbalancer-enable-proxy-protocol: "true"
+          # Specify whether the DigitalOcean Load Balancer should pass encrypted data to backend droplets
+          service.beta.kubernetes.io/do-loadbalancer-tls-passthrough: "true"
     ```
 
     **Note:**
@@ -564,22 +690,28 @@ To enable proxy protocol for `AES Backend Services`, you need to run the below s
 4. Save the values file and apply changes using `Helm`:
 
     ```shell
-    HELM_CHART_VERSION="6.9.3"
+    HELM_CHART_VERSION="7.2.2"
 
-    helm upgrade ambassador datawire/ambassador --version "$HELM_CHART_VERSION" \
+    helm upgrade edge-stack datawire/edge-stack --version "$HELM_CHART_VERSION" \
     --namespace ambassador  \
     -f "03-setup-ingress-controller/assets/manifests/ambassador-values-v${HELM_CHART_VERSION}.yaml"
     ```
 
-5. Enable the proxy support in the `Ambassador` stack via the [aes_proxy_module](/03-setup-ingress-controller/assets/manifests/ambassador/aes_proxy_module.yaml) manifest.
+5. Enable for the AES `Listener` the proxy protocol by updating `03-setup-ingress-controller/assets/manifests/ambassador/ambassador_listener.yaml` file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://code.visualstudio.com):
 
     ```shell
-    kubectl apply -f 03-setup-ingress-controller/assets/manifests/ambassador/aes_proxy_module.yaml
+    code 03-setup-ingress-controller/assets/manifests/ambassador/ambassador_listener.yaml
     ```
 
-Please note that module configuration is a `global` option (enable/disable) for `AES`.
+6. `Comment` the `protocol` section for both listeners and after that `uncomment` the `protocolStack`section for both listeners.
 
-6. Test the echo service via curl (notice that your Public IP will be present in `X-Forwarded-For` and `X-Envoy-External-Address` headers):
+7. Finally, apply the manifest.
+
+    ```shell
+    kubectl apply -f 03-setup-ingress-controller/assets/manifests/ambassador/ambassador_listener.yaml
+    ```
+
+8. Test the echo service via curl (notice that your Public IP will be present in `X-Forwarded-For` and `X-Envoy-External-Address` headers):
 
     ```shell
     curl -Li https://echo.starter-kit.online/echo/
@@ -612,7 +744,7 @@ Please note that module configuration is a `global` option (enable/disable) for 
 
 In the next step, you will test the `AES` mappings configuration, and perform `HTTP` requests on the backend services using `curl`.
 
-## Step 7 - Verifying the Ambassador Edge Stack Setup
+## Step 8 - Verifying the Ambassador Edge Stack Setup
 
 In the current setup, you have two hosts configured with `TLS` termination: `quote.starter-kit.online` and `echo.starter-kit.online`. By creating AES `Mappings` it's very easy to have `TLS` termination support and `API Gateway` capabilities.
 
@@ -628,9 +760,9 @@ The output looks similar to:
 
 ```text
 NAME               TYPE           CLUSTER-IP     EXTERNAL-IP      PORT(S)                      AGE
-ambassador         LoadBalancer   10.245.39.13   68.183.252.190   80:31499/TCP,443:30759/TCP   2d8h
-ambassador-admin   ClusterIP      10.245.68.14   <none>           8877/TCP,8005/TCP            2d8h
-ambassador-redis   ClusterIP      10.245.9.81    <none>           6379/TCP                     2d8h
+edge-stack         LoadBalancer   10.245.39.13   68.183.252.190   80:31499/TCP,443:30759/TCP   2d8h
+edge-stack-admin   ClusterIP      10.245.68.14   <none>           8877/TCP,8005/TCP            2d8h
+edge-stack-redis   ClusterIP      10.245.9.81    <none>           6379/TCP                     2d8h
 ```
 
 Next, `ping` the `quote` service host:

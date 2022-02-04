@@ -1,5 +1,5 @@
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Host
 metadata:
   name: quote-host
@@ -9,8 +9,9 @@ spec:
   acmeProvider:
     email: quote@gmail.com
   tlsSecret:
-    name: tls-cert
+    authority: https://acme-v02.api.letsencrypt.org/directory
+    name: tls2-cert
   requestPolicy:
     insecure:
-      action: Redirect
+      action: Route
       additionalPort: 8080
