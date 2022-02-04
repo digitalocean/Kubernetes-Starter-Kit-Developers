@@ -248,6 +248,7 @@ kubectl apply -f 03-setup-ingress-controller/assets/manifests/ambassador/ambassa
 **Note:**
 
 Port `8080` and port `8443` are the default endpoint ports used by the Ambassador Edge Stack.
+
 ```text
 apiVersion: v1
 kind: Endpoints
@@ -271,7 +272,6 @@ metadata:
     port: 8080
     protocol: TCP
 ```
-
 
 **Observations and results:**
 
