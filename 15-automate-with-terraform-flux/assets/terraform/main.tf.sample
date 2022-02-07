@@ -1,14 +1,14 @@
 module "doks_flux_cd" {
   source = "github.com/digitalocean/container-blueprints/create-doks-with-terraform-flux"
 
-  # DOKS 
+  # DOKS
   do_api_token                 = "<YOUR_DO_API_TOKEN_HERE>"               # DO API TOKEN (string value)
   doks_cluster_name            = "<YOUR_DOKS_CLUSTER_NAME_HERE>"          # Name of your `DOKS` cluster (string value)
   doks_cluster_region          = "<YOUR_DOKS_CLUSTER_REGION_HERE>"        # The region this `DOKS` cluster will be provisioned in (string value)
-  doks_cluster_version         = "1.21.5-do.0"                            # The Kubernetes version of this `DOKS` cluster (string value)
+  doks_cluster_version         = "1.21.9-do.0"                            # The Kubernetes version of this `DOKS` cluster (string value)
   doks_cluster_pool_size       = "<YOUR_DOKS_CLUSTER_POOL_SIZE_HERE>"     # The droplet size for nodes of this `DOKS` cluster (string value)
   doks_cluster_pool_node_count = <YOUR_DOKS_CLUSTER_POOL_NODE_COUNT_HERE> # The number of worker nodes in this `DOKS` cluster (integer value)
-  
+
   # GitHub
   # Important notes:
   #  - This module expects your Git `repository` and `branch` to be created beforehand
