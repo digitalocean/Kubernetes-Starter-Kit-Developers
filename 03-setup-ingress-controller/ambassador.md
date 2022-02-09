@@ -204,7 +204,7 @@ The `Listener` CRD defines where, and how, Ambassador Edge Stack should listen f
 
 **Note:**
 
-The `Listener`s are never created at the installation, the below steps will guide you how to do it.
+The `Listeners` are never created at the installation, the below steps will guide you how to do it.
 
 A typical `Listener` configuration looks like below:
 
@@ -252,7 +252,7 @@ Inspect the AES `Listener`:
 kubectl describe listener.getambassador.io
 ```
 
-The output looks similar to the following:
+The output looks similar to the following (notice the creation of host bindings via the `Spec.Host Binding` field):
 
 ```text
 Name:         http-listener
@@ -284,7 +284,7 @@ Spec:
 Events:            <none>
 ```
 
-In the next step, you will create two simple `Host`s that are required for the Ambassador Edge Stack to work.
+In the next step, you will create two simple `Hosts` that are required for the Ambassador Edge Stack to work.
 
 ## Step 3 - Defining the Hosts for Ambassador Edge Stack
 
@@ -329,7 +329,7 @@ Explanations for the above configuration:
 - In general the `registrant email address` is mandatory when using `ACME`, and it should be a valid one in order to receive notifications when the certificates are going to expire.
 - The Ambassador Edge Stack built-in `ACME` client knows to handle `HTTP-01` challenges only. For other `ACME` challenge types like `DNS-01` for example, an `external` certificate management tool is required (e.g. [Cert-Manager](https://cert-manager.io)).
 
-For more details, please visit the [AES Host CRD](https://www.getambassador.io/docs/edge-stack/2.1/topics/running/host-crd/) official documentation.
+For more details, please visit the AES [Host](https://www.getambassador.io/docs/edge-stack/2.1/topics/running/host-crd/) CRD official documentation.
 
 The following examples configure the `TLS` enabled `hosts` for this tutorial: [echo_host](assets/manifests/ambassador/echo_host.yaml) and [quote_host](assets/manifests/ambassador/quote_host.yaml).
 
@@ -680,7 +680,7 @@ To enable proxy protocol for `AES Backend Services`, you need to run the below s
     code 03-setup-ingress-controller/assets/manifests/ambassador/ambassador_listener.yaml
     ```
 
-6. Under `spec` section you will need to comment the `protocol` and unncomment the `protocolStack` for both `listener`s, like in the below example:
+6. In the `spec` section, you will need to comment out the `protocol` field and enable the `protocolStack` for both `listeners`, like in the example below:
 
     ```yaml
       ...
