@@ -6,7 +6,7 @@ In this tutorial, you will learn how to use the [Ambassador Edge Stack](https://
 
 **Note:**
 
-Ambassador Edge Stack 2.X introduces some changes that aren't backward-compatible with 1.X, if you already have an existing installation that uses 1.X and you will like to upgrade to version 2.X please use the following [guide for upgrade](https://www.getambassador.io/docs/edge-stack/latest/topics/install/upgrade/helm/edge-stack-1.14/edge-stack-2.1/#upgrade-productname-1142-to-productname-version-helm).
+**Ambassador Edge Stack 2.X introduces some changes that aren't backward-compatible with 1.X, if you already have an existing installation that uses 1.X and you will like to upgrade to version 2.X please use the following [guide for upgrade](https://www.getambassador.io/docs/edge-stack/latest/topics/install/upgrade/helm/edge-stack-1.14/edge-stack-2.1/#upgrade-productname-1142-to-productname-version-helm).**
 
 The `Ambassador Edge Stack` or `AES` for short, is a specialized [Control Plane](https://blog.getambassador.io/the-importance-of-control-planes-with-service-meshes-and-front-proxies-665f90c80b3d) for the `Envoy Proxy`. In this architecture, `Ambassador Edge Stack` translates configuration (in the form of `Kubernetes Custom Resources`) to `Envoy` configuration. All the actual traffic is directly handled by the high-performance [Envoy Proxy](https://www.envoyproxy.io).
 
@@ -83,7 +83,7 @@ Steps to follow:
 2. Next, add the `Helm` repo, and list the available `charts`:
 
     ```shell
-    helm repo add datawire https://www.getambassador.io
+    helm repo add datawire https://app.getambassador.io
 
     helm repo update datawire
 
@@ -103,8 +103,8 @@ Steps to follow:
 
     **Note:**
 
-    The chart of interest is `datawire/ambassador`, which will install `Ambassador Edge Stack` on the cluster. Please visit the [ambassador-edge-stack](https://github.com/emissary-ingress/emissary) page, for more details about this chart.
-3. Before installing Ambassador Edge Stack 2.X itself, you must configure your Kubernetes cluster to support the `getambassador.io/v3alpha1` and `getambassador.io/v2` configuration resources. This is required.
+    The chart of interest is `datawire/edge-stack`, which will install `Ambassador Edge Stack` on the cluster. Please visit the [ambassador-edge-stack](https://github.com/emissary-ingress/emissary) page, for more details about this chart.
+3. Before installing **Ambassador Edge Stack 2.X** itself, you must configure your Kubernetes cluster to support the `getambassador.io/v3alpha1` and `getambassador.io/v2` configuration resources. This is required.
 
     ```shell
     kubectl apply -f https://app.getambassador.io/yaml/edge-stack/2.1.2/aes-crds.yaml
@@ -112,7 +112,7 @@ Steps to follow:
 
     **Note:**
 
-    Ambassador Edge Stack 2.X includes a Deployment in the `emissary-system` namespace called `edge-stack-apiext`. This is the APIserver extension that supports converting Ambassador Edge Stack CRDs between `getambassador.io/v3alpha1` and `getambassador.io/v2`. This Deployment needs to be running at all times.
+    **Ambassador Edge Stack 2.X** includes a Deployment in the `emissary-system` namespace called `edge-stack-apiext`. This is the APIserver extension that supports converting Ambassador Edge Stack CRDs between `getambassador.io/v3alpha1` and `getambassador.io/v2`. This Deployment needs to be running at all times.
 4. Then, open and inspect the `03-setup-ingress-controller/assets/manifests/ambassador-values-v7.2.2.yaml` file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://code.visualstudio.com):
 
     ```shell
@@ -217,25 +217,20 @@ spec:
   port: 8080
   protocol: HTTPS
   securityModel: SECURE
-  # protocolStack:
-  # - PROXY
-  # - HTTP
-  # - TCP
   hostBinding:
     namespace:
       from: ALL
----
 ```
 
 Explanations for the above configuration:
 
 - `port`: The network port on which Ambassador Edge Stack should listen.
 - `protocol`: The protocol Type on which Ambassador Edge Stack will use.
-- `protocolStack`: Allows configuring exactly which protocols will be layered together. `protocolStack` is not recommended if you can instead use `protocol`.
+- `protocolStack`: Allows configuring exactly which protocols will be layered together.
 - `securityModel`: Defines how the Listener will decide whether a request is secure or insecure.
 - `hostBinding`: Mechanism for determining which Hosts will be associated with this Listener.
 
-For more details, please visit the [AES LISTENER CRD](https://www.getambassador.io/docs/edge-stack/2.1/topics/running/listener/) official documentation.
+For more details, please visit the AES [Listener](https://www.getambassador.io/docs/edge-stack/2.1/topics/running/listener/) CRD official documentation.
 
 First, change directory (if not already) where you cloned the `Starter Kit` repository.
 
@@ -249,37 +244,9 @@ Next, apply the manifest to create the `Listener`:
 kubectl apply -f 03-setup-ingress-controller/assets/manifests/ambassador/ambassador_listener.yaml
 ```
 
-**Note:**
-
-Port `8080` and port `8443` are the default endpoint ports used by the Ambassador Edge Stack.
-
-```text
-apiVersion: v1
-kind: Endpoints
-metadata:
-  creationTimestamp: "2022-02-04T08:29:26Z"
-  labels:
-    app.kubernetes.io/instance: edge-stack
-    app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/name: edge-stack
-    app.kubernetes.io/part-of: edge-stack
-    helm.sh/chart: emissary-ingress-7.2.2
-    product: aes
-  name: edge-stack
-  namespace: ambassador
-....
-  ports:
-  - name: https
-    port: 8443
-    protocol: TCP
-  - name: http
-    port: 8080
-    protocol: TCP
-```
-
 **Observations and results:**
 
-Inspect the AES listener:
+Inspect the AES `Listener`:
 
 ```shell
 kubectl describe listener.getambassador.io
@@ -289,16 +256,8 @@ The output looks similar to the following:
 
 ```text
 Name:         http-listener
-Namespace:    default
-Labels:       <none>
-Annotations:  <none>
 API Version:  getambassador.io/v3alpha1
 Kind:         Listener
-Metadata:
-  Creation Timestamp:  2022-02-04T08:40:56Z
-  Generation:          24
-  Managed Fields:
-    API Version:  getambassador.io/v3alpha1
 ...
 Spec:
   Host Binding:
@@ -309,6 +268,10 @@ Spec:
   Security Model:  SECURE
   Stats Prefix:    http-listener
   Events:            <none>
+
+Name:         https-listener
+API Version:  getambassador.io/v3alpha1
+Kind:         Listener
 ...
 Spec:
   Host Binding:
@@ -349,7 +312,7 @@ spec:
     name: tls2-cert
   requestPolicy:
     insecure:
-      action: Route
+      action: Redirect
       additionalPort: 8080
 ```
 
@@ -676,7 +639,7 @@ For different `DigitalOcean` load balancer configurations, please refer to the e
 
 To enable proxy protocol for `AES Backend Services`, you need to run the below steps:
 
-1. Change directory where the `Starter Kit` repository was cloned
+1. Change directory where the `Starter Kit` repository was cloned.
 
 2. Edit the `Helm` values file provided in the `Starter Kit` repository using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://visualstudio.microsoft.com):
 
@@ -711,15 +674,36 @@ To enable proxy protocol for `AES Backend Services`, you need to run the below s
     -f "03-setup-ingress-controller/assets/manifests/ambassador-values-v${HELM_CHART_VERSION}.yaml"
     ```
 
-5. Enable for the AES `Listener` the proxy protocol by updating `03-setup-ingress-controller/assets/manifests/ambassador/ambassador_listener.yaml` file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://code.visualstudio.com):
+5. Open and inspect the `03-setup-ingress-controller/assets/manifests/ambassador/ambassador_listener.yaml` file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://code.visualstudio.com):
 
     ```shell
     code 03-setup-ingress-controller/assets/manifests/ambassador/ambassador_listener.yaml
     ```
 
-6. `Comment` the `protocol` section for both listeners and after that `uncomment` the `protocolStack`section for both listeners.
+6. Under `spec` section you will need to comment the `protocol` and unncomment the `protocolStack` for both `listener`s, like in the below example:
 
-7. Finally, apply the manifest.
+    ```yaml
+      ...
+      spec:
+        port: 8080
+        # protocol: HTTPS
+        protocolStack:
+        - PROXY
+        - HTTP
+        - TCP
+      ...
+      spec:
+        port: 8443
+        # protocol: HTTPS
+        protocolStack:
+        - PROXY
+        - TLS
+        - HTTP
+        - TCP
+      ...
+    ```
+
+7. Finally, save the file and apply the manifest.
 
     ```shell
     kubectl apply -f 03-setup-ingress-controller/assets/manifests/ambassador/ambassador_listener.yaml

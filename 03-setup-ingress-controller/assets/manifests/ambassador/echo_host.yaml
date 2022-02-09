@@ -13,5 +13,5 @@ spec:
     name: tls2-cert
   requestPolicy:
     insecure:
-      action: Route
+      action: Redirect
       additionalPort: 8080
