@@ -101,9 +101,9 @@ Next, fetch the `DigitalOcean` load balancer `external IP` created by your `Ingr
 
   ```text
   NAME               TYPE           CLUSTER-IP      EXTERNAL-IP       PORT(S)                      AGE
-  ambassador         LoadBalancer   10.245.116.70   143.244.204.197   80:31237/TCP,443:32540/TCP   3d21h
-  ambassador-admin   ClusterIP      10.245.76.186   <none>            8877/TCP,8005/TCP            3d21h
-  ambassador-redis   ClusterIP      10.245.85.152   <none>            6379/TCP                     3d21h
+  edge-stack         LoadBalancer   10.245.116.70   143.244.204.197   80:31237/TCP,443:32540/TCP   3d21h
+  edge-stack-admin   ClusterIP      10.245.76.186   <none>            8877/TCP,8005/TCP            3d21h
+  edge-stack-redis   ClusterIP      10.245.85.152   <none>            6379/TCP                     3d21h
   ```
 
 - `Nginx` ingress:
@@ -140,7 +140,7 @@ Now, open and inspect the `Helm` values file for your running `Ingress Controlle
 - `Ambassador Edge Stack` ingress:
 
   ```shell
-  HELM_CHART_VERSION="6.9.3"
+  HELM_CHART_VERSION="7.2.2"
 
   code "03-setup-ingress-controller/assets/manifests/ambassador-values-v${HELM_CHART_VERSION}.yaml"
   ```
@@ -183,7 +183,7 @@ Finally, save the `Helm` values file, and apply changes for your `Ingress Contro
 - `Ambassador Edge Stack` ingress:
 
   ```shell
-  HELM_CHART_VERSION="6.9.3"
+  HELM_CHART_VERSION="7.2.2"
 
   helm upgrade ambassador datawire/ambassador --version "$HELM_CHART_VERSION" \
     --namespace ambassador \
@@ -288,7 +288,7 @@ First, open again the `Helm` values file you modified earlier in [Preparing the 
 - `Ambassador Edge Stack` ingress:
 
   ```shell
-  HELM_CHART_VERSION="6.9.3"
+  HELM_CHART_VERSION="7.2.2"
 
   code "03-setup-ingress-controller/assets/manifests/ambassador-values-v${HELM_CHART_VERSION}.yaml"
   ```
@@ -318,7 +318,7 @@ Next, save the values file, and `re-install` your `Ingress Controller` of choice
 - `Ambassador Edge Stack` ingress:
 
   ```shell
-  HELM_CHART_VERSION="6.9.3"
+  HELM_CHART_VERSION="7.2.2"
 
   helm install ambassador datawire/ambassador --version "$HELM_CHART_VERSION" \
     --create-namespace \
@@ -349,9 +349,9 @@ After a while check `Ingress Controller` service using `kubectl`. Please pick on
 
   ```text
   NAME               TYPE           CLUSTER-IP       EXTERNAL-IP       PORT(S)                      AGE
-  ambassador         LoadBalancer   10.245.32.232    143.244.204.197   80:30134/TCP,443:30180/TCP   4m27s
-  ambassador-admin   ClusterIP      10.245.113.172   <none>            8877/TCP,8005/TCP            4m27s
-  ambassador-redis   ClusterIP      10.245.54.242    <none>            6379/TCP                     4m27s
+  edge-stack         LoadBalancer   10.245.32.232    143.244.204.197   80:30134/TCP,443:30180/TCP   4m27s
+  edge-stack-admin   ClusterIP      10.245.113.172   <none>            8877/TCP,8005/TCP            4m27s
+  edge-stack-redis   ClusterIP      10.245.54.242    <none>            6379/TCP                     4m27s
   ```
 
 - `Nginx` ingress:

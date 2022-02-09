@@ -1,5 +1,5 @@
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Host
 metadata:
   name: echo-host
@@ -7,6 +7,7 @@ metadata:
 spec:
   hostname: echo.starter-kit.online
   acmeProvider:
+    authority: https://acme-v02.api.letsencrypt.org/directory
     email: echo@gmail.com
   tlsSecret:
     name: tls2-cert
