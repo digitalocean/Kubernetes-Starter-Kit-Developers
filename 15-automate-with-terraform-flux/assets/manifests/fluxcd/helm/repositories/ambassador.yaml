@@ -6,4 +6,4 @@ metadata:
   namespace: flux-system
 spec:
   interval: 10m0s
-  url: https://www.getambassador.io
+  url: https://app.getambassador.io

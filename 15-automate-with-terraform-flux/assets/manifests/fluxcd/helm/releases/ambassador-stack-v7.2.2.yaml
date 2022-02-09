@@ -7,11 +7,11 @@ metadata:
 spec:
   chart:
     spec:
-      chart: ambassador
+      chart: edge-stack
       sourceRef:
         kind: HelmRepository
         name: ambassador
-      version: 6.9.3
+      version: 7.2.2
   install:
     createNamespace: true
     remediation:
