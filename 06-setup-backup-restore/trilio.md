@@ -136,7 +136,7 @@ The `TrilioVault` installation also need `volumeSnapshot` Custom Resource Defini
 kubectl get crd | grep volumesnapshot
 ```
 
-The output should look similar to (If not instsalled, refer to [Installing VolumeSnapshot CRDs](https://docs.trilio.io/kubernetes/appendix/csi-drivers/installing-volumesnapshot-crds)):
+The output should look similar to (If not installed, refer to [Installing VolumeSnapshot CRDs](https://docs.trilio.io/kubernetes/appendix/csi-drivers/installing-volumesnapshot-crds)):
 
 ```text
 volumesnapshotclasses.snapshot.storage.k8s.io         2022-02-01T06:01:14Z
@@ -148,7 +148,7 @@ Also make sure that the CRD support both `v1beta1` and `v1` API version. You can
 ```shell
 kubectl get crd volumesnapshots.snapshot.storage.k8s.io -o yaml
 ```
-At the end of the CRD yaml, you should output similar to below showing `storedVersions` as `v1beta1` and `v1`:
+At the end of the CRD yaml you should see a `storedVersions` list, containing both `v1beta1` and `v1` values (If not installed, refer to [Installing VolumeSnapshot CRDs](https://docs.trilio.io/kubernetes/appendix/csi-drivers/installing-volumesnapshot-crds)):
 
 ```text
 ...
@@ -191,6 +191,7 @@ Please follow the steps below, to install `TrilioVault` via `Helm`:
 
    ```shell
    helm repo add triliovault-operator http://charts.k8strilio.net/trilio-stable/k8s-triliovault-operator
+   helm repo update triliovault-operator
    helm search repo triliovault-operator
    ```
    The output looks similar to the following:
@@ -218,7 +219,11 @@ Please follow the steps below, to install `TrilioVault` via `Helm`:
      -f 06-setup-backup-restore/assets/manifests/triliovault-values.yaml
    ```
    **Note:**
-   Above command install both `TrilioVault Operator` and `TriloVault Manager` (TVM) Custom Resource using the parameters provided in the `triliovault-values.yaml`.
+   Above command install both `TrilioVault Operator` and `TriloVault Manager` (TVM) Custom Resource using the parameters provided in the `triliovault-values.yaml`. The `TVK` version is now managed by the `tag` field in the `06-setup-backup-restore/assets/manifests/triliovault-values.yaml` file, so the helm command always have the latest version of `TVK`.
+   User can update below fields in values.yaml:
+   1. `installTVK.applicationScope` for TVK installation scoped e.g. `Cluster` or `Namespaced`
+   2. `installTVK.ingressConfig.host` for TVK UI hostname e.g. `tvk-doks.com`
+   3. `installTVK.ComponentConfiguration.ingressController.service.type` for service type to access the TVK UI e.g. `NodePort` or `LoadBalancer`
 
 Now, please check your `TVK` deployment:
 
@@ -433,7 +438,7 @@ In case the target object fails to become healthy, you can inspect the logs from
 kubectl get pods -n tvk | grep trilio-s3-target-validator
 
 # Output looks similar to:
-trilio-s3-target-validator-tio99a-6lz4q              1/1     Running     0          104s
+#trilio-s3-target-validator-tio99a-6lz4q              1/1     Running     0          104s
 
 # Now, fetch logs data
 kubectl logs pod/trilio-s3-target-validator-tio99a-6lz4q -n tvk
