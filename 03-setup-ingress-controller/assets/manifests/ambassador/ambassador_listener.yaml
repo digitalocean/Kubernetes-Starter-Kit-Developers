@@ -10,7 +10,7 @@ spec:
   # - PROXY
   # - HTTP
   # - TCP
-  securityModel: SECURE
+  securityModel: XFP
   statsPrefix: http-listener
   hostBinding:
     namespace:
@@ -28,7 +28,7 @@ spec:
   # - TLS
   # - HTTP
   # - TCP
-  securityModel: SECURE
+  securityModel: XFP
   statsPrefix: https-listener
   hostBinding:
     namespace:
