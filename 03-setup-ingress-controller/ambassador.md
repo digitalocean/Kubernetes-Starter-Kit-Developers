@@ -196,7 +196,7 @@ IP                 ID                                      Name                 
 68.183.252.190     0471a318-a98d-49e3-aaa1-ccd855831447    acdc25c5cfd404fd68cd103be95af8ae    active
 ```
 
-In the next step, you will learn how to create the `Host` CRDs which tell `Ambassador` how to expose backend hosts (services) to the outside world.
+In the next step, you will learn how to create the `Listener` CRDs that tells to Ambassador Edge Stack what port to listen on.
 
 ## Step 2 - Defining the Listener for Ambassador Edge Stack
 
@@ -216,7 +216,7 @@ metadata:
 spec:
   port: 8080
   protocol: HTTPS
-  securityModel: SECURE
+  securityModel: XFP
   hostBinding:
     namespace:
       from: ALL
@@ -229,6 +229,10 @@ Explanations for the above configuration:
 - `protocolStack`: Allows configuring exactly which protocols will be layered together.
 - `securityModel`: Defines how the Listener will decide whether a request is secure or insecure.
 - `hostBinding`: Mechanism for determining which Hosts will be associated with this Listener.
+
+**Note:**
+
+Ambassador Edge Stack offers multiple configurations for [protocolStack](https://www.getambassador.io/docs/edge-stack/2.1/topics/running/listener/#securitymodel) and our recommandation is the `XFP` flag to be setup for all the connections to be secure. If the `X-Forwarded-Proto` header is present in the requests the AES will decide automatically to redirect all the requests from HTTP over to HTTPS for greater security.
 
 For more details, please visit the AES [Listener](https://www.getambassador.io/docs/edge-stack/2.1/topics/running/listener/) CRD official documentation.
 
@@ -265,7 +269,7 @@ Spec:
       From:        ALL
   Port:            8080
   Protocol:        HTTPS
-  Security Model:  SECURE
+  Security Model:  XFP
   Stats Prefix:    http-listener
   Events:            <none>
 
@@ -279,12 +283,12 @@ Spec:
       From:        ALL
   Port:            8443
   Protocol:        HTTPS
-  Security Model:  SECURE
+  Security Model:  XFP
   Stats Prefix:    https-listener
 Events:            <none>
 ```
 
-In the next step, you will create two simple `Hosts` that are required for the Ambassador Edge Stack to work.
+In the next step, you will learn how to create the `Host` CRDs which tell `Ambassador` how to expose backend hosts (services) to the outside world.
 
 ## Step 3 - Defining the Hosts for Ambassador Edge Stack
 
