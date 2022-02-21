@@ -86,7 +86,7 @@ prometheus:
   #         release: loki
   #     namespaceSelector:
   #       matchNames:
-  #         - monitoring
+  #         - loki-stack
   #     endpoints:
   #       - port: "http-metrics"
 
