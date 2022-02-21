@@ -101,13 +101,13 @@ code 05-setup-loki-stack/assets/manifests/loki-stack-values-v2.5.1.yaml
 
 The above values file, enables `Loki` and `Promtail` for you, so no other input is required. `Prometheus` and `Grafana` installation is disabled, because [Section 4 - Set up Prometheus Stack](../04-setup-prometheus-stack/README.md) took care of it already. `Fluent Bit` is not used, so it is disabled by default as well.
 
-Next, install the stack using `Helm`. The following command installs version `2.5.1` of `grafana/loki-stack` in your cluster, using the `Starter Kit` repository `values` file (also creates the `monitoring` namespace, if it doesn't exist):
+Next, install the stack using `Helm`. The following command installs version `2.5.1` of `grafana/loki-stack` in your cluster, using the `Starter Kit` repository `values` file (also creates the `loki-stack` namespace, if it doesn't exist):
 
 ```shell
 HELM_CHART_VERSION="2.5.1"
 
 helm install loki grafana/loki-stack --version "${HELM_CHART_VERSION}" \
-  --namespace=monitoring \
+  --namespace=loki-stack \
   --create-namespace \
   -f "05-setup-loki-stack/assets/manifests/loki-stack-values-v${HELM_CHART_VERSION}.yaml"
 ```
@@ -115,20 +115,20 @@ helm install loki grafana/loki-stack --version "${HELM_CHART_VERSION}" \
 Finally, check `Helm` release status:
 
 ```shell
-helm ls -n monitoring
+helm ls -n loki-stack
 ```
 
 The output looks similar to (`STATUS` column should display 'deployed'):
 
 ```text
 NAME    NAMESPACE       REVISION        UPDATED                                 STATUS          CHART                   APP VERSION
-loki    monitoring      1               2021-09-23 15:02:56.993218 +0300 EEST   deployed        loki-stack-2.5.1        v2.1.0
+loki    loki-stack      1               2021-09-23 15:02:56.993218 +0300 EEST   deployed        loki-stack-2.5.1        v2.1.0
 ```
 
 Next, inspect all the `Kubernetes` resources created for `Loki`:
 
 ```shell
-kubectl get all -n monitoring
+kubectl get all -n loki-stack
 ```
 
 You should have resources deployed for `Loki` itself (`loki-0`) and Promtail (`loki-promtail`). The output looks similar to:
@@ -250,7 +250,7 @@ Before `Promtail` can ship any data from log files to `Loki`, it needs to find o
 As with every `monitoring agent`, you need to have a way for it to be up all the time. The `Loki` stack `Helm` deployment already makes this possible via a `DaemonSet`, as seen below:
 
 ```shell
-kubectl get ds -n monitoring
+kubectl get ds -n loki-stack
 ```
 
 The output looks similar to the following (notice the `loki-promtail` line):
@@ -266,7 +266,7 @@ This is great, but how does Promtail discover `Kubernetes` pods and assigns labe
 The `scrape_configs` section from the `Promtail` main `configuration` will show you the details. You can use `kubectl` for inspection (notice that the application `configuration` is stored using a `Kubernetes ConfigMap`):
 
 ```shell
-kubectl get cm loki-promtail -n monitoring -o yaml > loki-promtail-config.yaml
+kubectl get cm loki-promtail -n loki-stack -o yaml > loki-promtail-config.yaml
 ```
 
 Next, please open the `loki-promtail-config.yaml` file using a text editor of your choice (preferably with `YAML` support). For example you can use [VS Code](https://code.visualstudio.com):
@@ -344,7 +344,7 @@ Finally, save the values file and apply changes using `Helm` upgrade:
 HELM_CHART_VERSION="2.5.1"
 
 helm upgrade loki grafana/loki-stack --version "${HELM_CHART_VERSION}" \
-  --namespace=monitoring \
+  --namespace=loki-stack \
   -f "05-setup-loki-stack/assets/manifests/loki-stack-values-v${HELM_CHART_VERSION}.yaml"
 ```
 
@@ -450,14 +450,14 @@ Apply settings, using `Helm`:
   HELM_CHART_VERSION="2.5.1"
 
   helm upgrade loki grafana/loki-stack --version "${HELM_CHART_VERSION}" \
-    --namespace=monitoring \
+    --namespace=loki-stack \
     -f "05-setup-loki-stack/assets/manifests/loki-stack-values-v${HELM_CHART_VERSION}.yaml"
   ```
 
 Now, check if the main `Loki` application pod is up and running (it may take up to `1 minute` or so to start, so please be patient):
 
   ```shell
-  kubectl get pods -n monitoring -l app=loki
+  kubectl get pods -n loki-stack -l app=loki
   ```
 
 The output looks similar to:
@@ -472,13 +472,13 @@ The output looks similar to:
 - The main application `Pod` is called `loki-0`. You can check the configuration file, using the following command (please note that it contains `sensitive` information):
 
   ```shell
-  kubectl exec -it loki-0 -n monitoring -- /bin/cat /etc/loki/loki.yaml
+  kubectl exec -it loki-0 -n loki-stack -- /bin/cat /etc/loki/loki.yaml
   ```
 
 - You can also check the logs while waiting. It's also good practice in general to check the application logs, and see if something goes bad or not.
 
   ```shell
-  kubectl logs -n monitoring -l app=loki
+  kubectl logs -n loki-stack -l app=loki
   ```
 
 If everything goes well, you should see the `DO Spaces` bucket containing the `index` and `chunks` folders (the `chunks` folder is called `fake`, which is a strange name - this is by design, when not running in `multi-tenant` mode).
