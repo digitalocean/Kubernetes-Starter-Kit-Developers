@@ -55,7 +55,7 @@ spec:
               release: loki
           namespaceSelector:
             matchNames:
-              - monitoring
+              - loki-stack
           endpoints:
             - port: "http-metrics"
         - name: "promtail-monitor"
@@ -65,7 +65,7 @@ spec:
               release: loki
           namespaceSelector:
             matchNames:
-              - monitoring
+              - loki-stack
           endpoints:
             - port: "http-metrics"
       prometheusSpec:

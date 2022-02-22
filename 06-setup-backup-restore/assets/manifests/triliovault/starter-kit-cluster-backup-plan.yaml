@@ -12,3 +12,4 @@ spec:
     - namespace: ambassador
     - namespace: backend
     - namespace: monitoring
+    - namespace: loki-stack
