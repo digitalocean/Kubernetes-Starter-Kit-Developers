@@ -560,45 +560,45 @@ The home page looks similar to:
 
 Go ahead and explore each section from the left, like:
 
-- `Cluster Management`: This shows the list of primary cluster and other clusters having TVK instances, added to the primary OVH cluster using `Multi-Cluster Management` feature.
-- `Backup & Recovery`: This is the main dashboard which gives you a general overview for whole cluster, like: Discovered namespaces, Applications, Backupplans list, Targets, Hooks, Policies etc.
-<ol>
+- **Cluster Management:** This shows the list of primary cluster and other clusters having TVK instances, added to the primary OVH cluster using `Multi-Cluster Management` feature.
+- **Backup & Recovery:** This is the main dashboard which gives you a general overview for whole cluster, like: Discovered namespaces, Applications, Backupplans list, Targets, Hooks, Policies etc.
 
-  <li>Namespaces:
+  - Namespaces:
+  
   ![TVK Cluster Namespaces](assets/images/tvk_console_home_namespaces.png)
-  </li>
   
-  <li>Applications:
+  - Applications:
+  
   ![TVK Auto-discovered Applications](assets/images/tvk_auto_discovered_applications.png)
-  </li>
   
-  <li>Backupplans:
+  - Backupplans:
+  
   ![TVK Backupplans](assets/images/tvk_backupplans.png)
-  </li>
   
-  <li>Targets:
+  - Targets:
+  
   ![TVK Target List](assets/images/tvk_target_list.png)
-  </li>
+
+  - Scheduling Policy:
   
-  <li>Scheduling Policy:
   ![TVK Default Scheduling Policy](assets/images/tvk_default_scheduling_policies.png)
-  </li>
   
-  <li>Retention Policy:
+  - Retention Policy:
+  
   ![TVK Default Retention Policy](assets/images/tvk_default_retention_policies.png)
-  </li>
   
-  <li>Monitoring: This has two options- `TrilioVault Monitoring` and `Velero Monitoring` if user has Velero configured on their OVH cluster.
+- **Monitoring:** This has two options- `TrilioVault Monitoring` and `Velero Monitoring` if user has Velero configured on their OVH cluster.
   
   - `TrilioVault Monitoring`: It shows the backup and restore summary of the kubernetes cluster.
+  
   ![TVK TrilioVault Monitoring Backups and Restores](assets/images/tvk_triliovault_monitoring.png)
   
   - `Velero Monitoring`:
+  
   ![TVK Velero Monitoring](assets/images/tvk_velero_monitoring.png)
-  </li>
-</ol>
 
-- `Disaster Recovery`: Allows you to manage and perform disaster recovery operations.
+- **Disaster Recovery:** Allows you to manage and perform disaster recovery operations.
+
   ![TVK Disaster Recovery](assets/images/tvk_disaster_recovery.png)
 
 You can also see the S3 Target created earlier, by navigating to `Backup & Recovery -> Targets -> Select the Namespace tvk from the dropdown on the top`:
