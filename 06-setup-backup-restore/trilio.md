@@ -275,12 +275,12 @@ kubectl apply -f 06-setup-backup-restore/assets/manifests/triliovault/tvk_instal
 Above command will create a job `job.batch/tvk-license-digitalocean` which will run a pod `tvk-license-digitalocean-828rx` to pull the license from `Trilio License Server` and install on the DOKS cluster.
 After the job is complete, it will be deleted in 60 seconds.
 
-**NOTE**
-If you are downloading a free license from Trilio's website, apply it using below command:
+**NOTE:**
+- If you are downloading a free license from Trilio's website, apply it using below command:
+
 ```shell
 kubectl apply -f <YOUR_LICENSE_FILE_NAME>.yaml -n tvk
 ```
-
 Please run below command to see if license is installed and in `Active` state on your cluster (it is managed via the `License` CRD):
 
 ```shell
@@ -562,22 +562,42 @@ Go ahead and explore each section from the left, like:
 
 - `Cluster Management`: This shows the list of primary cluster and other clusters having TVK instances, added to the primary OVH cluster using `Multi-Cluster Management` feature.
 - `Backup & Recovery`: This is the main dashboard which gives you a general overview for whole cluster, like: Discovered namespaces, Applications, Backupplans list, Targets, Hooks, Policies etc.
-  - `Namespaces`:
+<ol>
+
+  <li>Namespaces:
   ![TVK Cluster Namespaces](assets/images/tvk_console_home_namespaces.png)
-- `Applications`:
+  </li>
+  
+  <li>Applications:
   ![TVK Auto-discovered Applications](assets/images/tvk_auto_discovered_applications.png)
-  - `Backupplans`:
+  </li>
+  
+  <li>Backupplans:
   ![TVK Backupplans](assets/images/tvk_backupplans.png)
-  - `Taargets`:
+  </li>
+  
+  <li>Targets:
   ![TVK Target List](assets/images/tvk_target_list.png)
-  - `Scheduling Policy`:
+  </li>
+  
+  <li>Scheduling Policy:
   ![TVK Default Scheduling Policy](assets/images/tvk_default_scheduling_policies.png)
-  - `Retention Policy`:
+  </li>
+  
+  <li>Retention Policy:
   ![TVK Default Retention Policy](assets/images/tvk_default_retention_policies.png)
-- `Monitoring`: This has two options- `TrilioVault Monitoring` and `Velero Monitoring` if user has Velero configured on their OVH cluster.
+  </li>
+  
+  <li>Monitoring: This has two options- `TrilioVault Monitoring` and `Velero Monitoring` if user has Velero configured on their OVH cluster.
+  
   - `TrilioVault Monitoring`: It shows the backup and restore summary of the kubernetes cluster.
   ![TVK TrilioVault Monitoring Backups and Restores](assets/images/tvk_triliovault_monitoring.png)
+  
+  - `Velero Monitoring`:
   ![TVK Velero Monitoring](assets/images/tvk_velero_monitoring.png)
+  </li>
+</ol>
+
 - `Disaster Recovery`: Allows you to manage and perform disaster recovery operations.
   ![TVK Disaster Recovery](assets/images/tvk_disaster_recovery.png)
 
@@ -910,7 +930,6 @@ spec:
     - namespace: ambassador
     - namespace: backend
     - namespace: monitoring
-    - namespace: loki-stack
 ```
 Notice that `kube-system` (or other DOKS cluster related namespaces) is not included in the list. Usually, those are not required, unless there is a special case requiring some settings to be persisted at that level.
 
