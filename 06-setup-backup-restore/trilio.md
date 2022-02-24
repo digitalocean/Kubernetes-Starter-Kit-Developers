@@ -198,7 +198,7 @@ Please follow the steps below, to install `TrilioVault` via `Helm`:
 
    ```text
    NAME                                            CHART VERSION   APP VERSION     DESCRIPTION
-   triliovault-operator/k8s-triliovault-operator   2.6.7           2.6.7           K8s-TrilioVault-Operator is an operator designe...
+   triliovault-operator/k8s-triliovault-operator   2.7.0           2.7.0           K8s-TrilioVault-Operator is an operator designe...
    ```
    **Note:**
 
@@ -234,8 +234,9 @@ The output looks similar to the following (`STATUS` column should display `deplo
 
 ```text
 NAME                    NAMESPACE       REVISION        UPDATED                                 STATUS          CHART                           APP VERSION
-triliovault-manager-tvk tvk             1               2022-02-01 08:55:28.484658123 +0000 UTC deployed        k8s-triliovault-2.6.7           2.6.7
-triliovault-operator    tvk             1               2022-02-01 08:52:34.317153907 +0000 UTC deployed        k8s-triliovault-operator-2.6.7  2.6.7
+triliovault-manager-tvk tvk             1               2022-02-23 10:32:08.413360507 +0000 UTC deployed        k8s-triliovault-2.7.0           2.7.0
+triliovault-operator    tvk             1               2022-02-22 13:56:32.152803549 +0000 UTC deployed        k8s-triliovault-operator-2.7.0  2.7.0
+
 ```
 Next, verify that `TrilioVault` is up and running:
 
@@ -261,25 +262,35 @@ If the output looks like above, you installed `TVK` successfully. Next, you will
 By default, when installing `TVK` via `Helm`, there is no `Free Trial` license installed automatically. You can always go to the `Trilio` website and generate a new [license](https://www.trilio.io/plans) for your cluster that suits your needs (for example, you can pick the `basic license` type that lets you run `TrilioVault` indefinetly if your `cluster capacity` doesn't exceed `10 nodes`). A free trial license lets you run `TVK` for `one month` on `unlimited` cluster nodes.
 
 **Notes:**
-- **TrilioVault is free of charge for Kubernetes clusters with up to 10000 nodes for DigitalOcean users.**
+- **TrilioVault is free of charge for Kubernetes clusters with up to 100000 nodes for DigitalOcean users. User can follow below steps to create a license specifically created for DO users**
 - `Starter Kit` examples rely on a `Cluster` license type to function properly.
 
-### Checking TVK Application Licensing
+### Creating and Checking TVK Application Licensing
 
-Please run below command to see if license is available for your cluster (it is managed via the `License` CRD):
+Please run below command to see if license:
+
+```shell
+kubectl apply -f 06-setup-backup-restore/assets/manifests/triliovault/tvk_install_license.yaml
+```
+Above command will create a job `job.batch/tvk-license-digitalocean` which will run a pod `tvk-license-digitalocean-828rx` to pull the license from `Trilio License Server` and install on the DOKS cluster.
+After the job is complete, it will be deleted in 60 seconds.
+
+**NOTE**
+If you are downloading a free license from Trilio's website, apply it using below command:
+```shell
+kubectl apply -f <YOUR_LICENSE_FILE_NAME>.yaml -n tvk
+```
+
+Please run below command to see if license is installed and in `Active` state on your cluster (it is managed via the `License` CRD):
 
 ```shell
 kubectl get license -n tvk
 ```
-Afer you download a free license from Trilio's website, apply it using below command:
-
-```shell
-kubectl apply -f <YOUR_LICENSE_FILE_NAME>.yaml -n tvk
-```
 The output looks similar to (notice the `STATUS` which should be `Active`, as well as the license type in the `EDITION` column and `EXPIRATION TIME`):
+
 ```text
-NAME             STATUS   MESSAGE                                   CURRENT NODE COUNT   EDITION     CAPACITY   EXPIRATION TIME        MAX NODES
-test-license-1   Active   Cluster License Activated successfully.   2                    FreeTrial   1000       2021-12-23T00:00:00Z   2
+NAME             STATUS   MESSAGE                                   CURRENT NODE COUNT   GRACE PERIOD END TIME   EDITION     CAPACITY   EXPIRATION TIME        MAX NODES
+test-license-1   Active   Cluster License Activated successfully.   1                                            FreeTrial   100000     2023-02-25T00:00:00Z   1
 ```
 The license is managed via a special `CRD`, namely the `License` object. You can inspect it by running below command:
 
@@ -292,27 +303,38 @@ The output looks similar to (notice the `Message` and `Capacity` fields, as well
 Name:         test-license-1
 Namespace:    tvk
 Labels:       <none>
-Annotations:  generation: 2
-              triliovault.trilio.io/creator: test.cluster@myemail.org
-              triliovault.trilio.io/instance-id: d9f7422b-6636-490a-add1-61e9647e2e02
+Annotations:  generation: 1
+              triliovault.trilio.io/creator: system:serviceaccount:tvk:k8s-triliovault
+              triliovault.trilio.io/instance-id: b060660d-4851-482b-8e60-4addd260e1d3
+              triliovault.trilio.io/updater:
+                [{"username":"system:serviceaccount:tvk:k8s-triliovault","lastUpdatedTimestamp":"2022-02-24T06:38:21.418828262Z"}]
 API Version:  triliovault.trilio.io/v1
 Kind:         License
 Metadata:
-  Creation Timestamp:  2021-11-22T08:59:51Z
+  Creation Timestamp:  2022-02-24T06:38:21Z
 ...
-Current Node Count:    2
-  Max Nodes:           2
+Status:
+  Condition:
+    Message:           License Key changed
+    Timestamp:         2022-02-24T06:38:21Z
+    Message:           Cluster License Activated successfully.
+    Status:            Active
+    Timestamp:         2022-02-24T06:38:21Z
+  Current Node Count:  1
+  Max Nodes:           1
   Message:             Cluster License Activated successfully.
   Properties:
     Active:                        true
-    Capacity:                      1000
-    Company:                       TRILIO-KUBERNETES-LICENSE-GEN-FREE_TRIAL
-    Creation Timestamp:            2021-11-22T00:00:00Z
+    Capacity:                      100000
+    Company:                       TRILIO-KUBERNETES-LICENSE-GEN-DIGITALOCEAN-BASIC
+    Creation Timestamp:            2022-02-24T00:00:00Z
     Edition:                       FreeTrial
-    Expiration Timestamp:          2021-12-23T00:00:00Z
-    Maintenance Expiry Timestamp:  2021-12-23T00:00:00Z
+    Expiration Timestamp:          2023-02-25T00:00:00Z
+    Kube UID:                      b060660d-4851-482b-8e60-4addd260e1d3
+    License ID:                    TVAULT-5a4b42c6-953c-11ec-8116-0cc47a9fd48e
+    Maintenance Expiry Timestamp:  2023-02-25T00:00:00Z
     Number Of Users:               -1
-    Purchase Timestamp:            2021-11-22T00:00:00Z
+    Purchase Timestamp:            2022-02-24T00:00:00Z
     Scope:                         Cluster
 ...
 ```
@@ -534,17 +556,34 @@ Please keep the generated `kubeconfig` file safe because it contains sensitive d
 
 The home page looks similar to:
 
-![TVK Console Home Dashboard](assets/images/tvk_console_home.png)
+![TVK Home Cluster Dashboard](assets/images/tvk_cluster_dashboard.png)
 
 Go ahead and explore each section from the left, like:
 
-- `Home`: This is the main dashboard which gives you a general overview for whole cluster, like: Kubernetes clusters, discovered namespaces, Backup/Restore operations summary, etc.
-- `Resource Management`: Lists all the available resources from your cluster (e.g. application namespaces), as well as settings for each, like: backup plans, retention policies, etc.
+- `Cluster Management`: This shows the list of primary cluster and other clusters having TVK instances, added to the primary OVH cluster using `Multi-Cluster Management` feature.
+- `Backup & Recovery`: This is the main dashboard which gives you a general overview for whole cluster, like: Discovered namespaces, Applications, Backupplans list, Targets, Hooks, Policies etc.
+  - `Namespaces`:
+  ![TVK Cluster Namespaces](assets/images/tvk_console_home_namespaces.png)
+- `Applications`:
+  ![TVK Auto-discovered Applications](assets/images/tvk_auto_discovered_applications.png)
+  - `Backupplans`:
+  ![TVK Backupplans](assets/images/tvk_backupplans.png)
+  - `Taargets`:
+  ![TVK Target List](assets/images/tvk_target_list.png)
+  - `Scheduling Policy`:
+  ![TVK Default Scheduling Policy](assets/images/tvk_default_scheduling_policies.png)
+  - `Retention Policy`:
+  ![TVK Default Retention Policy](assets/images/tvk_default_retention_policies.png)
+- `Monitoring`: This has two options- `TrilioVault Monitoring` and `Velero Monitoring` if user has Velero configured on their OVH cluster.
+  - `TrilioVault Monitoring`: It shows the backup and restore summary of the kubernetes cluster.
+  ![TVK TrilioVault Monitoring Backups and Restores](assets/images/tvk_triliovault_monitoring.png)
+  ![TVK Velero Monitoring](assets/images/tvk_velero_monitoring.png)
 - `Disaster Recovery`: Allows you to manage and perform disaster recovery operations.
+  ![TVK Disaster Recovery](assets/images/tvk_disaster_recovery.png)
 
-You can also see the S3 Target created earlier, by navigating to `Resource Management -> TVK Namespace -> Targets` (in case of `Starter Kit` the TVK Namespace is `tvk`):
+You can also see the S3 Target created earlier, by navigating to `Backup & Recovery -> Targets -> Select the Namespace tvk from the dropdown on the top`:
 
-![TVK Targets List](assets/images/tvk_target_list.png)
+![TVK Target List](assets/images/tvk_target_list.png)
 
 Going further, you can browse the target and list the available backups by clicking on the `Actions` button from the right, and then select `Launch Browser` option from the pop-up menu (for this to work the target must have the `enableBrowsing` flag set to `true`):
 
