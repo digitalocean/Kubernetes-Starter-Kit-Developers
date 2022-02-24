@@ -20,7 +20,7 @@ spec:
     remediation:
       retries: 3
   releaseName: loki
-  targetNamespace: monitoring
+  targetNamespace: loki-stack
   interval: 1m0s
   values:
     promtail:

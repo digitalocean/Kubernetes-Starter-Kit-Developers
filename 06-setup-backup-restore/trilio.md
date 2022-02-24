@@ -910,6 +910,7 @@ spec:
     - namespace: ambassador
     - namespace: backend
     - namespace: monitoring
+    - namespace: loki-stack
 ```
 Notice that `kube-system` (or other DOKS cluster related namespaces) is not included in the list. Usually, those are not required, unless there is a special case requiring some settings to be persisted at that level.
 

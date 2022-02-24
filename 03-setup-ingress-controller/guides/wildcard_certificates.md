@@ -497,7 +497,7 @@ After creating the wildcard `Certificate` CRD and the `DNS-01` challenge finishe
 Typical configuration for the `Host` CRD using a `wildcard certificate` looks like below:
 
 ```yaml
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Host
 metadata:
   name: wildcard-host

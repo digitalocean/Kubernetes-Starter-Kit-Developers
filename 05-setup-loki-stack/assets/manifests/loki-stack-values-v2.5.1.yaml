@@ -27,6 +27,13 @@ loki:
     #     access_key_id: <YOUR_DO_SPACES_ACCESS_KEY_HERE>
     #     secret_access_key: <YOURDO_SPACES_SECRET_KEY_HERE>
     #     s3forcepathstyle: true
+  # Uncomment the configuration below, to enable DO Block Storage storage setup for `DO Volumes`
+  # persistence:
+  #   enabled: true
+  #   storageClassName: do-block-storage
+  #   accessModes: ["ReadWriteOnce"]
+  #   size: 5Gi
+
 
 promtail:
   enabled: true

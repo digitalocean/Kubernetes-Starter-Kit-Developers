@@ -1,0 +1,28 @@
+## Starter Kit configuration for Ambassador stack
+## Ref: https://github.com/emissary-ingress/emissary/tree/chart-v6.9.3/charts/ambassador
+##
+
+# Deployment replica count
+#
+replicaCount: 2
+
+# Resource requests/limits
+resources:
+  limits:
+    cpu: 1000m
+    memory: 600Mi
+  requests:
+    cpu: 200m
+    memory: 200Mi
+
+# emissary-ingress:
+#   service:
+#     type: LoadBalancer
+#     annotations:
+#       # Enable proxy protocol
+#       service.beta.kubernetes.io/do-loadbalancer-enable-proxy-protocol: "true"
+#       # Specify whether the DigitalOcean Load Balancer should pass encrypted data to backend droplets
+#       service.beta.kubernetes.io/do-loadbalancer-tls-passthrough: "true"
+#       # You can keep your existing LB when migrating to a new DOKS cluster, or when reinstalling AES
+#       kubernetes.digitalocean.com/load-balancer-id: "<YOUR_DO_LB_ID_HERE>"
+#       service.kubernetes.io/do-loadbalancer-disown: false

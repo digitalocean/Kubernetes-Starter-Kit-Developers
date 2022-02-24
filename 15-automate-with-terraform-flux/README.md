@@ -93,7 +93,7 @@ metadata:
   namespace: flux-system
 spec:
   interval: 10m0s
-  url: https://www.getambassador.io
+  url: https://app.getambassador.io
 ```
 
 Explanations for the above configuration:
@@ -125,11 +125,11 @@ metadata:
 spec:
   chart:
     spec:
-      chart: ambassador
+      chart: edge-stack
       sourceRef:
         kind: HelmRepository
         name: ambassador
-      version: 6.9.3
+      version: 7.2.2
   install:
     createNamespace: true
   interval: 1m0s
@@ -477,7 +477,7 @@ After finishing all the steps from this tutorial, you should have a `Git` reposi
 │       │   └── kustomization.yaml
 │       └── helm
 │           ├── releases
-│           │   ├── ambassador-stack-v6.9.3.yaml
+│           │   ├── ambassador-stack-v7.2.2.yaml
 │           │   ├── loki-stack-v2.5.1.yaml
 │           │   ├── prometheus-stack-v30.0.1.yaml
 │           │   ├── sealed-secrets-v2.0.2.yaml
@@ -795,7 +795,7 @@ Steps to follow:
     `Ambassador` Ingress:
 
     ```shell
-    AMBASSADOR_CHART_VERSION="6.9.3"
+    AMBASSADOR_CHART_VERSION="7.2.2"
 
     curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/15-automate-with-terraform-flux/assets/manifests/fluxcd/helm/releases/ambassador-stack-v${AMBASSADOR_CHART_VERSION}.yaml" > "${FLUXCD_HELM_MANIFESTS_PATH}/releases/ambassador-stack-v${AMBASSADOR_CHART_VERSION}.yaml"
     ```
@@ -813,7 +813,7 @@ Steps to follow:
     `Ambassador` Ingress:
 
     ```shell
-    AMBASSADOR_CHART_VERSION="6.9.3"
+    AMBASSADOR_CHART_VERSION="7.2.2"
 
     code "${FLUXCD_HELM_MANIFESTS_PATH}/releases/ambassador-stack-v${AMBASSADOR_CHART_VERSION}.yaml"
     ```
@@ -847,7 +847,7 @@ Steps to follow:
     `Ambassador` Ingress:
 
     ```shell
-    AMBASSADOR_CHART_VERSION="6.9.3"
+    AMBASSADOR_CHART_VERSION="7.2.2"
 
     git add "${FLUXCD_HELM_MANIFESTS_PATH}/repositories/ambassador.yaml"
 
@@ -885,12 +885,12 @@ After a few moments, please inspect the `HelmRelease` status (please pick only o
 ```shell
 flux get helmrelease ambassador-stack
 ```
-  
+
 The output looks similar to:
 
 ```text
-NAME                    READY   MESSAGE                                 REVISION        SUSPENDED 
-ambassador-stack        True    Release reconciliation succeeded        6.9.3          False 
+NAME                    READY   MESSAGE                                 REVISION        SUSPENDED
+ambassador-stack        True    Release reconciliation succeeded        7.2.2          False
 ```
 
 `Nginx` Ingress:
@@ -898,12 +898,12 @@ ambassador-stack        True    Release reconciliation succeeded        6.9.3   
 ```shell
 flux get helmrelease ingress-nginx
 ```
-  
+
 The output looks similar to:
 
 ```text
-NAME                 READY   MESSAGE                                 REVISION       SUSPENDED 
-ingress-nginx        True    Release reconciliation succeeded        4.0.13          False 
+NAME                 READY   MESSAGE                                 REVISION       SUSPENDED
+ingress-nginx        True    Release reconciliation succeeded        4.0.13          False
 ```
 
 Look for the `READY` column value - it should say `True`. Reconciliation status is displayed in the `MESSAGE` column, along with the `REVISION` number, which represents the `Helm` chart `version`. Please bear in mind that some releases take longer to complete (like `Prometheus` stack, for example), so please be patient.

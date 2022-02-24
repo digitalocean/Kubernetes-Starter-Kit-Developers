@@ -15,7 +15,7 @@ Resources used by the Starter Kit include the following:
 - Kubernetes Helm Charts:
 
     [![ingress-nginx](https://img.shields.io/static/v1?label=ingress-nginx&message=4.0.13&color=success)](https://artifacthub.io/packages/helm/ingress-nginx/ingress-nginx/4.0.13)
-    [![ingress-ambassador](https://img.shields.io/static/v1?label=ingress-ambassador&message=6.9.3&color=success)](https://artifacthub.io/packages/helm/datawire/ambassador/6.9.3)
+    [![ingress-ambassador](https://img.shields.io/static/v1?label=ingress-ambassador&message=7.2.2&color=success)](https://artifacthub.io/packages/helm/datawire/edge-stack/7.2.2)
     [![prometheus-stack](https://img.shields.io/static/v1?label=prometheus-stack&message=30.0.1&color=success)](https://artifacthub.io/packages/helm/prometheus-community/kube-prometheus-stack/30.0.1)
     [![loki-stack](https://img.shields.io/static/v1?label=loki-stack&message=2.5.1&color=success)](https://artifacthub.io/packages/helm/grafana/loki-stack/2.5.1)
     [![velero](https://img.shields.io/static/v1?label=velero&message=2.27.3&color=success)](https://artifacthub.io/packages/helm/vmware-tanzu/velero/2.27.3)
