@@ -250,7 +250,7 @@ NAME                                            READY   UP-TO-DATE   AVAILABLE  
 k8s-triliovault-admission-webhook               1/1     1            1           83s
 k8s-triliovault-control-plane                   1/1     1            1           83s
 k8s-triliovault-exporter                        1/1     1            1           83s
-k8s-triliovault-ingress-gateway                 1/1     1            1           83s
+k8s-triliovault-ingress-nginx-controller        1/1     1            1           83s
 k8s-triliovault-web                             1/1     1            1           83s
 k8s-triliovault-web-backend                     1/1     1            1           83s
 triliovault-operator-k8s-triliovault-operator   1/1     1            1           4m22s
@@ -496,19 +496,20 @@ The Helm based installation covered in [Step 1 - Installing TrilioVault for Kube
 
 ### Getting Access to the TVK Web Management Console
 
-To be able to access the console and explore the features it offers, you need to port forward the ingress gateway service for TVK.
+To be able to access the console and explore the features it offers, you need to port forward the ingress controller service for TVK.
 
-First, you need to identify the `ingress-gateway` service from the `tvk` namespace:
+First, you need to identify the `ingress-nginx-controller` service from the `tvk` namespace:
 
 ```shell
 kubectl get svc -n tvk
 ```
-The output looks similar to (search for the `k8s-triliovault-ingress-gateway` line, and notice that it listens on port `80` in the `PORT(S)` column):
+The output looks similar to (search for the `k8s-triliovault-ingress-nginx-controller` line, and notice that it listens on port `80` in the `PORT(S)` column):
 
 ```text
 NAME                                                            TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)                      AGE
 k8s-triliovault-admission-webhook                               ClusterIP   10.245.202.17    <none>        443/TCP                      13m
-k8s-triliovault-ingress-gateway                                 NodePort    10.245.192.140   <none>        80:32448/TCP,443:32588/TCP   13m
+k8s-triliovault-ingress-nginx-controller                        NodePort    10.245.192.140   <none>        80:32448/TCP,443:32588/TCP   13m
+k8s-triliovault-ingress-nginx-controller-admission              ClusterIP   10.3.20.89     	 <none>        443/TCP                      13m
 k8s-triliovault-web                                             ClusterIP   10.245.214.13    <none>        80/TCP                       13m
 k8s-triliovault-web-backend                                     ClusterIP   10.245.10.221    <none>        80/TCP                       13m
 triliovault-operator-k8s-triliovault-operator-webhook-service   ClusterIP   10.245.186.59    <none>        443/TCP                      16m
@@ -516,7 +517,7 @@ triliovault-operator-k8s-triliovault-operator-webhook-service   ClusterIP   10.2
 `TVK` is using an `Nginx Ingress Controller` to route traffic to the management web console services. Routing is host based, and the host name is `tvk-doks.com` as defined in the `Helm` values file from the `Starter Kit`:
 
 ```yaml
-# The host name to use when accessing the web console via the TVK ingress gateway
+# The host name to use when accessing the web console via the TVK ingress nginx controller
 installTVK:
   ingressConfig:
     host: "tvk-doks.com"
@@ -526,10 +527,10 @@ Having the above information at hand, please go ahead and edit the `/etc/hosts` 
 ```text
 127.0.0.1 tvk-doks.com
 ```
-Next, create the port forward for the TVK ingress gateway service:
+Next, create the port forward for the TVK ingress controller service:
 
 ```shell
-kubectl port-forward svc/k8s-triliovault-ingress-gateway 8080:80 -n tvk
+kubectl port-forward svc/k8s-triliovault-ingress-nginx-controller 8080:80 -n tvk
 ```
 Finally export the `kubeconfig` file for your DOKS cluster. This step is required so that the web console can authenticate you:
 
