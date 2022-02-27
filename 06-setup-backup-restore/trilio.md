@@ -86,8 +86,8 @@ After finishing this tutorial, you should be able to:
 - [Step 1 - Installing TrilioVault for Kubernetes](#step-1---installing-triliovault-for-kubernetes)
   - [Installing TrilioVault using Helm](#installing-triliovault-using-helm)
   - [TrilioVault Application Licensing](#triliovault-application-licensing)
-  - [Checking TVK Application Licensing](#checking-tvk-application-licensing)
-  - [Creating/Renewing TVK Application License](#creatingrenewing-tvk-application-license)
+  - [Creating and Checking TVK Application Licensing](#creating-and-checking-tvk-application-licensing)
+  - [Renewing TVK Application License](#renewing-tvk-application-license)
 - [Step 2 - Creating a TrilioVault Target to Store Backups](#step-2---creating-a-triliovault-target-to-store-backups)
 - [Step 3 - Getting to Know the TVK Web Management Console](#step-3---getting-to-know-the-tvk-web-management-console)
   - [Getting Access to the TVK Web Management Console](#getting-access-to-the-tvk-web-management-console)
@@ -262,12 +262,12 @@ If the output looks like above, you installed `TVK` successfully. Next, you will
 By default, when installing `TVK` via `Helm`, there is no `Free Trial` license installed automatically. You can always go to the `Trilio` website and generate a new [license](https://www.trilio.io/plans) for your cluster that suits your needs (for example, you can pick the `basic license` type that lets you run `TrilioVault` indefinetly if your `cluster capacity` doesn't exceed `10 nodes`). A free trial license lets you run `TVK` for `one month` on `unlimited` cluster nodes.
 
 **Notes:**
-- **TrilioVault is free of charge for Kubernetes clusters with up to 100000 nodes for DigitalOcean users. User can follow below steps to create a license specifically created for DO users**
+- **TrilioVault is free of charge for Kubernetes clusters with up to 100000 nodes for DigitalOcean users. They can follow below steps to create a special license available for DO customers only**
 - `Starter Kit` examples rely on a `Cluster` license type to function properly.
 
 ### Creating and Checking TVK Application Licensing
 
-Please run below command to see if license:
+Please run below command to create a new license for your cluster (it is managed via the `License` CRD):
 
 ```shell
 kubectl apply -f 06-setup-backup-restore/assets/manifests/triliovault/tvk_install_license.yaml
@@ -339,9 +339,9 @@ Status:
 ...
 ```
 The above output will also tell you when the license is going to expire in the `Expiration Timestamp` field, and the `Scope` (`Cluster` based in this case). You can opt for a `cluster` wide license type, or for a `namespace` based license. More details can be found on the [Trilio Licensing](https://docs.trilio.io/kubernetes/overview/licensing) documentation page.
-### Creating/Renewing TVK Application License
+### Renewing TVK Application License
 
-To create or renew the license, you will have to request a new one from the `Trilio` website, by navigating to the [licensing](https://www.trilio.io/plans) page. After completing the form, you should receive the `License` YAML manifest, which can be applied to your cluster using `kubectl`. Below commands assume that TVK is installed in the default `tvk` namespace (please replace the `<>` placeholders accordingly, where required):
+To renew the license, you will have to request a new one from the Trilio website by navigating to the [licensing](https://www.trilio.io/plans) page, to replace the old one. After completing the form, you should receive the `License` YAML manifest, which can be applied to your cluster using `kubectl`. Below commands assume that TVK is installed in the default `tvk` namespace (please replace the `<>` placeholders accordingly, where required):
 
 ```shell
 kubectl apply -f <YOUR_LICENSE_FILE_NAME>.yaml -n tvk
