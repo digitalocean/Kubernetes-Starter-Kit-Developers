@@ -14,6 +14,10 @@ See, there's a level of uncertainty and the aforementioned values are picked bas
 
 `Kubernetes` has once again a solution for the previous limitation. Meet the `HorizontalPodAutoscaler`, or `HPA` for short. Rather than specifying a fixed `replica value` for your `Deployment`, you rely on a dedicated controller (the one sitting behind HPAs) to do the job for you, and scale your deployments automatically up or down, based on the load. In other words, applications are scaled on demand.
 
+Horizontal pod scaling means increasing or decreasing the number of replicas (Pods) for an application, as opposed to vertical pod scaling which adjusts resource requests and limits for containers within Pods.
+
+There's also the `Cluster Autoscaler` which deals with adding more hardware resources such as CPU and RAM to your cluster, by adjusting the number of worker nodes.
+
 In the next chapters, you will be guided on how to use the HPA feature of Kubernetes, as well as VPA (`VerticalPodAutoscaler`). The first one recommended to start with is the `HorizontalPodAutoscaler`:
 
 | HorizontalPodAutoscaler | VerticalPodAutoscaler |
