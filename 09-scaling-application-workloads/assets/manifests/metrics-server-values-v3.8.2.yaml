@@ -2,6 +2,7 @@
 ## Ref: https://github.com/kubernetes-sigs/metrics-server/blob/metrics-server-helm-chart-3.8.2/charts/metrics-server
 ##
 
+# Number of metrics-server replicas to run
 replicas: 2
 
 apiService:
