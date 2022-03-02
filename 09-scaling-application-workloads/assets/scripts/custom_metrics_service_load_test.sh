@@ -8,6 +8,7 @@ kubectl run -i --tty load-generator \
     --rm \
     --image=busybox \
     --restart=Never \
-    -n hpa-variable-load \
-    -- /bin/sh -c "while sleep 0.001; do wget -q -O- http://quote; done" > /dev/null 2>&1
+    -n prometheus-custom-metrics-test \
+    -- /bin/sh -c "while sleep 0.2; do wget -q -O- http://prometheus-example-app:8080; done" > /dev/null 2>&1
 echo "[INFO] Load testing finished."
+sleep 1000000
