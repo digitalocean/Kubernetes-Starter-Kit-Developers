@@ -26,7 +26,7 @@ Metrics server acts as an extension for the `Kubernetes API` server, thus offeri
 
 Please make sure to read and understand metrics server main purpose, by visiting the [use cases](https://github.com/kubernetes-sigs/metrics-server#use-cases) section from the main documentation (this is important as well).
 
-For custom metrics (anything else than CPU and memory), you can use [Prometheus](https://prometheus.io) via a special adapter, named [prometheus-adapter](https://github.com/kubernetes-sigs/prometheus-adapter). It means, you can scale applications on other metrics such as HTTP server number of requests for example, rather than CPU and/or memory only.
+For custom metrics (anything else than CPU and memory), you can use [Prometheus](https://prometheus.io) via a special adapter, named [prometheus-adapter](https://github.com/kubernetes-sigs/prometheus-adapter). It means, you can scale applications on other metrics such as the number of HTTP requests for example, rather than CPU and/or memory utilization.
 
 This tutorial will show you how to:
 
@@ -53,7 +53,7 @@ Below diagram shows a high level overview of how HPA works in conjunction with m
 - [Step 2 - Getting to Know HPAs](#step-2---getting-to-know-hpas)
 - [Step 3 - Creating and Testing HPAs using Metrics Server](#step-3---creating-and-testing-hpas-using-metrics-server)
   - [Scenario 1 - Constant Load Test](#scenario-1---constant-load-test)
-  - [Scenario 2 - Variable Load Test](#scenario-2---variable-load-test)
+  - [Scenario 2 - External Load Test](#scenario-2---external-load-test)
 - [Step 4 - Scaling Applications Automatically via the Prometheus Adapter](#step-4---scaling-applications-automatically-via-the-prometheus-adapter)
   - [Installing Prometheus Adapter](#installing-prometheus-adapter)
   - [Creating a Sample Application for Testing](#creating-a-sample-application-for-testing)
@@ -289,18 +289,18 @@ Events:
 
 In a real world scenario, you will want to use a dedicated YAML manifest to define each HPA. This way, you can track the changes by having the manifest committed in a Git repository for example, and come back to it later easily to perform changes.
 
-Next, you're going to discover and test HPAs, by looking at two different scenarios: one where constant load is present, and the other one where variable load is created for the application under test.
+Next, you're going to discover and test HPAs, by looking at two different scenarios: one where constant load is present, and the other one where external load is created for the application under test.
 
 ## Step 3 - Creating and Testing HPAs using Metrics Server
 
-Following HPA experiments are based on two real world scenarios (more or less):
+Following HPA experiments are based on two scenarios:
 
-1. An application deployment that puts a constant load on the CPU (using some intensive computations).
-2. A web application that creates variable load, by increasing/decreasing the number of HTTP requests in a short time.
+1. An application deployment that creates constant load by performing some CPU intensive computations.
+2. You will launch a shell script which varies the number of HTTP requests hitting a web application over time.
 
 ### Scenario 1 - Constant Load Test
 
-In this scenario, you will create a sample application deployment which performs some math computations via python code. The sample code is shown below:
+In this scenario, you will create a sample application implemented using Python, which performs some CPU intensive computations. The Python code is shown below:
 
 ```python
 import math
@@ -313,7 +313,7 @@ while True:
   print("OK!")
 ```
 
-The above code can be deployed via the [constant-load-deployment-test](assets/manifests/hpa/metrics-server/constant-load-deployment-test.yaml) manifest from the `Starter Kit` repository. The deployment will fetch a docker image hosting the required python runtime, and then attach a `ConfigMap` to the application `Pod` hosting the sample python script shown earlier.
+The above code can be deployed via the [constant-load-deployment-test](assets/manifests/hpa/metrics-server/constant-load-deployment-test.yaml) manifest from the `Starter Kit` repository. The deployment will fetch a docker image hosting the required python runtime, and then attach a `ConfigMap` to the application `Pod` hosting the sample Python script shown earlier.
 
 First, please clone the [Starter Kit](https://github.com/digitalocean/Kubernetes-Starter-Kit-Developers) repository, and change directory to your local copy:
 
@@ -369,24 +369,24 @@ constant-load-test   Deployment/constant-load-deployment-test   255%/50%   1    
 
 You can also notice in the above output that the `REPLICAS` column value `increased` from `1` to `3` for the sample application deployment, as stated in the HPA CRD spec. The process took a short time to complete, because the application used in this examples creates load in no time. Going further, you can also inspect the HPA events and see the actions taken, via: `kubectl describe hpa -n hpa-constant-load`.
 
-### Scenario 2 - Variable Load Test
+### Scenario 2 - External Load Test
 
-A more interesting and realistic scenario to test and study, is one where variable load is created for the application under test. For this experiment you're going to use a different namespace and set of manifests, to observe the final behavior in complete isolation from the previous scenario.
+A more interesting and realistic scenario to test and study, is one where external load is created for the application under test. For this experiment you're going to use a different namespace and set of manifests, to observe the final behavior in complete isolation from the previous scenario.
 
 The application under test is a simple [quote of the moment](https://github.com/datawire/quote) server listening for HTTP requests. On each call it sends a different `quote` as a response. You create load on the service by sending HTTP requests very fast (each 1ms roughly). There's a [helper script](assets/scripts/quote_service_load_test.sh) to help you achieve this.
 
-First, please create the [quote](assets/manifests/hpa/metrics-server/quote_deployment.yaml) application `deployment` and `service` using `kubectl` (also a dedicated `hpa-variable-load` namespace is created beforehand). Please make sure to change directory to `Kubernetes-Starter-Kit-Developers` first:
+First, please create the [quote](assets/manifests/hpa/metrics-server/quote_deployment.yaml) application `deployment` and `service` using `kubectl` (also a dedicated `hpa-external-load` namespace is created beforehand). Please make sure to change directory to `Kubernetes-Starter-Kit-Developers` first:
 
 ```shell
-kubectl create ns hpa-variable-load
+kubectl create ns hpa-external-load
 
-kubectl apply -f 09-scaling-application-workloads/assets/manifests/hpa/metrics-server/quote_deployment.yaml -n hpa-variable-load
+kubectl apply -f 09-scaling-application-workloads/assets/manifests/hpa/metrics-server/quote_deployment.yaml -n hpa-external-load
 ```
 
 Now, verify if the `deployment` and `services` are `OK`:
 
 ```shell
-kubectl get all -n hpa-variable-load
+kubectl get all -n hpa-external-load
 ```
 
 The output looks similar to:
@@ -408,20 +408,20 @@ replicaset.apps/quote-6c8f564ff        1         1         1       3m5s
 Next, create the `HPA` for the `quote deployment` using `kubectl`:
 
 ```shell
-kubectl apply -f 09-scaling-application-workloads/assets/manifests/hpa/metrics-server/quote-deployment-hpa-test.yaml -n hpa-variable-load
+kubectl apply -f 09-scaling-application-workloads/assets/manifests/hpa/metrics-server/quote-deployment-hpa-test.yaml -n hpa-external-load
 ```
 
 Now, check if the HPA resource is in place and alive:
 
 ```shell
-kubectl get hpa -n hpa-variable-load
+kubectl get hpa -n hpa-external-load
 ```
 
 The output looks similar to:
 
 ```text
 NAME                 REFERENCE          TARGETS   MINPODS   MAXPODS   REPLICAS   AGE
-variable-load-test   Deployment/quote   1%/20%    1         3         1          108s
+external-load-test   Deployment/quote   1%/20%    1         3         1          108s
 ```
 
 Please note that in this case there's a different threshold value set for the CPU utilization resource metric, as well as a different scale down behavior. The new spec for the HPA CRD looks like below:
@@ -446,7 +446,7 @@ spec:
           averageUtilization: 20
 ```
 
-The above configuration alters the `scaleDown.stabilizationWindowSeconds` behavior and sets it to a lower value of `60 seconds`. This is not really needed in practice, but in this case you may want to speed up things and quickly see how the autoscaler performs the scale down actions. By default, the `HorizontalPodAutoscaler` has a cool down period of `5 minutes` (or `300 seconds`). This is sufficient in most of the cases, and should avoid fluctuations in the replica scaling process.
+The above configuration alters the `scaleDown.stabilizationWindowSeconds` behavior and sets it to a lower value of `60 seconds`. This is not really needed in practice, but in this case you may want to speed up things and quickly see how the autoscaler performs the scale down action. By default, the `HorizontalPodAutoscaler` has a cool down period of `5 minutes` (or `300 seconds`). This is sufficient in most of the cases, and should avoid fluctuations when replicas are being scaled.
 
 In the final step, you will run the helper script provided in this repository to create load on the target (meaning the `quote server`). The script performs successive HTTP calls in a really short period of time, thus trying to simulate external load coming from the users (should suffice for demonstration purposes).
 
@@ -459,14 +459,14 @@ Please make sure to split the terminal in two separate windows, in order to obse
 And, in the other window set a `watch` for the `HPA` resource using `kubectl` (in combination with the `-w` flag):
 
 ```shell
-kubectl get hpa -n hpa-variable-load -w
+kubectl get hpa -n hpa-external-load -w
 ```
 
 Below animation will show you the experiment results:
 
-![Metrics Server HPA in Action](assets/images/variable_load_testing.gif)
+![Metrics Server HPA in Action](assets/images/external_load_testing.gif)
 
-You can observer how the autoscaler kicks in when load increases (as long as the load generator script runs), and alters the `quote` server deployment replica set to a higher value. As soon as the load generator script is stopped, there's a cool down period, and after 1 minute or so the replica set is lowered to the initial value of 1.
+You can observe how the autoscaler kicks in when load increases (as long as the load generator script runs), and alters the `quote` server deployment replica set to a higher value. As soon as the load generator script is stopped, there's a cool down period, and after 1 minute or so the replica set is lowered to the initial value of 1.
 
 Next, you will learn how to scale applications based on other metrics such as custom metrics coming from Prometheus. As an example, you can scale based on the number of HTTP requests that an application receives, rather than CPU and/or memory utilization.
 

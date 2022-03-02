@@ -1,7 +1,7 @@
 apiVersion: autoscaling/v2beta2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: variable-load-test
+  name: external-load-test
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
