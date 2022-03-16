@@ -169,7 +169,7 @@ Next, open a web browser on [localhost:3000](http://localhost:3000), and follow 
 1. Click the `Settings` gear from the left panel.
 2. Select `Data sources`.
 3. Click the `Add data source` blue button.
-4. Select `Loki` from the list and add `Loki` url `http://loki:3100`.
+4. Select `Loki` from the list and add `Loki` url `http://loki.loki-stack:3100`.
 5. Save and test.
 
 If everything goes well, a green label message will appear, saying `Data source connected and labels found.`
