@@ -71,7 +71,7 @@ To complete this tutorial, you will need:
 8. [Doctl](https://github.com/digitalocean/doctl/releases) CLI, for `DigitalOcean` API interaction.
 9. [Kubectl](https://kubernetes.io/docs/tasks/tools) CLI, for `Kubernetes` interaction.
 10. [Flux](https://fluxcd.io/docs/installation) CLI, for `Flux CD` interaction.
-11. [Kubeseal](https://github.com/bitnami-labs/sealed-secrets/releases/tag/v0.16.0), for encrypting secrets and `Sealed Secrets Controller` interaction.
+11. [Kubeseal](https://github.com/bitnami-labs/sealed-secrets/releases/tag/v0.17.3), for encrypting secrets and `Sealed Secrets Controller` interaction.
 
 ## Understanding Flux CD Concepts for Automated Helm Releases
 
