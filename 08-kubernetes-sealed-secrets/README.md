@@ -7,7 +7,7 @@ In this tutorial, you will learn how to deploy and `encrypt` generic `Kubernetes
 What `Sealed Secrets` allows you to do is:
 
 - Store `encrypted` secrets in a `Git` repository (even in `public` ones).
-- Apply `GitOps` principles for `Kubernetes Secrets` as well ([Section 15 - Automate Everything using Terraform and Flux CD](../15-automate-with-terraform-flux/README.md) gives you more practical examples on this topic).
+- Apply `GitOps` principles for `Kubernetes Secrets` as well ([Section 15 - Continuous Delivery using GitOps](../15-continuous-delivery-using-gitops/README.md) gives you more practical examples on this topic).
 
 ### Understanding How Sealed Secrets Work
 
