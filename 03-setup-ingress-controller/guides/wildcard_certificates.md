@@ -371,7 +371,7 @@ Next, open and inspect the `Certificate` manifest file provided in the `Starter 
 - `Nginx` ingress:
 
   ```shell
-  code 03-setup-ingress-controller/assets/manifests/nginx/wildcard-host.yaml
+  code 03-setup-ingress-controller/assets/manifests/nginx/cert-manager-wcard-certificate.yaml
   ```
 
 **Notes:**
