@@ -1,0 +1,21 @@
+##
+## Starter Kit configuration for Argo CD
+##
+
+# Enable HA for Redis server
+redis-ha:
+  enabled: true
+
+controller:
+  enableStatefulSet: true
+
+# Main Argo CD server replica count
+server:
+  replicas: 2
+  env:
+    - name: ARGOCD_API_SERVER_REPLICAS
+      value: '2'
+
+# Argo CD repository server replica count
+repoServer:
+  replicas: 2

@@ -77,10 +77,9 @@ To complete this tutorial, you will need:
 1. A working `DOKS` cluster that you have access to. Please follow the Starter Kit [DOKS Setup Guide](../01-setup-DOKS/README.md) to find out more.
 2. A [GitHub](https://github.com) repository and branch, to store Flux CD and your applications manifests.
 3. A [Git](https://git-scm.com/downloads) client, for cloning the `Starter Kit` repository.
-4. [Doctl](https://github.com/digitalocean/doctl/releases) CLI, for `DigitalOcean` API interaction.
-5. [Kubectl](https://kubernetes.io/docs/tasks/tools) CLI, for `Kubernetes` interaction. Follow these [instructions](https://www.digitalocean.com/docs/kubernetes/how-to/connect-to-cluster/) to connect to your cluster with `kubectl` and `doctl`.
-6. [Flux CLI](https://fluxcd.io/docs/installation), to deploy and interact with `Flux CD`.
-7. [Kubeseal](https://github.com/bitnami-labs/sealed-secrets/releases/tag/v0.17.3), for encrypting secrets and [Sealed Secrets Controller](https://github.com/bitnami-labs/sealed-secrets) interaction.
+4. [Kubectl](https://kubernetes.io/docs/tasks/tools) CLI, for `Kubernetes` interaction. Follow these [instructions](https://www.digitalocean.com/docs/kubernetes/how-to/connect-to-cluster/) to connect to your cluster with `kubectl` and `doctl`.
+5. [Flux CLI](https://fluxcd.io/docs/installation), to deploy and interact with `Flux CD`.
+6. [Kubeseal](https://github.com/bitnami-labs/sealed-secrets/releases/tag/v0.17.3), for encrypting secrets and [Sealed Secrets Controller](https://github.com/bitnami-labs/sealed-secrets) interaction.
 
 ## Understanding Flux CD Concepts for Automated Helm Releases
 
@@ -338,6 +337,10 @@ NAME         URL                                                       READY  ST
 flux-system  ssh://git@github.com/test-starterkit/starterkit_fra1.git  True   Fetched revision: main/6e9b41b...  9m59s
 ```
 
+You should also see a bunch of Flux CD system manifests present in your Git repository as well:
+
+![This](assets/images/fluxcd_git_components.png)
+
 In the next step, you will prepare the `Git` repository layout for use in this tutorial. Flux CD is watching for changes present in the `--path` argument that you passed to the `flux bootstrap` command. Starter Kit is using the `clusters/dev` directory path. You can create any directory structure under the `clusters/dev` path to keep things organized. Flux CD will perform a recursive search for all manifests under the `clusters/dev` path.
 
 You can throw all the manifests under the Flux CD sync path (e.g. `clusters/dev`), but it's best practice to keep things organized and follow naming conventions as much as possible to avoid frustration in the future.
@@ -576,12 +579,12 @@ kubeseal --controller-namespace=flux-system --fetch-cert > pub-sealed-secrets-<Y
 
 **Note:**
 
-If for some reason the `kubeseal` certificate fetch command hangs, you can use the following steps to work around this issue:
+If for some reason the `kubeseal` certificate fetch command hangs (or you get an empty/invalid certificate file), you can use the following steps to work around this issue:
 
-- First, open another terminal window, and `expose` the `Sealed Secrets Controller` service on your `localhost` (you can use `CTRL - C` to terminate, after fetching the public key):
+- First, open a new terminal window, and `expose` the `Sealed Secrets Controller` service on your `localhost` (you can use `CTRL - C` to terminate, after fetching the public key):
 
   ```shell
-  kubectl port-forward service/sealed-secrets-controller 8080:8080 -n flux-system &
+  kubectl port-forward service/sealed-secrets-controller 8080:8080 -n flux-system 
   ```
 
 - Then, you can go back to your working terminal and fetch the public key (please replace the `<>` placeholders accordingly):
@@ -1203,11 +1206,14 @@ Please refer to the [Velero](../06-setup-backup-restore/velero.md) tutorial, for
 
 ## Conclusion
 
-In this tutorial, you learned the automation basics for a `GitOps` based setup using `Flux CD`. Then, you configured `Flux CD` to perform `Helm` releases for you automatically by creating specific manifests, and deploy all the `Starter Kit` components in a `GitOps` fashion. Finally, you applied `security` best practices as well, by making use of `Sealed Secrets` to encrypt `sensitive` data for your applications.
+In this tutorial, you learned the automation basics for a `GitOps` based setup using `Flux CD`. Then, you configured `Flux CD` to perform `Helm releases` for you automatically, and deploy all the `Starter Kit` components in a `GitOps` fashion. Finally, you applied `security` best practices as well, by using the `Sealed Secrets` controller to encrypt `sensitive` data for your applications.
 
-Going further, `Flux CD` supports other interesting `Controllers` as well, which can be configured and enabled, like:
+Going further, `Flux CD` supports other features, like:
 
-- [Notification Controller](https://fluxcd.io/docs/components/notification) - specialized in handling inbound and outbound events for `Slack`, etc.
-- [Image Automation Controller](https://fluxcd.io/docs/components/image) - updates a `Git` repository when new container images are available.
+- [Notifications](https://fluxcd.io/docs/guides/notifications), to configure notifications (e.g. `Slack`).
+- [Images Update Automation](https://fluxcd.io/docs/guides/image-update), to update a Git repository when new container images are available.
+- [Prometheus Monitoring](https://fluxcd.io/docs/guides/monitoring)
+- [Progressive Delivery using Flagger](https://docs.flagger.app)
+- [Security Considerations](https://fluxcd.io/docs/security)
 
 You can visit the official [Flux CD Guides](https://fluxcd.io/docs/guides) page for more interesting stuff and ideas, like how to structure your `Git` repositories, as well as application `manifests` for `multi-cluster` and `multi-environment` setups.

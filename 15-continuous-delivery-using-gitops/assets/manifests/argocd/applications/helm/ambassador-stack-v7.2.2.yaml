@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ambassador-stack
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    chart: edge-stack
+    repoURL: https://app.getambassador.io
+    targetRevision: 7.2.2
+    helm:
+      releaseName: ambassador
+      values: |
+        replicaCount: 2
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 600Mi
+          requests:
+            cpu: 200m
+            memory: 200Mi
+  destination:
+    server: "https://kubernetes.default.svc"
+    namespace: ambassador
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true # create destination namespace if not present
