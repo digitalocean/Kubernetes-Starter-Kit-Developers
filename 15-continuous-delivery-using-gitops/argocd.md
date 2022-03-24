@@ -753,6 +753,12 @@ Template engines are very powerful in nature and offer lots of possibilities. Pl
 
 Uninstalling (or deleting) applications managed by Argo CD is accomplished by deleting the corresponding manifest from the Git repository source. In case of applications created using the `app of apps pattern`, you need to delete the parent app only (either via the CLI, or web interface). Then, all child applications will be deleted as well as part of the process.
 
+How to delete the `starter-kit-apps` parent application (including child-apps) using `argocd` CLI:
+
+```shell
+argocd app delete starter-kit-apps
+```
+
 If you want to ensure that child-apps and all of their resources are deleted when the parent-app is deleted, please make sure to add the appropriate `finalizer` to your `Application definition`:
 
 ```yaml
