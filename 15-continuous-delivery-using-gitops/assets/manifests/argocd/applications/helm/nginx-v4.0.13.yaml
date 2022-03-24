@@ -1,30 +1,28 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: ambassador-stack
+  name: ingress-nginx
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
   source:
-    chart: edge-stack
-    repoURL: https://app.getambassador.io
-    targetRevision: 7.2.2
+    chart: ingress-nginx
+    repoURL: https://kubernetes.github.io/ingress-nginx
+    targetRevision: 4.0.13
     helm:
-      releaseName: ambassador
+      releaseName: ingress-nginx
       values: |
+        controller:
         replicaCount: 2
         resources:
-          limits:
-            cpu: 1000m
-            memory: 600Mi
           requests:
-            cpu: 200m
-            memory: 200Mi
+            cpu: 100m
+            memory: 90Mi
   destination:
     server: "https://kubernetes.default.svc"
-    namespace: ambassador
+    namespace: ingress-nginx
   syncPolicy:
     automated:
       prune: true

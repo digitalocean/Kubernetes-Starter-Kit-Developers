@@ -404,8 +404,8 @@ First you need to prepare your Git repository to use a consistent layout. In the
 clusters
 └── dev
     └── helm
-        ├── ambassador-stack-v7.2.2.yaml
         ├── cert-manager-v1.6.1.yaml
+        ├── nginx-v4.0.13.yaml
         ├── prometheus-stack-v30.0.1.yaml
         ├── sealed-secrets-v2.0.2.yaml
         └── velero-v2.27.3.yaml
@@ -431,14 +431,14 @@ Please open a terminal, and follow below steps to create the layout for your Git
 
     ```shell
     CERT_MANAGER_CHART_VERSION="1.6.1"
-    AMBASSADOR_CHART_VERSION="7.2.2"
+    NGINX_CHART_VERSION="4.0.13"
     PROMETHEUS_CHART_VERSION="30.0.1"
     SEALED_SECRETS_CHART_VERSION="2.0.2"
     VELERO_CHART_VERSION="2.27.3"
 
     curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/15-continuous-delivery-using-gitops/assets/manifests/argocd/applications/helm/cert-manager-v${CERT_MANAGER_CHART_VERSION}.yaml" > "clusters/dev/helm/cert-manager-v${CERT_MANAGER_CHART_VERSION}.yaml"
 
-    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/15-continuous-delivery-using-gitops/assets/manifests/argocd/applications/helm/ambassador-stack-v${AMBASSADOR_CHART_VERSION}.yaml" > "clusters/dev/helm/ambassador-stack-v${AMBASSADOR_CHART_VERSION}.yaml"
+    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/15-continuous-delivery-using-gitops/assets/manifests/argocd/applications/helm/nginx-v${NGINX_CHART_VERSION}.yaml" > "clusters/dev/helm/nginx-v${NGINX_CHART_VERSION}.yaml"
 
     curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/15-continuous-delivery-using-gitops/assets/manifests/argocd/applications/helm/prometheus-stack-v${PROMETHEUS_CHART_VERSION}.yaml" > "clusters/dev/helm/prometheus-stack-v${PROMETHEUS_CHART_VERSION}.yaml"
 
@@ -507,14 +507,14 @@ argocd app sync starter-kit-apps
 The output looks similar to:
 
 ```text
-TIMESTAMP                  GROUP              KIND    NAMESPACE                  NAME         STATUS    HEALTH        HOOK  MESSAGE
-2022-03-23T17:39:38+02:00  argoproj.io  Application      argocd  sealed-secrets-controller  OutOfSync  Missing              
-2022-03-23T17:39:38+02:00  argoproj.io  Application      argocd                velero       OutOfSync  Missing              
-2022-03-23T17:39:38+02:00  argoproj.io  Application      argocd      ambassador-stack       OutOfSync  Missing
+TIMESTAMP                  GROUP        KIND             NAMESPACE   NAME                       STATUS     HEALTH  ...
+2022-03-23T17:39:38+02:00  argoproj.io  Application      argocd      sealed-secrets-controller  OutOfSync  Missing ...            
+2022-03-23T17:39:38+02:00  argoproj.io  Application      argocd      velero                     OutOfSync  Missing ...             
+2022-03-23T17:39:38+02:00  argoproj.io  Application      argocd      ingress-nginx              OutOfSync  Missing ...
 ...
 GROUP        KIND         NAMESPACE  NAME                       STATUS  HEALTH  HOOK  MESSAGE
 argoproj.io  Application  argocd     sealed-secrets-controller  Synced                application.argoproj.io/sealed-secrets-controller created
-argoproj.io  Application  argocd     ambassador-stack           Synced                application.argoproj.io/ambassador-stack created
+argoproj.io  Application  argocd     ingress-nginx              Synced                application.argoproj.io/ingress-nginx created
 argoproj.io  Application  argocd     kube-prometheus-stack      Synced                application.argoproj.io/kube-prometheus-stack created
 argoproj.io  Application  argocd     velero                     Synced                application.argoproj.io/velero created
 argoproj.io  Application  argocd     cert-manager               Synced                application.argoproj.io/cert-manager created
@@ -534,7 +534,7 @@ The output looks similar to:
 
 ```text
 NAME                       CLUSTER                         NAMESPACE       PROJECT  STATUS     HEALTH   SYNCPOLICY  ...
-ambassador-stack           https://kubernetes.default.svc  ambassador      default  OutOfSync  Missing  Auto-Prune  ...
+ingress-nginx              https://kubernetes.default.svc  ingress-nginx   default  OutOfSync  Missing  Auto-Prune  ...
 cert-manager               https://kubernetes.default.svc  cert-manager    default  OutOfSync  Missing  Auto-Prune  ...
 kube-prometheus-stack      https://kubernetes.default.svc  monitoring      default  OutOfSync  Missing  Auto-Prune  ...
 sealed-secrets-controller  https://kubernetes.default.svc  sealed-secrets  default  OutOfSync  Missing  Auto-Prune  ...
@@ -560,7 +560,7 @@ The output looks similar to (notice that all applications are synced now):
 
 ```text
 NAME                       CLUSTER                         NAMESPACE       PROJECT  STATUS    HEALTH   SYNCPOLICY  ...
-ambassador-stack           https://kubernetes.default.svc  ambassador      default  Synced    Healthy  Auto-Prune  ...
+ingress-nginx              https://kubernetes.default.svc  ingress-nginx   default  Synced    Healthy  Auto-Prune  ...
 cert-manager               https://kubernetes.default.svc  cert-manager    default  Synced    Healthy  Auto-Prune  ...
 kube-prometheus-stack      https://kubernetes.default.svc  monitoring      default  Synced    Healthy  Auto-Prune  ...
 sealed-secrets-controller  https://kubernetes.default.svc  sealed-secrets  default  Synced    Healthy  Auto-Prune  ...
@@ -783,7 +783,6 @@ Going further, `Argo CD` offers more interesting features, like:
 
 - [Application Projects](https://argo-cd.readthedocs.io/en/stable/user-guide/projects)
 - [Overriding Application Parameters](https://argo-cd.readthedocs.io/en/stable/user-guide/parameters)
-- [Using Argo CD with Sealed Secrets](https://utkuozdemir.org/blog/argocd-helm-secrets)
 - [Working with Private Git Repositories](https://argo-cd.readthedocs.io/en/stable/user-guide/private-repositories)
 - [Orphaned Resources Monitoring](https://argo-cd.readthedocs.io/en/stable/user-guide/orphaned-resources)
 - [Tracking and Deployment Strategies](https://argo-cd.readthedocs.io/en/stable/user-guide/tracking_strategies)
@@ -793,3 +792,7 @@ Going further, `Argo CD` offers more interesting features, like:
 - [Best Practices Guide](https://argo-cd.readthedocs.io/en/stable/user-guide/best_practices)
 - [Security Considerations](https://argo-cd.readthedocs.io/en/stable/security_considerations)
 - [Progressive Delivery using Argo Rollouts](https://argoproj.github.io/argo-rollouts)
+
+External resources:
+
+- [Using Argo CD with Sealed Secrets](https://utkuozdemir.org/blog/argocd-helm-secrets)
