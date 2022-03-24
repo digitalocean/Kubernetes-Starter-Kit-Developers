@@ -2,7 +2,7 @@
 
 ## Introduction
 
-[Argo CD](https://argoproj.github.io/cd) is another popular open source implementation providing a neat GitOps experience. One of the main features making it unique amongst other existing solutions (like Flux CD for example), is the ability to audit and observe all CD pipelines via a graphical web interface.
+[Argo CD](https://argoproj.github.io/cd) is a popular open source implementation for doing GitOps continuous delivery on top of Kubernetes. Your applications, definitions, configurations, and environments should be declarative and version controlled. Also application deployment and lifecycle management should be automated, auditable, and easy to understand. All this can be done using Argo.
 
 Argo CD adheres to the same GitOps patterns and principles, thus maintaining your cluster state using a declarative approach. Synchronization happens via a Git repository, where your Kubernetes manifests are being stored. Kubernetes manifests can be specified in several ways:
 
@@ -36,15 +36,16 @@ In this tutorial, you will learn to:
 
 - Use `Helm` to provision `Argo CD` to your `DOKS` cluster.
 - Keep your `Kubernetes` cluster applications state synchronized with a `Git` repository (use `GitOps` principles).
-- Install and manage applications via Argo CD Application sets.
-- Install and manage `Sealed Secrets` controller via Argo CD to encrypt sensitive data.
+- Deploy and manage applications via Argo CD.
 
 After finishing all the steps from this tutorial, you should have a `DOKS` cluster with `Argo CD` deployed, that will:
 
 - Handle cluster reconciliation, via [Application](https://argo-cd.readthedocs.io/en/stable/operator-manual/declarative-setup/#applications) CRDs.
 - Handle Helm releases, using [Helm sources](https://argo-cd.readthedocs.io/en/stable/user-guide/helm) defined inside application CRDs.
 
-### DOKS and Argo CD Automation Overview
+### DOKS and Argo CD for Helm Releases Overview
+
+Below diagram shows how Argo CD manages Helm applications hosted using a Git repository:
 
 ![DOKS-ArgoCD-Automation-Overview](assets/images/argocd_overview.png)
 
@@ -53,7 +54,7 @@ After finishing all the steps from this tutorial, you should have a `DOKS` clust
 - [Introduction](#introduction)
   - [DOKS and Argo CD Automation Overview](#doks-and-argo-cd-automation-overview)
 - [Prerequisites](#prerequisites)
-- [Understanding Argo CD Concepts for Automated Releases of Applications](#understanding-argo-cd-concepts-for-automated-releases-of-applications)
+- [Understanding Argo CD Concepts for Application Deployment](#understanding-argo-cd-concepts-for-application-deployment)
 - [Installing Argo CD](#installing-argo-cd)
   - [Kubectl Based Installation](#kubectl-based-installation)
   - [Helm Based Installation](#helm-based-installation)
@@ -79,9 +80,11 @@ To complete this tutorial, you will need:
 6. [Kubeseal](https://github.com/bitnami-labs/sealed-secrets/releases/tag/v0.17.3), for encrypting secrets and [Sealed Secrets Controller](https://github.com/bitnami-labs/sealed-secrets) interaction.
 7. [Helm](https://www.helms.sh), for managing `Argo CD` releases and upgrades (optional, but recommended in general for production systems).
 
-## Understanding Argo CD Concepts for Automated Releases of Applications
+## Understanding Argo CD Concepts for Application Deployment
 
-Argo CD is using the [Application](https://argo-cd.readthedocs.io/en/stable/operator-manual/declarative-setup/#applications) core concept to manage applications deployment and lifecycle. Inside an Argo CD application manifest you define the Git repository hosting your application definitions, as well as the corresponding Kubernetes cluster to be managed. In other words, an Argo CD application defines the relationship between a source repository and a Kubernetes cluster. It's a very concise and scalable design, where you can associate multiple sources (Git repositories) and corresponding Kubernetes clusters. This way, you can create multi environment setups very easy.
+Argo CD is using the [Application](https://argo-cd.readthedocs.io/en/stable/operator-manual/declarative-setup/#applications) core concept to manage applications deployment and lifecycle. Inside an Argo CD application manifest you define the Git repository hosting your application definitions, as well as the corresponding Kubernetes cluster to deploy applications. In other words, an Argo CD application defines the relationship between a source repository and a Kubernetes cluster. It's a very concise and scalable design, where you can associate multiple sources (Git repositories) and corresponding Kubernetes clusters.
+
+A major benefit of using applications is that you don't need to deploy Argo to each cluster individually. You can use a dedicated cluster for Argo, and deploy applications to all clusters at once from a single place. This way, you avoid Argo CD downtime or loss, in case other environments have issues or get decommissioned.
 
 On top of that, you can group similar applications into a [Project](https://argo-cd.readthedocs.io/en/stable/user-guide/projects). Projects permit logical grouping of applications and associated roles/permissions, when working with multiple teams. When not specified, each new application belongs to the `default` project. The `default` project is created automatically, and it doesn't have any restrictions. The default project can be modified, but not deleted.
 
@@ -91,7 +94,9 @@ Although you can use the graphical UI (web interface) of Argo CD to create appli
 
 **Important note:**
 
-An important aspect to keep in mind is that by default Argo CD doesn't synchronize automatically your cluster with the specified Git repository in the application manifest. This is by design, and it's more of a safety feature to not break existing applications on a cluster. To enable automatic synchronization and deletion of orphaned resources (pruning) that are not present in the Git repository anymore, you need to define a `syncPolicy` in the application manifest. A sync policy also defines if you want to `revert` back `manual changes` made in your Kubernetes cluster via `kubectl`. You can read more about [auto sync policies](https://argo-cd.readthedocs.io/en/stable/user-guide/auto_sync) on the official documentation website.
+An important aspect to keep in mind is that by default Argo CD doesn't automatically synchronize your new applications. When an ArgoCD Application is first created, its state is `OutOfSync`. It means, Git repository state pointed by the ArgoCD Application doesn’t match Kubernetes cluster state. Creating a new ArgoCD Application doesn't trigger an automatic deployment on the target cluster.
+
+To enable automatic synchronization and deletion of orphaned resources (pruning), you need to create a `syncPolicy`. You can also configure Argo CD to automatically revert manual changes made via `kubectl`. You can read more about [auto sync policies](https://argo-cd.readthedocs.io/en/stable/user-guide/auto_sync) on the official documentation website.
 
 Typical `Application CRD` using a Git repository source, looks like below:
 
@@ -486,10 +491,7 @@ argocd app create starter-kit-apps \
     --dest-namespace argocd \
     --dest-server https://kubernetes.default.svc \
     --repo https://github.com/<YOUR_GITHUB_USERNAME>/<YOUR_ARGOCD_GITHUB_REPO_NAME>.git \
-    --path clusters/dev/helm \
-    --sync-policy automated \
-    --auto-prune \
-    --self-heal
+    --path clusters/dev/helm
 ```
 
 Above command will create a new `Argo CD application` named `starter-kit-apps` in the `argocd` namespace, configured to:
@@ -559,14 +561,18 @@ argocd app list
 The output looks similar to (notice that all applications are synced now):
 
 ```text
-NAME                       CLUSTER                         NAMESPACE       PROJECT  STATUS    HEALTH   SYNCPOLICY  ...
-ingress-nginx              https://kubernetes.default.svc  ingress-nginx   default  Synced    Healthy  Auto-Prune  ...
-cert-manager               https://kubernetes.default.svc  cert-manager    default  Synced    Healthy  Auto-Prune  ...
-kube-prometheus-stack      https://kubernetes.default.svc  monitoring      default  Synced    Healthy  Auto-Prune  ...
-sealed-secrets-controller  https://kubernetes.default.svc  sealed-secrets  default  Synced    Healthy  Auto-Prune  ...
-starter-kit-apps           https://kubernetes.default.svc  argocd          default  Synced    Healthy  <none>      ...  
-velero                     https://kubernetes.default.svc  velero          default  Synced    Healthy  Auto-Prune  ...
+NAME                       CLUSTER                         NAMESPACE       PROJECT  STATUS    HEALTH   SYNCPOLICY  CONDITIONS ...
+ingress-nginx              https://kubernetes.default.svc  ingress-nginx   default  Synced    Healthy  Auto-Prune  <none>     ...
+cert-manager               https://kubernetes.default.svc  cert-manager    default  Synced    Healthy  Auto-Prune  <none>     ...
+kube-prometheus-stack      https://kubernetes.default.svc  monitoring      default  Synced    Healthy  Auto-Prune  <none>     ...
+sealed-secrets-controller  https://kubernetes.default.svc  sealed-secrets  default  Synced    Healthy  Auto-Prune  <none>     ...
+starter-kit-apps           https://kubernetes.default.svc  argocd          default  Synced    Healthy  <none>      <none>     ...
+velero                     https://kubernetes.default.svc  velero          default  OutOfSync Missing  Auto-Prune  SyncError  ...
 ```
+
+**Important note:**
+
+The Velero application deployment will fail, and left on purpose in the `SyncError` state as an exercise for the reader to get familiar and learn how to diagnose application problems in Argo CD. Please consult the **Hints** section below to see how to diagnose Argo CD applications issues.
 
 Bootstrapping the parent application is a one-time operation. On subsequent Git changes for each application, Argo CD will detect the drift and apply required changes. Argo CD is using a `polling mechanism` by default, to detect changes in your Git repository. The default `refresh interval` is set to `3 minutes`. Instead of relying on a polling mechanism, you can also leverage the power of Git webhooks. Please visit the official documentation website to learn how to create and configure Argo CD to use Git [webhooks](https://argo-cd.readthedocs.io/en/stable/operator-manual/webhook).
 
@@ -662,6 +668,10 @@ If you look at the above picture, you will notice that all applications are mark
 Leave on the default values, then press on the `Synchronize` button at the top and watch how Argo CD cascades the sync operation to all applications:
 
 ![Argo CD Starter Kit Apps WebUI Sync Progress](assets/images/argocd_apps_sync_progress.png)
+
+**Important note:**
+
+The Velero application deployment will fail, and left on purpose in the `SyncError` state as an exercise for the reader to get familiar and learn how to diagnose application problems in Argo CD. Please consult the **Hints** section below to see how to diagnose Argo CD applications issues.
 
 If everything goes well, all applications should have a green border and status should be `Healthy` and `Synced`. The bootstrapping process is a one-time operation. On subsequent Git changes for each application, Argo CD will detect the drift and apply required changes. Argo CD is using a `polling mechanism` by default, to detect changes in your Git repository. The default `refresh interval` is set to `3 minutes`. Instead of relying on a polling mechanism, you can also leverage the power of Git webhooks. Please visit the official documentation website to learn how to create and configure Argo CD to use Git [webhooks](https://argo-cd.readthedocs.io/en/stable/operator-manual/webhook).
 
