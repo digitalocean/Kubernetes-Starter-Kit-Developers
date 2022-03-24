@@ -486,7 +486,10 @@ argocd app create starter-kit-apps \
     --dest-namespace argocd \
     --dest-server https://kubernetes.default.svc \
     --repo https://github.com/<YOUR_GITHUB_USERNAME>/<YOUR_ARGOCD_GITHUB_REPO_NAME>.git \
-    --path clusters/dev/helm
+    --path clusters/dev/helm \
+    --sync-policy automated \
+    --auto-prune \
+    --self-heal
 ```
 
 Above command will create a new `Argo CD application` named `starter-kit-apps` in the `argocd` namespace, configured to:
@@ -567,39 +570,52 @@ velero                     https://kubernetes.default.svc  velero          defau
 
 Bootstrapping the parent application is a one-time operation. On subsequent Git changes for each application, Argo CD will detect the drift and apply required changes. Argo CD is using a `polling mechanism` by default, to detect changes in your Git repository. The default `refresh interval` is set to `3 minutes`. Instead of relying on a polling mechanism, you can also leverage the power of Git webhooks. Please visit the official documentation website to learn how to create and configure Argo CD to use Git [webhooks](https://argo-cd.readthedocs.io/en/stable/operator-manual/webhook).
 
-**Hint:**
+**Hints:**
 
-In case of any synchronization failures, you can always inspect the Kubernetes events for the application in question (via `argocd app get <application_name>`):
+- If desired, you can configure the parent application to be synced automatically (and also enable self healing and automatic pruning), you can use the following command (don't forget to replace the `<>` placeholders accordingly):
 
-```shell
-argocd app get velero
-```
+    ```shell
+    argocd app create starter-kit-apps \
+      --dest-namespace argocd \
+      --dest-server https://kubernetes.default.svc \
+      --repo https://github.com/<YOUR_GITHUB_USERNAME>/<YOUR_ARGOCD_GITHUB_REPO_NAME>.git \
+      --path clusters/dev/helm \
+      --sync-policy automated \
+      --auto-prune \
+      --self-heal
+    ```
 
-The output looks similar to:
+- In case of any synchronization failures, you can always inspect the Kubernetes events for the application in question (via `argocd app get <application_name>`):
 
-```text
-Name:               velero
-Project:            default
-Server:             https://kubernetes.default.svc
-Namespace:          velero
-URL:                https://argocd.example.com/applications/velero
-Repo:               https://vmware-tanzu.github.io/helm-charts
-Target:             2.27.3
-Path:               
-SyncWindow:         Sync Allowed
-Sync Policy:        Automated (Prune)
-Sync Status:        OutOfSync from 2.27.3
-Health Status:      Missing
+    ```shell
+    argocd app get velero
+    ```
 
-CONDITION  MESSAGE                                                                                          LAST TRANSITION
-SyncError  Failed sync attempt to 2.27.3: one or more objects failed to apply (dry run) (retried 5 times).  2022-03-24 12:14:21 +0200 EET
+    The output looks similar to:
+
+    ```text
+    Name:               velero
+    Project:            default
+    Server:             https://kubernetes.default.svc
+    Namespace:          velero
+    URL:                https://argocd.example.com/applications/velero
+    Repo:               https://vmware-tanzu.github.io/helm-charts
+    Target:             2.27.3
+    Path:               
+    SyncWindow:         Sync Allowed
+    Sync Policy:        Automated (Prune)
+    Sync Status:        OutOfSync from 2.27.3
+    Health Status:      Missing
+
+    CONDITION  MESSAGE                                                                                          LAST TRANSITION
+    SyncError  Failed sync attempt to 2.27.3: one or more objects failed to apply (dry run) (retried 5 times).  2022-03-24 12:14:21 +0200 EET
 
 
-GROUP                      KIND                      NAMESPACE  NAME                               STATUS     HEALTH      HOOK      MESSAGE
-velero.io                  VolumeSnapshotLocation    velero     default                            Failed     SyncFailed  PostSync  error validating data: ValidationError(VolumeSnapshotLocation.spec): missing required field "provider" in io.velero.v1.VolumeSnapshotLocation.spec
-velero.io                  BackupStorageLocation     velero     default                            Failed     SyncFailed  PostSync  error validating data: [ValidationError(BackupStorageLocation.spec.objectStorage): missing required field "bucket" in io.velero.v1.BackupStorageLocation.spec.objectStorage, ValidationError(BackupStorageLocation.spec): missing required field "provider" in io.velero.v1.BackupStorageLocation.spec]
-...
-```
+    GROUP                      KIND                      NAMESPACE  NAME                               STATUS     HEALTH      HOOK      MESSAGE
+    velero.io                  VolumeSnapshotLocation    velero     default                            Failed     SyncFailed  PostSync  error validating data: ValidationError(VolumeSnapshotLocation.spec): missing required field "provider" in io.velero.v1.VolumeSnapshotLocation.spec
+    velero.io                  BackupStorageLocation     velero     default                            Failed     SyncFailed  PostSync  error validating data: [ValidationError(BackupStorageLocation.spec.objectStorage): missing required field "bucket" in io.velero.v1.BackupStorageLocation.spec.objectStorage, ValidationError(BackupStorageLocation.spec): missing required field "provider" in io.velero.v1.BackupStorageLocation.spec]
+    ...
+    ```
 
 Next, you will learn how to use the `app of apps patern` and perform the same steps via the Argo CD graphical user interface.
 
@@ -649,15 +665,19 @@ Leave on the default values, then press on the `Synchronize` button at the top a
 
 If everything goes well, all applications should have a green border and status should be `Healthy` and `Synced`. The bootstrapping process is a one-time operation. On subsequent Git changes for each application, Argo CD will detect the drift and apply required changes. Argo CD is using a `polling mechanism` by default, to detect changes in your Git repository. The default `refresh interval` is set to `3 minutes`. Instead of relying on a polling mechanism, you can also leverage the power of Git webhooks. Please visit the official documentation website to learn how to create and configure Argo CD to use Git [webhooks](https://argo-cd.readthedocs.io/en/stable/operator-manual/webhook).
 
-**Hint:**
+**Hints:**
 
-In case of any synchronization failures, you can always inspect the Kubernetes events for the application in question. Using the web interface, you can navigate to the affected application tile:
+- If desired, you can configure the parent application to be synced automatically, by setting the `SYNC POLICY` field value to `Automatic`. To enable self healing and automatic pruning, tick the `PRUNE RESOURCES` and `SELF HEAL` checkboxes:
 
-![Argo CD Failed App](assets/images/argocd_failed_app.png)
+  ![Argo CD Auto Sync/Heal and Prune App](assets/images/argocd_autosync_prune_webui.png)
 
-Then, click on the `Sync failed` message link flagged in red color, from the `LAST SYNC RESULT` section in the application page header. A new panel pops up, showing useful information about why the sync operation failed:
+- In case of any synchronization failures, you can always inspect the Kubernetes events for the application in question. Using the web interface, you can navigate to the affected application tile:
 
-![Argo CD Failed App Investigation](assets/images/argocd_failed_app_investigation.png)
+  ![Argo CD Failed App](assets/images/argocd_failed_app.png)
+
+  Then, click on the `Sync failed` message link flagged in red color, from the `LAST SYNC RESULT` section in the application page header. A new panel pops up, showing useful information about why the sync operation failed:
+
+  ![Argo CD Failed App Investigation](assets/images/argocd_failed_app_investigation.png)
 
 In the next section, you will learn how to manage multiple applications at once using a single CRD - the `ApplicationSet`.
 
