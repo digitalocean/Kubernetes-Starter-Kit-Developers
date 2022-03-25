@@ -4,36 +4,36 @@
 
 In a real world scenario you want to have resiliency for your applications. On the other hand, you want to be more efficient on resources and cut down costs as well. You need something that can scale your application on demand.
 
-Most of the time you created application `Deployments` using a fixed `ReplicaSet` number. But, in production environments which are variably put under load by external users, it is not always that simple. It is inefficient to just go ahead and change some static values every time your web application deployments are put under load and start to misbehave, based on a specific period of the day, holidays or other special events, when many users come and visit your shopping site. Then, when the crowded period is over, you must go back and scale down your web deployments to avoid waste of resources, and reduce infrastructure costs.
+Most of the time you created Kubernetes `Deployments` for your applications using a fixed `ReplicaSet` number. But, in production environments which are variably put under load by external requests, it is not always that simple. It is inefficient to change the replica set value every time your web application is under load and starts to misbehave. Main reason(s) can be: your application receives more requests each afternoon (a specific period of the day), or when holidays are coming and many users visit your shopping site. Then, when the crowded period is over, you must go back and scale down your web deployments to avoid waste of resources, and reduce infrastructure costs.
 
-This is were [Horizontal Pod Autoscaling](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale) kicks in, and provides a solution for more efficient resource usage, as well as reducing costs. It is a closed loop system that automatically grows or shrinks resources (application Pods), based on current needs. You create a `HorizontalPodAutoscaler` (or `HPA`) resource for each application deployment that needs autoscaling, and let it take care of the rest for you automatically.
+This is where [Horizontal Pod Autoscaling](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale) kicks in, and provides a solution for more efficient resource usage, as well as reducing costs. It is a closed loop system that automatically grows or shrinks resources (application Pods), based on current needs. You create a `HorizontalPodAutoscaler` (or `HPA`) resource for each application deployment that needs autoscaling, and let it take care of the rest for you automatically.
 
 Horizontal pod scaling deals with adjusting replicas for application Pods, whereas vertical pod scaling deals with resource requests and limits for containers within Pods.
 
 ### How Horizontal Pod Autoscaling Works
 
-At a high level, each `HPA` does the following:
+At a high level, `HPA` does the following:
 
 1. Keeps an eye on resource requests metrics coming from your application workloads (Pods), by querying the metrics server.
-2. Compares the target threshold value that you set in the HPA definition with the average resource utilization observed on your application  workloads (CPU and memory).
-3. If the target threshold is reached, then HPA will scale up your application deployment to meet higher demands. Otherwise, if below the threshold, it will scale down the deployment. To see how HPA computes the final replica count, you can visit the [algorithm details](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#algorithm-details) page from the official documentation.
+2. Compares the target threshold value that you set in the HPA definition with the average resource utilization observed for your application workloads (CPU and memory).
+3. If the target threshold is reached, then HPA will scale up your application deployment to meet higher demands. Otherwise, if below the threshold, it will scale down the deployment. To see what logic HPA uses to scale your application deployment, please visit the [algorithm details](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#algorithm-details) page from the official documentation.
 
-Under the hood, `HorizontalPodAutoscaler` is just another CRD (`Custom Resource Definition`) which drives a Kubernetes control loop implemented via a dedicated controller within the `Control Plane` of your cluster. Basically, you define a `HorizontalPodAutoscaler` YAML manifest targeting your application `Deployment`, and have the resource created in your cluster as usual, via `kubectl`. **Please bear in mind that you cannot target objects that cannot be scaled, such as a `DaemonSet` for example.**
+Under the hood, a `HorizontalPodAutoscaler` is just another CRD (`Custom Resource Definition`) which drives a Kubernetes control loop implemented via a dedicated controller within the `Control Plane` of your cluster. Basically, you create a `HorizontalPodAutoscaler` YAML manifest targeting your application `Deployment`, and then use `kubectl` to apply the HPA resource in your cluster. **Please bear in mind that you cannot target objects that cannot be scaled, such as a `DaemonSet` for example.**
 
 In order to do its magic, HPA needs a metrics server available in your cluster to scrape required metrics, such as CPU and memory utilization. One popular option is the [Kubernetes Metrics Server](https://github.com/kubernetes-sigs/metrics-server). **Please bear in mind that the `Kubernetes Metrics Server` was created to provide CPU and memory utilization metrics only.**
 
 Metrics server acts as an extension for the `Kubernetes API` server, thus offering more features. In a nutshell, the `Kubernetes Metrics Server` works by collecting `resource metrics` from `Kubelets` and exposing them via the `Kubernetes API Server` to be consumed by `Horizontal Pod Autoscaler`. Metrics API can also be accessed by `kubectl top`, making it easier to debug autoscaling pipelines.
 
-Please make sure to read and understand metrics server main purpose, by visiting the [use cases](https://github.com/kubernetes-sigs/metrics-server#use-cases) section from the main documentation (this is important as well).
+Please make sure to read and understand metrics server main purpose, by visiting the [use cases](https://github.com/kubernetes-sigs/metrics-server#use-cases) section from the main documentation (this is important).
 
-For custom metrics (anything else than CPU and memory), you can use [Prometheus](https://prometheus.io) via a special adapter, named [prometheus-adapter](https://github.com/kubernetes-sigs/prometheus-adapter). It means, you can scale applications on other metrics such as the number of HTTP requests for example, rather than CPU and/or memory utilization.
+For custom metrics (anything else than CPU or memory), you can use [Prometheus](https://prometheus.io) via a special adapter, named [prometheus-adapter](https://github.com/kubernetes-sigs/prometheus-adapter). It means, you can scale applications using other metrics (such as the number of HTTP requests), rather than CPU and/or memory utilization.
 
 This tutorial will show you how to:
 
-- Deploy `Kubernetes Metrics Server` to your `DOKS` cluster for the `Horizontal Pod Autoscaler` to work.
-- Create a `HPA`, targeting a sample `application deployment`.
-- Test the HPA setup, by inducing `load` on the sample `application pods`.
-- Configure and use the `Prometheus Adapter`, to scale applications using custom metrics.
+- Deploy `Kubernetes Metrics Server` to your `DOKS` cluster.
+- Understand main concepts, and how to create `HPAs` for your applications.
+- Test each HPA setup, using two scenarios: constant and variable application load.
+- Configure and use the `Prometheus Adapter` to scale applications using custom metrics.
 
 For more in depth explanations, please visit the official documentation page for the [Horizontal Pod Autoscaler](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale).
 
@@ -49,14 +49,14 @@ Below diagram shows a high level overview of how HPA works in conjunction with m
   - [How Horizontal Pod Autoscaling Works](#how-horizontal-pod-autoscaling-works)
   - [Metrics Server and HPA Overview Diagram](#metrics-server-and-hpa-overview-diagram)
 - [Prerequisites](#prerequisites)
-- [Step 1 - Installing the Kubernetes Metrics Server](#step-1---installing-the-kubernetes-metrics-server)
+- [Step 1 - Installing Kubernetes Metrics Server](#step-1---installing-kubernetes-metrics-server)
 - [Step 2 - Getting to Know HPAs](#step-2---getting-to-know-hpas)
-- [Step 3 - Creating and Testing HPAs using Metrics Server](#step-3---creating-and-testing-hpas-using-metrics-server)
+- [Step 3 - Scaling Applications Automatically via Metrics Server](#step-3---scaling-applications-automatically-via-metrics-server)
   - [Scenario 1 - Constant Load Test](#scenario-1---constant-load-test)
   - [Scenario 2 - External Load Test](#scenario-2---external-load-test)
-- [Step 4 - Scaling Applications Automatically via the Prometheus Adapter](#step-4---scaling-applications-automatically-via-the-prometheus-adapter)
+- [Step 4 - Scaling Applications Automatically via Prometheus Adapter](#step-4---scaling-applications-automatically-via-prometheus-adapter)
   - [Installing Prometheus Adapter](#installing-prometheus-adapter)
-  - [Creating a Sample Application for Testing](#creating-a-sample-application-for-testing)
+  - [Creating a Sample Application to Test Prometheus Adapter](#creating-a-sample-application-to-test-prometheus-adapter)
   - [Creating a ServiceMonitor for the Application under Test](#creating-a-servicemonitor-for-the-application-under-test)
   - [Defining Discovery Rules for Prometheus Adapter](#defining-discovery-rules-for-prometheus-adapter)
   - [Creating and Testing HPAs using Custom Metrics](#creating-and-testing-hpas-using-custom-metrics)
@@ -72,14 +72,14 @@ To complete this tutorial, you will need:
 
 In the next step, you will learn how to deploy the `Kubernetes Metrics Server`, using the `Helm` package manager.
 
-## Step 1 - Installing the Kubernetes Metrics Server
+## Step 1 - Installing Kubernetes Metrics Server
 
 Kubernetes metrics server can be installed in two ways:
 
-1. Via a single `kubectl` command, in high availability mode (which is recommended): `kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/high-availability.yaml`
+1. Via a single `kubectl` command, in high availability mode: `kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/high-availability.yaml`
 2. Via `Helm`, by deploying [metrics-server](https://artifacthub.io/packages/helm/metrics-server/metrics-server) chart to your cluster.
 
-This tutorial (as all tutorials from the Starter Kit) is using the `Helm` installation method, because it's more flexible and you can fine tune the release parameters later on if needed. High availability is a must, and can be set easily via the `replica` field from the `metrics-server` Helm chart.
+This tutorial (and all tutorials from the Starter Kit) is using the `Helm` installation method, because it's more flexible and you can fine tune the release parameters later on, if needed. High availability is a must, and can be set easily via the `replica` field from the `metrics-server` Helm chart.
 
 Please bear in mind that the metrics server deployment requires some special permissions. For more information about all prerequisites, please read the official [requirements](https://github.com/kubernetes-sigs/metrics-server#requirements) page.
 
@@ -149,13 +149,13 @@ NAME            NAMESPACE       REVISION        UPDATED                         
 metrics-server  metrics-server  1               2022-02-24 14:58:23.785875 +0200 EET    deployed        metrics-server-3.8.2    0.6.1
 ```
 
-Next check the Kubernetes resources status from the `metrics-server` namespace (notice the `deployment` and `replicaset` resources which should be `healthy`, and counting as `2`):
+Next, check all Kubernetes resources status from the `metrics-server` namespace:
 
 ```shell
 kubectl get all -n metrics-server
 ```
 
-The output looks similar to:
+The output looks similar to (notice the `deployment` and `replicaset` resources, which should be `healthy` and counting as `2`):
 
 ```text
 NAME                                  READY   STATUS    RESTARTS   AGE
@@ -172,13 +172,13 @@ NAME                                        DESIRED   CURRENT   READY   AGE
 replicaset.apps/metrics-server-694d47d564   2         2         2       8m55s
 ```
 
-Finally, check if the `kubectl top` subcommand works (displays `resource usage`, such as `CPU/Memory`). Below command will display current `resource usage` for all `Pods` in the `kube-system` namespace:
+Finally, check if the `kubectl top` command works (similar to Linux `top` command - prints current resource usage, such as CPU and memory). Below command displays current resource usage for all `Pods` in the `kube-system` namespace:
 
 ```shell
 kubectl top pods -n kube-system
 ```
 
-The output looks similar to (notice `CPU` measures expressed in `millicores`, as well as for `memory` in `Mebibytes`):
+The output looks similar to (CPU usage is expressed in `millicores`, and memory usage in `Mebibytes`):
 
 ```text
 NAME                               CPU(cores)   MEMORY(bytes)   
@@ -195,13 +195,13 @@ kube-proxy-l9ddv                   1m           25Mi
 kube-proxy-t6c29                   1m           30Mi            
 ```
 
-If the output looks like above, then you configured metrics server correctly. In the next steps, you will learn how to configure and test `HorizontalPodAutoscaling` resources targeting your application deployments.
+If the output looks like above, then you configured metrics server correctly. In the next step, you will learn how to configure and test your first `HorizontalPodAutoscaling` resource.
 
 ## Step 2 - Getting to Know HPAs
 
-By far the most used type of application `Deployment` is the one using a static or a fixed value for the `ReplicaSet` field. This may suffice for some simple deployments, or development environments. In this step you will learn how to automatically scale up or down your application based on current needs.
+So far, each time you created a new Kubernetes deployment for your application, the `ReplicaSet` field was configured to a fixed value. This may suffice for simple cases, or development environments. In this step you will learn how to define a HPA CRD, and then focus on the first practical example.
 
-In a HPA based setup you let the `HorizontalPodAutoscaler` take control over the deployment replica count field. Typical HPA CRD manifest looks like below:
+In a HPA based setup, the `HorizontalPodAutoscaler` takes control over the application deployment replica set field value. Typical `HorizontalPodAutoscaler` CRD looks like below:
 
 ```yaml
 apiVersion: autoscaling/v2beta2
@@ -229,53 +229,69 @@ Explanations for the above configuration:
 - `spec.scaleTargetRef`: Reference to scaled resource.
 - `spec.minReplicas`: The lower limit for the number of replicas to which the autoscaler can scale down.
 - `spec.maxReplicas`: The upper limit for the number of pods that can be set by the autoscaler.
-- `spec.metrics.type`: Type of metric to use to calculate the desired replica count. Above example is using `Resource` type, which tells the autoscaler to `scale` the deployment based on `CPU` (or memory) average utilization (`averageUtilization` is set to a threshold value of `50`).
+- `spec.metrics.type`: Type of metric to use to calculate the desired replica count. Above example is using `Resource` type, which tells the HPA to scale the deployment based on average `CPU` (or memory) utilization (`averageUtilization` is set to a threshold value of `50`).
 
-Next, you have two options to create a HPA for your deployment:
+Next, you have two options to create a HPA for your application deployment:
 
-1. Use the `kubectl autoscale` subcommand on an existing deployment.
-2. Create a HPA YAML manifest, targeting your deployment. Then, use `kubectl` as usual to apply the changes.
+1. Use the `kubectl autoscale` command on an existing deployment.
+2. Create a HPA YAML manifest, and then use `kubectl` to apply changes to your cluster.
 
-First option is for performing quick tests because you don't want to mess with YAML stuff yet. Assuming that an application deployment already exists, and it's called `my-python-app`. Below command will create a `HorizontalPodAutoscaler` resource, targeting your `my-python-app` deployment (`default` namespace is assumed):
+First option is for performing a quick test (or spin), and you don't want to mess with YAML stuff yet. Please go ahead and try the first example, provided in the Starter Kit:
 
-```shell
-kubectl autoscale deployment my-python-app --cpu-percent=50 --min=1 --max=3
-```
+1. First, please clone the Starter Kit repository (if not already), and change directory to your local copy:
 
-Above action translates to: please create a HPA resource for me, to automatically scale my `my-python-app` deployment to a maximum of 3 replicas (and no less than 1 replica), whenever average cpu utilization hits 50% (based on resource requests metric). You can check if the HPA resource was created by running (`default` namespace is assumed):
+    ```shell
+    git clone https://github.com/digitalocean/Kubernetes-Starter-Kit-Developers.git
+
+    cd Kubernetes-Starter-Kit-Developers
+    ```
+
+2. Then, create the [myapp-test](assets/manifests/hpa/metrics-server/myapp-test.yaml) deployment (main purpose is to create some CPU load, by printing a message indefinitely):
+
+    ```shell
+    kubectl apply -f 09-scaling-application-workloads/assets/manifests/hpa/metrics-server/myapp-test.yaml
+    ```
+
+3. Finally, create a `HorizontalPodAutoscaler` targeting the `myapp-test` deployment:
+
+    ```shell
+    kubectl autoscale deployment myapp-test --cpu-percent=50 --min=1 --max=3
+    ```
+
+Above action translates to: please create a HPA resource for me, that automatically scales my `myapp-test` deployment to a maximum of 3 replicas (and no less than 1 replica), whenever average CPU utilization hits 50%. You can check if the HPA resource was created by running:
 
 ```shell
 kubectl get hpa
 ```
 
-The output looks similar to (the `TARGETS` column shows a value of `50%` which is the average CPU utilization that the HPA needs to maintain, whereas `255%` is the current usage):
+The output looks similar to (the `TARGETS` column shows a value of `50%` which is the average CPU utilization that the HPA needs to maintain, whereas `240%` is the current usage):
 
 ```text
-NAME            REFERENCE                  TARGETS    MINPODS   MAXPODS   REPLICAS   AGE
-my-python-app   Deployment/my-python-app   255%/50%   1         3         3          52s
+NAME         REFERENCE                  TARGETS    MINPODS   MAXPODS   REPLICAS   AGE
+myapp-test   Deployment/myapp-test      240%/50%   1         3         3          52s
 ```
 
 **Note:**
 
-The `TARGETS` column value may show `<unknown>/50%` for a while (around quarter a minute or so). This is normal, and it has to do with HPA fetching the specific metric, and computing the average value over time. By default, HPA checks metrics every 15 seconds.
+The `TARGETS` column value will display `<unknown>/50%` for a while (around 15 seconds). This is normal, and it has to do with HPA fetching the specific metric, and computing the average value over time. By default, HPA checks metrics every 15 seconds.
 
 You can also observe the events a HPA generates under the hood, via:
 
 ```shell
-kubectl describe hpa my-python-app
+kubectl describe hpa myapp-test
 ```
 
 The output looks similar to (notice in the `Events` list how the HPA is increasing the `replica count` automatically):
 
 ```text
-Name:                                                  my-python-app
+Name:                                                  myapp-test
 Namespace:                                             default
 Labels:                                                <none>
 Annotations:                                           <none>
 CreationTimestamp:                                     Mon, 28 Feb 2022 10:10:50 +0200
-Reference:                                             Deployment/my-python-app
+Reference:                                             Deployment/myapp-test
 Metrics:                                               ( current / target )
-  resource cpu on pods  (as a percentage of request):  250% (50m) / 50%
+  resource cpu on pods  (as a percentage of request):  240% (48m) / 50%
 Min replicas:                                          1
 Max replicas:                                          3
 Deployment pods:                                       3 current / 3 desired
@@ -287,16 +303,27 @@ Events:
   Normal  SuccessfulRescale  37s   horizontal-pod-autoscaler  New size: 3; reason: cpu resource utilization (percentage of request) above target
 ```
 
-In a real world scenario, you will want to use a dedicated YAML manifest to define each HPA. This way, you can track the changes by having the manifest committed in a Git repository for example, and come back to it later easily to perform changes.
+In a real world scenario, you will want to use a dedicated YAML manifest to define each HPA. This way, you can track the changes by having the manifest committed in a Git repository, as well as come back to it later and perform changes.
 
-Next, you're going to discover and test HPAs, by looking at two different scenarios: one where constant load is present, and the other one where external load is created for the application under test.
+Before moving to the next step, please delete the `myapp-test` deployment and corresponding HPA resource created earlier:
 
-## Step 3 - Creating and Testing HPAs using Metrics Server
+```shell
+kubectl delete hpa myapp-test
+
+kubectl delete deployment myapp-test
+```
+
+Next, you're going to discover and test HPAs by looking at two different scenarios:
+
+1. Application creates constant load by running some CPU intensive tasks.
+2. External load is simulated via many successive HTTP calls for the application under test.
+
+## Step 3 - Scaling Applications Automatically via Metrics Server
 
 Following HPA experiments are based on two scenarios:
 
 1. An application deployment that creates constant load by performing some CPU intensive computations.
-2. You will launch a shell script which varies the number of HTTP requests hitting a web application over time.
+2. A shell script simulates external load by performing fast successive HTTP calls for a web application.
 
 ### Scenario 1 - Constant Load Test
 
@@ -333,7 +360,7 @@ kubectl apply -f 09-scaling-application-workloads/assets/manifests/hpa/metrics-s
 
 **Note:**
 
-The sample [deployment](assets/manifests/hpa/metrics-server/constant-load-deployment-test.yaml#L37) provided in this repository, sets requests limits for the application Pods. This is important because HPA logic relies on having resource requests limits set for your Pods, and it won't work otherwise. In general, it is advised to set resource requests limits for all your application Pods, to avoid things running out of control in your cluster.
+The sample [deployment](assets/manifests/hpa/metrics-server/constant-load-deployment-test.yaml#L37) provided in this repository configures resource request limits for the sample application Pods. This is important because HPA logic relies on having resource requests limits set for your Pods, and it won't work otherwise. In general, it is advised to set resource requests limits for all your application Pods, to avoid things running out of control in your cluster.
 
 Verify that the deployment was created successfully, and that it's up and running:
 
@@ -341,7 +368,7 @@ Verify that the deployment was created successfully, and that it's up and runnin
 kubectl get deployments -n hpa-constant-load
 ```
 
-The output looks similar to (notice that there's only one Pod up and running in the deployment):
+The output looks similar to (notice that only one application Pod running):
 
 ```text
 NAME                            READY   UP-TO-DATE   AVAILABLE   AGE
@@ -354,10 +381,10 @@ Next, create the [constant-load-hpa-test](assets/manifests/hpa/metrics-server/co
 kubectl apply -f 09-scaling-application-workloads/assets/manifests/hpa/metrics-server/constant-load-hpa-test.yaml -n hpa-constant-load
 ```
 
-The above command will create a `HPA` resource, targeting the sample deployment created earlier. You can check the `HPA state` via:
+The above command will create a `HPA` resource, targeting the sample deployment created earlier. You can check the `constant-load-test` HPA state via:
 
 ```shell
-kubectl get hpa -n hpa-constant-load
+kubectl get hpa constant-load-test -n hpa-constant-load
 ```
 
 The output looks similar to (notice the `REFERENCE` column targeting `constant-load-deployment-test`, as well as `TARGETS` column showing `current CPU resource requests` versus `threshold` value):
@@ -367,15 +394,15 @@ NAME                 REFERENCE                                  TARGETS    MINPO
 constant-load-test   Deployment/constant-load-deployment-test   255%/50%   1         3         3          49s
 ```
 
-You can also notice in the above output that the `REPLICAS` column value `increased` from `1` to `3` for the sample application deployment, as stated in the HPA CRD spec. The process took a short time to complete, because the application used in this examples creates load in no time. Going further, you can also inspect the HPA events and see the actions taken, via: `kubectl describe hpa -n hpa-constant-load`.
+You can also notice in the above output that the `REPLICAS` column value `increased` from `1` to `3` for the sample application deployment, as stated in the HPA CRD spec. The process took a short time to complete because the application used in this examples creates load in no time. Going further, you can also inspect the HPA events and see the actions taken, via: `kubectl describe hpa -n hpa-constant-load`.
 
 ### Scenario 2 - External Load Test
 
-A more interesting and realistic scenario to test and study, is one where external load is created for the application under test. For this experiment you're going to use a different namespace and set of manifests, to observe the final behavior in complete isolation from the previous scenario.
+A more interesting and realistic scenario to test and study is where external load is created for the application under test. For this experiment you're going to use a different namespace and set of manifests, to observe the final behavior in complete isolation from the previous scenario.
 
-The application under test is a simple [quote of the moment](https://github.com/datawire/quote) server listening for HTTP requests. On each call it sends a different `quote` as a response. You create load on the service by sending HTTP requests very fast (each 1ms roughly). There's a [helper script](assets/scripts/quote_service_load_test.sh) to help you achieve this.
+The application under test is the [quote of the moment](https://github.com/datawire/quote) sample server. On each HTTP request it sends a different `quote` as a response. You create load on the service by sending HTTP requests very fast (each 1ms roughly). There's a [helper script](assets/scripts/quote_service_load_test.sh) provided in the Starter Kit repository, which helps you achieve the results.
 
-First, please create the [quote](assets/manifests/hpa/metrics-server/quote_deployment.yaml) application `deployment` and `service` using `kubectl` (also a dedicated `hpa-external-load` namespace is created beforehand). Please make sure to change directory to `Kubernetes-Starter-Kit-Developers` first:
+First, please create the [quote](assets/manifests/hpa/metrics-server/quote_deployment.yaml) deployment and service using `kubectl` (also a dedicated `hpa-external-load` namespace is created beforehand). Please make sure to change directory to `Kubernetes-Starter-Kit-Developers` first:
 
 ```shell
 kubectl create ns hpa-external-load
@@ -383,7 +410,7 @@ kubectl create ns hpa-external-load
 kubectl apply -f 09-scaling-application-workloads/assets/manifests/hpa/metrics-server/quote_deployment.yaml -n hpa-external-load
 ```
 
-Now, verify if the `deployment` and `services` are `OK`:
+Now, verify if the `quote` application deployment and services are healthy:
 
 ```shell
 kubectl get all -n hpa-external-load
@@ -405,7 +432,7 @@ NAME                                   DESIRED   CURRENT   READY   AGE
 replicaset.apps/quote-6c8f564ff        1         1         1       3m5s
 ```
 
-Next, create the `HPA` for the `quote deployment` using `kubectl`:
+Next, create the `HPA` for the `quote` deployment using `kubectl`:
 
 ```shell
 kubectl apply -f 09-scaling-application-workloads/assets/manifests/hpa/metrics-server/quote-deployment-hpa-test.yaml -n hpa-external-load
@@ -414,7 +441,7 @@ kubectl apply -f 09-scaling-application-workloads/assets/manifests/hpa/metrics-s
 Now, check if the HPA resource is in place and alive:
 
 ```shell
-kubectl get hpa -n hpa-external-load
+kubectl get hpa external-load-test -n hpa-external-load
 ```
 
 The output looks similar to:
@@ -424,9 +451,13 @@ NAME                 REFERENCE          TARGETS   MINPODS   MAXPODS   REPLICAS  
 external-load-test   Deployment/quote   1%/20%    1         3         1          108s
 ```
 
-Please note that in this case there's a different threshold value set for the CPU utilization resource metric, as well as a different scale down behavior. The new spec for the HPA CRD looks like below:
+Please note that in this case there's a different threshold value set for the CPU utilization resource metric, as well as a different scale down behavior. The `external-load-test` HPA CRD looks like below:
 
 ```yaml
+apiVersion: autoscaling/v2beta2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: external-load-test
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
@@ -446,17 +477,17 @@ spec:
           averageUtilization: 20
 ```
 
-The above configuration alters the `scaleDown.stabilizationWindowSeconds` behavior and sets it to a lower value of `60 seconds`. This is not really needed in practice, but in this case you may want to speed up things and quickly see how the autoscaler performs the scale down action. By default, the `HorizontalPodAutoscaler` has a cool down period of `5 minutes` (or `300 seconds`). This is sufficient in most of the cases, and should avoid fluctuations when replicas are being scaled.
+The above configuration alters the `scaleDown.stabilizationWindowSeconds` behavior, and sets it to a lower value of `60 seconds`. This is not really needed in practice, but in this case you may want to speed up things to see more quickly how the autoscaler performs the scale down action. By default, the `HorizontalPodAutoscaler` has a cool down period of `5 minutes` (or `300 seconds`). This is sufficient in most of the cases, and should avoid fluctuations when replicas are being scaled.
 
-In the final step, you will run the helper script provided in this repository to create load on the target (meaning the `quote server`). The script performs successive HTTP calls in a really short period of time, thus trying to simulate external load coming from the users (should suffice for demonstration purposes).
+In the final step, you will run the helper script provided in this repository to create external load for the target application (meaning the `quote server`). The script performs successive HTTP calls in a really short period of time, thus trying to simulate external load coming from the users (should suffice for demonstration purposes).
 
-Please make sure to split the terminal in two separate windows, in order to observe better the results (you can use [tmux](https://github.com/tmux/tmux/wiki), for example). Then, in one window please invoke the quote service load test shell script (you can cancel execution anytime by pressing `Ctrl+C`):
+Please make sure to split the terminal in two separate windows, in order to observe better the results (you can use [tmux](https://github.com/tmux/tmux/wiki), for example). Then, in the first window please invoke the quote service load test shell script (you can cancel execution anytime by pressing `Ctrl+C`):
 
 ```shell
 ./09-scaling-application-workloads/assets/scripts/quote_service_load_test.sh
 ```
 
-And, in the other window set a `watch` for the `HPA` resource using `kubectl` (in combination with the `-w` flag):
+Next, in the second window, run a kubectl `watch` (via the `-w` flag) on the `HPA` resource:
 
 ```shell
 kubectl get hpa -n hpa-external-load -w
@@ -468,30 +499,32 @@ Below animation will show you the experiment results:
 
 You can observe how the autoscaler kicks in when load increases (as long as the load generator script runs), and alters the `quote` server deployment replica set to a higher value. As soon as the load generator script is stopped, there's a cool down period, and after 1 minute or so the replica set is lowered to the initial value of 1.
 
-Next, you will learn how to scale applications based on other metrics such as custom metrics coming from Prometheus. As an example, you can scale based on the number of HTTP requests that an application receives, rather than CPU and/or memory utilization.
+Next, you will learn how to scale applications on custom metrics coming from Prometheus. As an example, you can scale deployments based on the number of HTTP requests an application receives, rather than CPU and/or memory utilization.
 
-## Step 4 - Scaling Applications Automatically via the Prometheus Adapter
+## Step 4 - Scaling Applications Automatically via Prometheus Adapter
 
-So far you learned how to horizontally scale applications based on CPU metrics (memory metrics can be used as well, but not covered in this tutorial). This is what the metrics server provides, and that's it. But, you're not limited to observing and letting the HPA take decisions based on resource requests metrics only. You can also leverage Prometheus for the job, and let the HPA take decisions based on custom metrics. Such an example is the number of HTTP requests for a web application, thus letting the HPA scale your deployment based on the incoming traffic.
+So far you learned how to horizontally scale applications based on CPU metrics (memory metrics can be used as well, but not covered in this tutorial). This is what metrics server was meant for and that's it. But, you can also automatically scale applications on custom metrics. Thus, you can leverage Prometheus for the job, and let the HPA take decisions based on Prometheus metrics. Such an example is the number of HTTP requests hitting a web application, thus have the HPA scale your deployment based on the incoming traffic.
 
-What's left is a special piece of software called the [prometheus-adapter](https://github.com/kubernetes-sigs/prometheus-adapter). Main purpose of the `prometheus-adapter` is to act as a bridge (or translator) between Prometheus and the Kubernetes API server. It provides the same functionality as the [metrics-server](https://github.com/kubernetes-sigs/metrics-server), so it can act as an replacement as well.
+To accomplish this task, you need to install a special piece of software called the [prometheus-adapter](https://github.com/kubernetes-sigs/prometheus-adapter). Main purpose of the `prometheus-adapter` is to act as a bridge (or translator) between Prometheus and the Kubernetes API server.
 
-When to choose `metrics-server` over `Prometheus` with `prometheus-adapter` you may ask? Well, `metrics-server` is fast, low on resources, and provides the basic set of metrics (CPU and memory) for HPA to work, making it a good choice when you don't want to use a full blown monitoring system yet. Please remember that metrics server is not meant to act as a replacement for a monitoring system. On the other hand, when you need more granular control over the HPA and scale on other metrics not covered by the metrics server, then `Prometheus` in combination with the `prometheus-adapter` is a better choice.
+When to choose `metrics-server` over `prometheus-adapter` or vice versa ?
 
-Following steps assume that you have the [Prometheus Operator](https://github.com/prometheus-operator/prometheus-operator) deployed in your cluster. Basic knowledge of `ServiceMonitors` is required as well. If not, please follow the [Prometheus Monitoring Stack](../04-setup-prometheus-stack/README.md) chapter from the `Starter Kit` repository. You also need a `ServiceMonitor` to scrape metrics from the application in question, and send them to the Kubernetes API server via the `prometheus-adapter`. Then, HPA can fetch custom metrics from the Kubernetes API Server, and scale your application appropriately.
+Well, `metrics-server` is fast, low on resources, and provides only the basic set of metrics (CPU and memory) for HPAs to work, thus making it a good candidate when you don't want to use a full blown monitoring system. On the other hand, when you need more granular control over HPAs and scale on other metrics not covered by the metrics server, then `Prometheus` in combination with the `prometheus-adapter` is a better choice.
 
-To summarize, these are the basic steps required to `scale` applications based on `custom metrics` served by `Prometheus`:
+Following steps assume that you have [Prometheus Operator](https://github.com/prometheus-operator/prometheus-operator) deployed in your cluster. Basic knowledge of `ServiceMonitors` is required as well. If not, please follow the [Prometheus Monitoring Stack](../04-setup-prometheus-stack/README.md) chapter from the `Starter Kit` repository. You also need a `ServiceMonitor` to scrape metrics from the application under test, and send them to the Kubernetes API server via the `prometheus-adapter`. Then, the horizontal pod autoscaler can fetch custom metrics from the Kubernetes API Server, and scale your applications appropriately.
+
+The basic steps required for applications autoscaling using `custom metrics` served by `Prometheus` are as follows:
 
 1. First, you need the `prometheus-adapter` installed in your cluster.
 2. Next, you define `ServiceMonitors` for `Prometheus` to scrape `custom metrics` from your applications.
-3. Then, you define discovery `rules` for `prometheus-adapter` to expose your application `custom metrics` in the `Kubernetes API`.
-4. Finally, create the `HPA` targeting your application deployment, and tell it to scale based on your custom metric(s).
+3. Then, you define `discovery rules` for `prometheus-adapter` to expose your application `custom metrics` in the `Kubernetes API`.
+4. Finally, you create the `HPA` targeting your application deployment, and configure it to scale on custom metric(s).
 
 ### Installing Prometheus Adapter
 
-Prometheus adapter can be installed the usual way, via Helm. Please follow below steps to accomplish this task:
+Prometheus adapter can be installed the usual way, via Helm. Please follow below steps:
 
-1. First, clone the `Starter Kit` repository and change directory to your local copy.
+1. First, clone the `Starter Kit` repository, and change directory to your local copy:
 
     ```shell
     git clone https://github.com/digitalocean/Kubernetes-Starter-Kit-Developers.git
@@ -499,7 +532,7 @@ Prometheus adapter can be installed the usual way, via Helm. Please follow below
     cd Kubernetes-Starter-Kit-Developers
     ```
 
-2. Next, add the prometheus-community `Helm` repo, and list the available `charts`:
+2. Next, add the `prometheus-community` Helm repo, and list the available charts:
 
     ```shell
     helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
@@ -555,20 +588,20 @@ You can verify `prometheus-adapter` deployment status via:
 helm ls -n prometheus-adapter
 ```
 
-The output looks similar to (notice that the `STATUS` column value is `deployed`):
+The output looks similar to (notice the `STATUS` column value set to `deployed`):
 
 ```text
 NAME                 NAMESPACE            REVISION   UPDATED                STATUS     CHART                      APP VERSION
 prometheus-adapter   prometheus-adapter   1          2022-03-01 12:06:22    deployed   prometheus-adapter-3.0.2   v0.9.1
 ```
 
-Next check the Kubernetes resources status from the `prometheus-adapter` namespace (notice the `deployment` and `replicaset` resources which should be `healthy`, and counting as `2`):
+Next, check the Kubernetes resources status from the `prometheus-adapter` namespace:
 
 ```shell
 kubectl get all -n prometheus-adapter
 ```
 
-The output looks similar to:
+The output looks similar to (notice the `deployment` and `replicaset` resources, which should be `healthy` and counting as `2`):
 
 ```text
 NAME                                      READY   STATUS    RESTARTS   AGE
@@ -585,13 +618,13 @@ NAME                                            DESIRED   CURRENT   READY   AGE
 replicaset.apps/prometheus-adapter-7f475b958b   2         2         2       2m55s
 ```
 
-After a few moments you can query the `custom.metrics.k8s.io` API, and redirect the output to a file:
+After a few moments, you can query the `custom.metrics.k8s.io` API and redirect the output to a file:
 
 ```shell
 kubectl get --raw /apis/custom.metrics.k8s.io/v1beta1 > custom_metrics_k8s_io.json
 ```
 
-Looking at the `custom_metrics_k8s_io.json` file contents, you can notice some of the custom metrics exposed by the Kubernetes API server:
+Looking at the `custom_metrics_k8s_io.json` file contents, you can observe some of the custom metrics exposed by the Kubernetes API server:
 
 ```json
 {
@@ -620,11 +653,11 @@ Looking at the `custom_metrics_k8s_io.json` file contents, you can notice some o
 ...
 ```
 
-If the output is similar to above, then you installed and configured the `prometheus-adapter` correctly. Next, you will be guided on how to set up a sample application deployment providing a custom metrics endpoint, as well as a `ServiceMonitor` to scrape the metrics endpoint.
+If the output is similar to above, then you installed and configured the `prometheus-adapter` correctly. Next, you will learn how to set up a sample application deployment providing a custom metrics endpoint. Then, you will configure a Prometheus `ServiceMonitor` to scrape the metrics endpoint.
 
-### Creating a Sample Application for Testing
+### Creating a Sample Application to Test Prometheus Adapter
 
-In this step you will deploy the [prometheus-example](https://github.com/brancz/prometheus-example-app) application which exposes the following custom metrics:
+In this step, you will deploy the [prometheus-example](https://github.com/brancz/prometheus-example-app) application which exposes the following custom metrics:
 
 - `http_requests_total` - total number of incoming HTTP requests.
 - `http_request_duration_seconds` - duration of all HTTP requests.
@@ -632,7 +665,7 @@ In this step you will deploy the [prometheus-example](https://github.com/brancz/
 - `http_request_duration_seconds_sum` - total duration in seconds of all incoming HTTP requests.
 - `http_request_duration_seconds_bucket` - a histogram representation of the duration of the incoming HTTP requests.
 
-After the `prometheus-example` application is deployed, you can test the custom metrics based HPA setup. Then, you can fire multiple HTTP requests against the `prometheus-example` service and see how autoscaling works based on the `http_requests_total` metric.
+After the `prometheus-example` application is deployed, you can test the custom metrics HPA setup. Then, you can fire multiple HTTP requests against the `prometheus-example` service and see how autoscaling works based on the `http_requests_total` metric.
 
 First, change directory where `Starter Kit` was cloned on your local machine:
 
@@ -640,7 +673,7 @@ First, change directory where `Starter Kit` was cloned on your local machine:
 cd Kubernetes-Starter-Kit-Developers
 ```
 
-Then, please deploy the `prometheus-example` application using the YAML manifest from the `Starter Kit` repository. What it does is, it will create for you the `prometheus-example` Deployment, as well as the associated `Kubernetes Service`. But first, a separate `namespace` named `prometheus-custom-metrics-test` is created to test the whole setup:
+Then, please deploy the `prometheus-example` application using the YAML manifest from the `Starter Kit` repository. The provided manifest will create the `prometheus-example` deployment resource, as well as the associated Kubernetes service. A separate namespace named `prometheus-custom-metrics-test` is created as well, to test the whole setup:
 
 ```shell
 kubectl create ns prometheus-custom-metrics-test
@@ -672,9 +705,9 @@ replicaset.apps/prometheus-example-app-7455d5c48f   1         1         1       
 
 ### Creating a ServiceMonitor for the Application under Test
 
-Before creating the `ServiceMonitor` resource, you have to check the `serviceMonitorSelector` configuration for your Prometheus instance. Please follow the steps below:
+Before creating the `ServiceMonitor` resource, you have to check the `serviceMonitorSelector` configuration of your Prometheus instance. Please follow the steps below:
 
-1. First, check what prometheus instance(s) are available in your cluster (the `monitoring` namespace is used by the `Starter Kit`, so please adjust according to your setup):
+1. First, check what prometheus instance(s) is available in your cluster (the `monitoring` namespace is used by the `Starter Kit`, so please adjust according to your setup):
 
     ```shell
     kubectl get prometheus -n monitoring
@@ -687,7 +720,7 @@ Before creating the `ServiceMonitor` resource, you have to check the `serviceMon
     kube-prom-stack-kube-prome-prometheus   v2.32.1   1          7h4m
     ```
 
-2. Now, pick the prometheus instance discovered in the previous step (if you have multiple instances, just pick one of your choice), and fetch the `serviceMonitorSelector.matchLabels` field value:
+2. Now, pick the prometheus instance discovered in the previous step (if you have multiple instances, just pick the correct one based on your setup), and fetch the `serviceMonitorSelector.matchLabels` field value:
 
     ```shell
     kubectl get prometheus kube-prom-stack-kube-prome-prometheus -n monitoring -o jsonpath='{.spec.serviceMonitorSelector.matchLabels}'
@@ -825,7 +858,7 @@ Now that you know how to set up `discovery rules` for `prometheus-adapter`, it's
       -f "09-scaling-application-workloads/assets/manifests/prometheus-adapter-values-v${HELM_CHART_VERSION}.yaml"
     ```
 
-If everything went well, you can query the custom metrics API, and observe the new metric being present (you can install [jq](https://stedolan.github.io/jq), and have the results printed nicely):
+If everything went well, you can query the custom metrics API, and observe the new metric (you can install [jq](https://stedolan.github.io/jq), and have the results printed nicely):
 
 ```shell
 kubectl get --raw="/apis/custom.metrics.k8s.io/v1beta1/namespaces/prometheus-custom-metrics-test/pods/*/http_requests_per_second" | jq .
@@ -857,13 +890,13 @@ The output looks similar to:
 }
 ```
 
-Looking at the above result, you can notice the custom `http_requests_per_second` metric with a value of `0`. This is normal, because you haven't generated any load for the application yet.
+Looking at the above output, you can notice the custom `http_requests_per_second` metric with a value of `0`. This is normal, because you haven't generated any load for the application yet.
 
 Now, you can move to the final step, and create a HPA for the `prometheus-example-app` deployment used in this tutorial. Then, you will create load on the application, using the [custom_metrics_service_load_test](assets/scripts/custom_metrics_service_load_test.sh) script provided in the `Starter Kit` repository.
 
 ### Creating and Testing HPAs using Custom Metrics
 
-Defining a HPA for automatically scaling applications based on custom metrics follows the same steps as in the resource requests example. The only difference is the metrics field, which is now using custom metrics to help HPA take decisions (e.g. `http_requests_per_second`).
+Defining a HPA for automatically scaling applications on custom metrics is similar to the metrics server examples. The only difference is the metrics field, which in this case is using custom metrics to help HPA take decisions (e.g. `http_requests_per_second`).
 
 Typical HPA definition based on custom metrics looks like below (explanations for the important fields can be found inline):
 
@@ -915,15 +948,15 @@ NAME                        REFERENCE                           TARGETS   MINPOD
 prometheus-custom-metrics   Deployment/prometheus-example-app   0/500m    1         5         1          19s
 ```
 
-In the final step, you will run the helper script provided in this repository to create load on the target (meaning the `prometheus-example-app`). The script performs successive HTTP calls in a really short period of time, thus trying to simulate external load coming from the users (should suffice for demonstration purposes).
+In the final step, you will run the helper script provided in this repository to create load on the target (meaning the `prometheus-example-app`). The script performs successive HTTP calls in a short period of time, thus simulating external load coming from the users (should suffice for demonstration purposes).
 
-Please make sure to split the terminal in two separate windows in order to observe better the results (you can use [tmux](https://github.com/tmux/tmux/wiki), for example). Then, in one window please invoke the [custom_metrics_service_load_test](assets/scripts/custom_metrics_service_load_test.sh) shell script (you can cancel execution anytime by pressing `Ctrl+C`):
+Please make sure to split the terminal in two separate windows, in order to observe better the results (you can use [tmux](https://github.com/tmux/tmux/wiki), for example). Then, in the first window please invoke the [custom_metrics_service_load_test](assets/scripts/custom_metrics_service_load_test.sh) shell script (you can cancel execution anytime by pressing `Ctrl+C`):
 
 ```shell
 ./09-scaling-application-workloads/assets/scripts/custom_metrics_service_load_test.sh
 ```
 
-And, in the other window set a `watch` for the `HPA` resource using `kubectl` (in combination with the `-w` flag):
+Next, in the second window set a kubectl watch (via the `-w` flag) for the `HPA` resource:
 
 ```shell
 kubectl get hpa -n prometheus-custom-metrics-test -w
@@ -946,11 +979,11 @@ What happens in between ? The word `hysteresis` was mentioned at some point. If 
 
 ## Conclusion
 
-In this tutorial you learned how to scale on `resource requests metrics`, as well as on `custom metrics` (via `prometheus-adapter` and `Prometheus`). Although setting up `prometheus-adapter` and scaling applications using Prometheus custom metrics seems a little bit more involved, it offers more flexibility thus compensates the effort.
+In this tutorial you learned how to scale on `resource requests metrics` using `metrics-server`, as well as on `custom metrics` (via `prometheus-adapter` and `Prometheus`). Although setting up `prometheus-adapter` and scaling applications using custom metrics seems a little bit more involved, it offers more flexibility, thus rewarding the effort.
 
-You also performed some pretty close to reality testing, and created load for the sample applications provided in this chapter. Then, you observed how `HPAs` do their magic and try to stabilize your application (by scaling it automatically), and compensate for the increased load (or heavy traffic).
+You also simulated some real world scenarios. Then, you observed how `HPAs` do their magic and try to stabilize your application (by scaling it automatically), and compensate for the increased load (or heavy traffic).
 
-You can learn more about `HPAs`, by following below topics:
+You can learn more about `HPAs` using below resources:
 
 - [Kubernetes HPA guide](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/)
 - [Kubecost blog on HPAs](https://www.kubecost.com/kubernetes-autoscaling/kubernetes-hpa/)
