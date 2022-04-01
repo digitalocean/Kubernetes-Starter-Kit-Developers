@@ -37,3 +37,4 @@ terraform.rc
 .DS_Store
 # ignore main.tf - may contain sensitive data
 main.tf
+!assets/**/main.tf
