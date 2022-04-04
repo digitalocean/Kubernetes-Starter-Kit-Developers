@@ -1,4 +1,4 @@
-name: 'Kubernetes Starter Kit Validation'
+name: 'Kubernetes Starter Kit Terraform'
 
 on:
   # Triggers the workflow on push or pull request events but only for the main branch
@@ -13,7 +13,7 @@ on:
 
 jobs:
   lint:
-    name: 'Lint'
+    name: 'Terraform Lint'
     runs-on: ubuntu-latest
     environment: development
 
@@ -25,12 +25,12 @@ jobs:
     - name: Check out code
       uses: actions/checkout@main
 
-    - name: Lint Terraform
+    - name: Run Lint
       uses: actionshub/terraform-lint@main
 
-  validation:
-    name: 'Tests'
-    needs: 'Lint'
+  tests:
+    name: 'Terraform Tests'
+    needs: 'lint'
     runs-on: ubuntu-latest
     environment: development
 
@@ -42,8 +42,8 @@ jobs:
 
     steps:
     # Checkout the repository to the GitHub Actions runner
-    - name: Checkout
-      uses: actions/checkout@v3
+    - name: Check out code
+      uses: actions/checkout@main
 
     # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
     - name: Setup Terraform

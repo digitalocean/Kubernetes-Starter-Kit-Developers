@@ -1,0 +1,4 @@
+# Markdown Rules https://github.com/markdownlint/markdownlint/blob/master/docs/RULES.md
+
+MD013:
+  line_length: 750
