@@ -1,0 +1,22 @@
+## Starter Kit metrics-server configuration
+## Ref: https://github.com/kubernetes-sigs/metrics-server/blob/metrics-server-helm-chart-3.8.2/charts/metrics-server
+##
+
+# Number of metrics-server replicas to run
+replicas: 2
+
+apiService:
+  # Specifies if the v1beta1.metrics.k8s.io API service should be created.
+  #
+  # You typically want this enabled! If you disable API service creation you have to
+  # manage it outside of this chart for e.g horizontal pod autoscaling to
+  # work with this release.
+  create: true
+
+hostNetwork:
+  # Specifies if metrics-server should be started in hostNetwork mode.
+  #
+  # You would require this enabled if you use alternate overlay networking for pods and
+  # API server unable to communicate with metrics-server. As an example, this is required
+  # if you use Weave network on EKS
+  enabled: false

@@ -359,4 +359,6 @@ Even though there are some cons to using `Sealed Secrets`, the `ease` of `manage
 - [Upgrade](https://github.com/bitnami-labs/sealed-secrets#upgrade) steps and notes.
 - [Sealed Secrets FAQ](https://github.com/bitnami-labs/sealed-secrets#faq), for frequently asked questions about `Sealed Secrets`.
 
-Go to [Section 14 - Starter Kit Resource Usage](../14-starter-kit-resource-usage/README.md).
+Next, you will learn how to automatically scale your application workloads based on external load (or traffic). You will learn how to leverage `metrics-server` as well as `Prometheus` via `prometheus-adapter` to do the job, and let the Kubernetes horizontal (or vertical) Pod autoscaling system take smart decisions.
+
+Go to [Section 9 - Scaling Application Workloads](../09-scaling-application-workloads/README.md).

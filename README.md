@@ -46,8 +46,9 @@ Below is a diagram that gives a high-level overview of the `Starter Kit` setup, 
 7. [Set up Backup and Restore](06-setup-backup-restore/README.md)
 8. [Alerts and Notifications](07-alerting-and-notification/README.md)
 9. [Kubernetes Sealed Secrets](08-kubernetes-sealed-secrets/README.md)
-10. [Estimate resource usage of Starter Kit](14-starter-kit-resource-usage/README.md)
-11. [Continuous Delivery using GitOps](15-continuous-delivery-using-gitops/README.md)
+10. [Scaling Application Workloads](09-scaling-application-workloads/README.md)
+11. [Estimate resource usage of starter kit](14-starter-kit-resource-usage/README.md)
+12. [Continuous Delivery using GitOps](15-continuous-delivery-using-gitops/README.md)
 
 ## Scope
 
