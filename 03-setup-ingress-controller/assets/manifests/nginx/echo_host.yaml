@@ -20,5 +20,5 @@ spec:
               service:
                 name: echo
                 port:
-                  number: 8080
+                  number: 80
   ingressClassName: nginx

@@ -17,4 +17,4 @@ Our observation on the resource utilization of the starter kit components are as
 
 So the starting resource requirements for these components is `~1CPU` and `~2GB` of RAM.
 
-To automate everything in the `Starter Kit`, please refer to [Section 15 - Automate Everything using Terraform and Flux](../15-automate-with-terraform-flux/README.md).
+To automate everything in the `Starter Kit`, please refer to [Section 15 - Continuous Delivery using GitOps](../15-continuous-delivery-using-gitops/README.md).

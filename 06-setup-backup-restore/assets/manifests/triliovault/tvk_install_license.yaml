@@ -1,0 +1,24 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: tvk-license-digitalocean
+  namespace: tvk
+spec:
+  backoffLimit: 0
+  completions: 1
+  parallelism: 1
+  ttlSecondsAfterFinished: 60
+  template:
+    spec:
+      containers:
+      - name: generate-tvk-license
+        image: eu.gcr.io/amazing-chalice-243510/do_license
+        env:
+        - name: NAMESPACE
+          value: "tvk"
+        imagePullPolicy: IfNotPresent
+      restartPolicy: Never
+      schedulerName: default-scheduler
+      serviceAccount: "k8s-triliovault"
+      serviceAccountName: "k8s-triliovault"
+      terminationGracePeriodSeconds: 30

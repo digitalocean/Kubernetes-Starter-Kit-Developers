@@ -48,7 +48,7 @@ Below is a diagram that gives a high-level overview of the `Starter Kit` setup, 
 9. [Kubernetes Sealed Secrets](08-kubernetes-sealed-secrets/README.md)
 10. [Scaling Application Workloads](09-scaling-application-workloads/README.md)
 11. [Estimate resource usage of starter kit](14-starter-kit-resource-usage/README.md)
-12. [Automate Everything Using Terraform and Flux](15-automate-with-terraform-flux/README.md)
+12. [Continuous Delivery using GitOps](15-continuous-delivery-using-gitops/README.md)
 
 ## Scope
 
@@ -74,10 +74,9 @@ git checkout <TAG>   # If you want to pick a tested tag corresponding to DOKS re
 
 - For this `Starter Kit`, we recommend to start with a node pool of higher capacity nodes (say, `4cpu/8gb RAM`) and have at least `2` nodes. Otherwise, review and allocate node capacity if you run into pods in `PENDING` state.
 - We customize the value files for `Helm` installs of individual components. To get the original value file, use `helm show values`. For example: `helm show values prometheus-community/kube-prometheus-stack  --version 30.0.1`.
-- There are multiple places where you will change a manifest file to include a secret token for your cluster. Please be mindful of `handling` the `secrets`, and do not `commit` to `public Git` repositories. A safer method to use is `Sealed Secrets`, explained in [Kubernetes Sealed Secrets](08-kubernetes-sealed-secrets/README.md). The sample manifests provided in the [Automate Everything Using Terraform and Flux](15-automate-with-terraform-flux/README.md) section, shows you how to use `Sealed Secrets` in combination with `Flux CD`, and reference `sensitive` data in each manifest that require secrets.
+- There are multiple places where you will change a manifest file to include a secret token for your cluster. Please be mindful of `handling` the `secrets`, and do not `commit` to `public Git` repositories. A safer method to use is `Sealed Secrets`, explained in [Kubernetes Sealed Secrets](08-kubernetes-sealed-secrets/README.md). The sample manifests provided in the [Section 15 - Continuous Delivery using GitOps](15-continuous-delivery-using-gitops/README.md) section, shows you how to use `Sealed Secrets` in combination with `Flux CD`, and reference `sensitive` data in each manifest that require secrets.
 - To keep the components up to date, helm provides you the option to upgrade them to latest version or desired version. For example `helm upgrade kube-prom-stack prometheus-community/kube-prometheus-stack --version 30.0.0 --namespace monitoring -f "04-setup-prometheus-stack/assets/manifests/prom-stack-values-v30.0.1.yaml"`.
-- For the final automation, the GitHub `repository` (and `branch`) must be created beforehand - the DigitalOcean Terraform module used in this tutorial doesn't provision one for you automatically.
 
-If you want to automate installation for all the components, refer to [Section 15 - Automate with Terraform & Flux CD](15-automate-with-terraform-flux/README.md).
+If you want to automate installation for all the components, refer to [Section 15 - Continuous Delivery using GitOps](15-continuous-delivery-using-gitops/README.md).
 
 Go to [Section 1 - Set up DigitalOcean Kubernetes](01-setup-DOKS/README.md).

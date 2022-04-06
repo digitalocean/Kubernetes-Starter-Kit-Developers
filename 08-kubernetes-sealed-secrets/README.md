@@ -7,7 +7,7 @@ In this tutorial, you will learn how to deploy and `encrypt` generic `Kubernetes
 What `Sealed Secrets` allows you to do is:
 
 - Store `encrypted` secrets in a `Git` repository (even in `public` ones).
-- Apply `GitOps` principles for `Kubernetes Secrets` as well ([Section 15 - Automate Everything using Terraform and Flux CD](../15-automate-with-terraform-flux/README.md) gives you more practical examples on this topic).
+- Apply `GitOps` principles for `Kubernetes Secrets` as well ([Section 15 - Continuous Delivery using GitOps](../15-continuous-delivery-using-gitops/README.md) gives you more practical examples on this topic).
 
 ### Understanding How Sealed Secrets Work
 
@@ -65,7 +65,7 @@ After finishing this tutorial, you will be able to:
 To complete this tutorial, you will need:
 
 1. A [Git](https://git-scm.com/downloads) client, to clone the `Starter Kit` repository.
-2. [Kubeseal](https://github.com/bitnami-labs/sealed-secrets/releases/tag/v0.17.1), for encrypting secrets and `Sealed Secrets Controller` interaction.
+2. [Kubeseal](https://github.com/bitnami-labs/sealed-secrets/releases/tag/v0.17.3), for encrypting secrets and `Sealed Secrets Controller` interaction.
 3. [Helm](https://www.helms.sh), for managing `Sealed Secrets Controller` releases and upgrades.
 4. [Kubectl](https://kubernetes.io/docs/tasks/tools), for `Kubernetes` interaction.
 
@@ -293,10 +293,10 @@ You can use the `--merge-into` command to update an existing sealed secrets if y
 
 ```shell
 echo -n bar | kubectl create secret generic mysecret --dry-run=client --from-file=foo=/dev/stdin -o json \
-  | kubeseal > mysealedsecret.json
+  | kubeseal --controller-namespace=sealed-secrets > mysealedsecret.json
 
 echo -n baz | kubectl create secret generic mysecret --dry-run=client --from-file=bar=/dev/stdin -o json \
-  | kubeseal --merge-into mysealedsecret.json
+  | kubeseal --controller-namespace=sealed-secrets --merge-into mysealedsecret.json
 ```
 
 If using `VS Code` there's an extension that allows you to use the `GUI` mode to perform the above operations - [Kubeseal for vscode](https://marketplace.visualstudio.com/items?itemName=codecontemplator.kubeseal).
