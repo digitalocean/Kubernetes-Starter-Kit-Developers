@@ -24,7 +24,7 @@ spec:
   interval: 1m0s
   values:
     controller:
-      replicaCount: 1
+      replicaCount: 2
       resources:
         requests:
           cpu: 100m
