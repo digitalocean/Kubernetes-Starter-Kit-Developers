@@ -1,0 +1,74 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: loki-stack
+  namespace: flux-system
+spec:
+  chart:
+    spec:
+      chart: loki-stack
+      sourceRef:
+        kind: HelmRepository
+        name: grafana
+      version: 2.5.1
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  releaseName: loki
+  targetNamespace: loki-stack
+  interval: 1m0s
+  values:
+    promtail:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+    pipelineStages:
+      - docker: {}
+      - drop:
+          source: namespace
+          expression: "kube-.*"
+    prometheus:
+      enabled: false
+    fluent-bit:
+      enabled: false
+    grafana:
+      enabled: false
+    loki:
+      enabled: true
+      config:
+        schema_config:
+          configs:
+            - from: "2020-10-24"
+              store: boltdb-shipper
+              object_store: aws
+              schema: v11
+              index:
+                prefix: index_
+                period: 24h
+        storage_config:
+          boltdb_shipper:
+            active_index_directory: /data/loki/boltdb-shipper-active
+            cache_location: /data/loki/boltdb-shipper-cache
+            cache_ttl: 24h
+            shared_store: aws
+          aws:
+            bucketnames: <YOUR_DO_SPACES_BUCKET_NAME_HERE>
+            endpoint: <YOUR_DO_SPACES_BUCKET_ENDPOINT_HERE> # e.g.: nyc1.digitaloceanspaces.com
+            region: <YOUR_DO_SPACES_BUCKET_REGION_HERE> # e.g.: nyc1
+            s3forcepathstyle: true
+  valuesFrom:
+    - kind: Secret
+      name: do-spaces-credentials
+      valuesKey: access_key_id
+      targetPath: loki.config.storage_config.aws.access_key_id
+      optional: false
+    - kind: Secret
+      name: do-spaces-credentials
+      valuesKey: secret_access_key
+      targetPath: loki.config.storage_config.aws.secret_access_key
+      optional: false

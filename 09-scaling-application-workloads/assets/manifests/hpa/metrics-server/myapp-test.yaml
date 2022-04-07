@@ -1,0 +1,29 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myapp-test
+spec:
+  selector:
+    matchLabels:
+      run: myapp-test
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        run: myapp-test
+    spec:
+      containers:
+        - name: busybox
+          image: busybox
+          resources:
+            limits:
+              cpu: 50m
+            requests:
+              cpu: 20m
+          command: ["sh", "-c"]
+          args:
+            - while [ 1 ]; do
+              echo "Test";
+              sleep 0.01;
+              done

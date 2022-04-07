@@ -7,7 +7,7 @@ In this tutorial, you will learn how to deploy and `encrypt` generic `Kubernetes
 What `Sealed Secrets` allows you to do is:
 
 - Store `encrypted` secrets in a `Git` repository (even in `public` ones).
-- Apply `GitOps` principles for `Kubernetes Secrets` as well ([Section 15 - Automate Everything using Terraform and Flux CD](../15-automate-with-terraform-flux/README.md) gives you more practical examples on this topic).
+- Apply `GitOps` principles for `Kubernetes Secrets` as well ([Section 15 - Continuous Delivery using GitOps](../15-continuous-delivery-using-gitops/README.md) gives you more practical examples on this topic).
 
 ### Understanding How Sealed Secrets Work
 
@@ -359,4 +359,6 @@ Even though there are some cons to using `Sealed Secrets`, the `ease` of `manage
 - [Upgrade](https://github.com/bitnami-labs/sealed-secrets#upgrade) steps and notes.
 - [Sealed Secrets FAQ](https://github.com/bitnami-labs/sealed-secrets#faq), for frequently asked questions about `Sealed Secrets`.
 
-Go to [Section 14 - Starter Kit Resource Usage](../14-starter-kit-resource-usage/README.md).
+Next, you will learn how to automatically scale your application workloads based on external load (or traffic). You will learn how to leverage `metrics-server` as well as `Prometheus` via `prometheus-adapter` to do the job, and let the Kubernetes horizontal (or vertical) Pod autoscaling system take smart decisions.
+
+Go to [Section 9 - Scaling Application Workloads](../09-scaling-application-workloads/README.md).

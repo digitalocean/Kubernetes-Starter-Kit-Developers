@@ -1,0 +1,9 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1beta1
+kind: HelmRepository
+metadata:
+  name: kubernetes-community-nginx
+  namespace: flux-system
+spec:
+  interval: 10m0s
+  url: https://kubernetes.github.io/ingress-nginx

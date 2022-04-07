@@ -1,0 +1,31 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: ingress-nginx
+  namespace: flux-system
+spec:
+  chart:
+    spec:
+      chart: ingress-nginx
+      sourceRef:
+        kind: HelmRepository
+        name: kubernetes-community-nginx
+      version: 4.0.13
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  releaseName: ingress-nginx
+  targetNamespace: ingress-nginx
+  interval: 1m0s
+  values:
+    controller:
+      replicaCount: 2
+      resources:
+        requests:
+          cpu: 100m
+          memory: 90Mi

@@ -1,9 +1,0 @@
----
-apiVersion: source.toolkit.fluxcd.io/v1beta1
-kind: HelmRepository
-metadata:
-  name: vmware-tanzu
-  namespace: flux-system
-spec:
-  interval: 10m0s
-  url: https://vmware-tanzu.github.io/helm-charts
