@@ -1,6 +1,6 @@
-## Alerting and Notification
+# Alerting and Notification
 
-### Table of contents
+## Table of contents
 
 - [Alerting and Notification Overview](#Alerting-and-Notification-Overview)
 - [List of Included Alerts](#List-of-Included-Alerts)

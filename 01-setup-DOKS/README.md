@@ -9,10 +9,8 @@ After completing this tutorial, you will be able to:
 - Use the [doctl](https://docs.digitalocean.com/reference/doctl) command, to create and manage `DOKS` clusters.
 - Inspect `DOKS` clusters state.
 
-
 **Note:**
 As an alternative to this chapter, you can use the DOKS UI to create a cluster. UI is easy to understand and very convenient as well.
-
 
 ## Table of contents
 
