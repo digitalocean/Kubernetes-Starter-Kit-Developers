@@ -10,3 +10,11 @@ variable "write_kubeconfig" {
   type    = bool
   default = false
 }
+
+variable "helm_chart_nginx" {
+  type = string
+}
+
+variable "helm_chart_ambassador" {
+  type = string
+}

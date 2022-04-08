@@ -37,6 +37,8 @@ module "kubernetes-config" {
   source       = "./kubernetes-config"
   cluster_name = module.doks-cluster.cluster_name
   cluster_id   = module.doks-cluster.cluster_id
+  helm_chart_ambassador = var.helm_chart_ambassador
+  helm_chart_nginx = var.helm_chart_nginx
 
   write_kubeconfig = var.write_kubeconfig
 }
