@@ -7,7 +7,7 @@
 - [Creating a new Alert](#Creating-a-new-Alert)
 - [Notification By Slack](#Notification-By-Slack)
 
-### Overview
+## Overview
 
 Alerts and Notifications are a critical part of your day 2 workflow. When things go wrong (eg. any service is down, or a pod is crashing etc.), you expect to see the appropriate alerts, and notifications to handle these situations. The Starter Kit includes a set of default alerts as part of the `kube-prom-stack` installation.
 
@@ -15,7 +15,7 @@ Alertmanager is part of the `kube-prom-stack` and it allows you to receive alert
 
 In this section, you will learn how to inspect the existing alerts, create new ones, and then configure `AlertManager` to send notifications via `Slack`.
 
-### List of Included Alerts
+## List of Included Alerts
 
 Kube-prom-stack has over a hundred rules already activated.
 To access the prometheus console, first do a port-forward to your local machine.
@@ -39,7 +39,7 @@ The following is a sample set of alerts from that list.
 - *KubeControllerManagerDown:* kube-controller-manager is a kind of job that helps kube-controller-manager run or not when it has disappeared from Prometheus target discovery. this rule will detect this unwanted situation.
 - *KubeSchedulerDown:* kube-scheduler is an important part of kubernetes. This job is searching for a kube-scheduler that is running when it is absent. This rule helps us to understand it’s health.
 
-### Creating New Alert
+## Creating New Alert
 
 To create a new alert, we can add the alert definition under ‘additionalPrometheusRules’ section in values.yaml file, and re-apply using helm.
 Here is a sample example of an alert that will trigger if Ambassador namespace does not have an expected number of instances.
@@ -62,17 +62,17 @@ additionalPrometheusRules:
 
  To learn more about Alert Runbooks included in kube-prom-stack, [you can visit this documentation and learn message and severity information.](https://github.com/kubernetes-monitoring/kubernetes-mixin/blob/master/runbook.md#alert-name-cputhrottlinghigh)
 
-### Notification By Slack
+## Notification By Slack
 
 Often we need to be notified immediately about any critical issue in our cluster. That is where `AlertManager` comes into the picture. `Alertmanager` helps in aggregating the `alerts`, and sending notifications as shown in the diagram below.
 
 ![AlertManager Filtering](assets/images/Prometheus-Notification-via-Slack.png)
 
-### Prerequisites
+## Prerequisites
 
 You must have a slack channel (slack api url, channel name) with webhook enabled. To do this, refer to [Sending messages using Incoming Webhooks](https://api.slack.com/messaging/webhooks). Note that you need required privilege to be able to make changes to your slack configuration.
 
-### Configuring alertmanager to send notification to Slack
+## Configuring alertmanager to send notification to Slack
 
 In your prom-stack-values.yaml file, modify the `config` part to include `slack_api_url`, `routes`, and `slack_config`.
 
