@@ -109,11 +109,3 @@ resource "kubernetes_ingress" "test_ingress" {
     }
   }
 }
-
-data "httpclient_request" "nginx_ingress" {
-  url = "http://${kubernetes_ingress.test_ingress.status.0.load_balancer.0.ingress.0.ip}/test"
-}
-
-output "validate_nginx_ingress" {
-  value = data.httpclient_request.nginx_ingress.response_code
-}
