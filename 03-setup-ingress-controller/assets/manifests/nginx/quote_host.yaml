@@ -9,7 +9,7 @@ spec:
   # tls:
   #   - hosts:
   #     - quote.starter-kit.online
-  #     secretName: letsencrypt-nginx
+  #     secretName: letsencrypt-nginx-quote
   rules:
     - host: quote.starter-kit.online
       http:
