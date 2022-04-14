@@ -9,7 +9,7 @@ spec:
   # tls:
   # - hosts:
   #   - echo.starter-kit.online
-  #   secretName: letsencrypt-nginx
+  #   secretName: letsencrypt-nginx-echo
   rules:
     - host: echo.starter-kit.online
       http:
