@@ -1,0 +1,3 @@
+pytest==7.1.1
+kubetest==0.9.5
+kubernetes==17.17.0
