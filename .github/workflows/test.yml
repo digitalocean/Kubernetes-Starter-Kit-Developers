@@ -14,8 +14,6 @@ on:
 jobs:
   lint:
     runs-on: ubuntu-latest
-    environment: development
-
     defaults:
       run:
         working-directory: ./assets/terraform
@@ -30,9 +28,6 @@ jobs:
   tests:
     needs: 'lint'
     runs-on: ubuntu-latest
-    environment: development
-
-    # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
     defaults:
       run:
         shell: bash
