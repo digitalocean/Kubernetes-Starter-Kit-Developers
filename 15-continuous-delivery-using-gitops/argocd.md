@@ -78,7 +78,7 @@ To complete this tutorial, you will need:
 4. [Kubectl](https://kubernetes.io/docs/tasks/tools) CLI, for `Kubernetes` interaction. Follow these [instructions](https://www.digitalocean.com/docs/kubernetes/how-to/connect-to-cluster/) to connect to your cluster with `kubectl` and `doctl`.
 5. [Argo CLI](https://argo-cd.readthedocs.io/en/stable/cli_installation), to interact with `Argo CD` using the command line interface.
 6. [Kubeseal](https://github.com/bitnami-labs/sealed-secrets/releases/tag/v0.17.3), for encrypting secrets and [Sealed Secrets Controller](https://github.com/bitnami-labs/sealed-secrets) interaction.
-7. [Helm](https://www.helms.sh), for managing `Argo CD` releases and upgrades (optional, but recommended in general for production systems).
+7. [Helm](https://www.helm.sh), for managing `Argo CD` releases and upgrades (optional, but recommended in general for production systems).
 
 ## Understanding Argo CD Concepts for Application Deployment
 
