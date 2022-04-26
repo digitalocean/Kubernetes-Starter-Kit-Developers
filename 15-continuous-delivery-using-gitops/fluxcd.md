@@ -401,7 +401,7 @@ After finishing all the steps from this tutorial, you should have a `Git` reposi
 │           │   ├── ambassador-stack-v7.2.2.yaml
 │           │   ├── loki-stack-v2.5.1.yaml
 │           │   ├── prometheus-stack-v30.0.1.yaml
-│           │   ├── sealed-secrets-v2.0.2.yaml
+│           │   ├── sealed-secrets-v2.1.6.yaml
 │           │   └── velero-v2.27.3.yaml
 │           ├── repositories
 │           │   ├── ambassador.yaml
@@ -461,7 +461,7 @@ Please use the following steps, to create required manifests for the `Sealed Sec
 3. Next, fetch the `Starter Kit` values file for `Sealed Secrets`. Please make sure to inspect the values file first, and replace the `<>` placeholders where needed:
 
     ```shell
-    SEALED_SECRETS_CHART_VERSION="2.0.2"
+    SEALED_SECRETS_CHART_VERSION="2.1.6"
 
     curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/08-kubernetes-sealed-secrets/assets/manifests/sealed-secrets-values-v${SEALED_SECRETS_CHART_VERSION}.yaml" > "sealed-secrets-values-v${SEALED_SECRETS_CHART_VERSION}.yaml"
     ```
@@ -469,7 +469,7 @@ Please use the following steps, to create required manifests for the `Sealed Sec
 4. Now, create the `Sealed Secrets` HelmRelease manifest for `Flux CD`. `Kubeseal` CLI expects by default to find the controller in the `kube-system` namespace and to be named `sealed-secrets-controller`, hence we override the release name via the `--release-name` and `--target-namespace` flags. This is not mandatory, but `kube-system` is usually accessible only to power users (administrators):
 
     ```shell
-    SEALED_SECRETS_CHART_VERSION="2.0.2"
+    SEALED_SECRETS_CHART_VERSION="2.1.6"
 
     flux create helmrelease "sealed-secrets-controller" \
       --release-name="sealed-secrets-controller" \
@@ -509,7 +509,7 @@ Please use the following steps, to create required manifests for the `Sealed Sec
           sourceRef:
             kind: HelmRepository
             name: sealed-secrets
-          version: 2.0.2
+          version: 2.1.6
       interval: 1m0s
       releaseName: sealed-secrets-controller
       targetNamespace: flux-system
@@ -525,7 +525,7 @@ Please use the following steps, to create required manifests for the `Sealed Sec
 5. Finally, commit `Git` changes to `remote` branch:
 
     ```shell
-    SEALED_SECRETS_CHART_VERSION="2.0.2"
+    SEALED_SECRETS_CHART_VERSION="2.1.6"
 
     git add "${FLUXCD_HELM_MANIFESTS_PATH}/repositories/sealed-secrets.yaml"
 
@@ -552,7 +552,7 @@ The output looks similar to:
 
 ```text
 NAME                        READY   MESSAGE                                 REVISION        SUSPENDED 
-sealed-secrets-controller   True    Release reconciliation succeeded        2.0.2          False 
+sealed-secrets-controller   True    Release reconciliation succeeded        2.1.6          False 
 ```
 
 Look for the `READY` column value - it should say `True`. Reconciliation status is displayed in the `MESSAGE` column, along with the `REVISION` number, which represents the `Helm` chart `version`. Please bear in mind that some releases take longer to complete (like `Prometheus` stack, for example), so please be patient.

@@ -412,7 +412,7 @@ clusters
         ├── cert-manager-v1.6.1.yaml
         ├── nginx-v4.0.13.yaml
         ├── prometheus-stack-v30.0.1.yaml
-        ├── sealed-secrets-v2.0.2.yaml
+        ├── sealed-secrets-v2.1.6.yaml
         └── velero-v2.27.3.yaml
 ```
 
@@ -438,7 +438,7 @@ Please open a terminal, and follow below steps to create the layout for your Git
     CERT_MANAGER_CHART_VERSION="1.6.1"
     NGINX_CHART_VERSION="4.0.13"
     PROMETHEUS_CHART_VERSION="30.0.1"
-    SEALED_SECRETS_CHART_VERSION="2.0.2"
+    SEALED_SECRETS_CHART_VERSION="2.1.6"
     VELERO_CHART_VERSION="2.27.3"
 
     curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/15-continuous-delivery-using-gitops/assets/manifests/argocd/applications/helm/cert-manager-v${CERT_MANAGER_CHART_VERSION}.yaml" > "clusters/dev/helm/cert-manager-v${CERT_MANAGER_CHART_VERSION}.yaml"

@@ -103,19 +103,19 @@ The output looks similar to:
 
 ```text
 NAME                            CHART VERSION   APP VERSION     DESCRIPTION
-sealed-secrets/sealed-secrets   2.0.2          v0.17.1         Helm chart for the sealed-secrets controller.
+sealed-secrets/sealed-secrets   2.1.6          v0.17.5         Helm chart for the sealed-secrets controller.
 ```
 
-Now, open and inspect the `08-kubernetes-sealed-secrets/assets/manifests/sealed-secrets-values-v2.0.2.yaml` file provided in the `Starter kit` repository, using an editor of your choice (preferably with `YAML` lint support). You can use [VS Code](https://code.visualstudio.com), for example:
+Now, open and inspect the `08-kubernetes-sealed-secrets/assets/manifests/sealed-secrets-values-v2.1.6.yaml` file provided in the `Starter kit` repository, using an editor of your choice (preferably with `YAML` lint support). You can use [VS Code](https://code.visualstudio.com), for example:
 
 ```shell
-code 08-kubernetes-sealed-secrets/assets/manifests/sealed-secrets-values-v2.0.2.yaml
+code 08-kubernetes-sealed-secrets/assets/manifests/sealed-secrets-values-v2.1.6.yaml
 ```
 
 Next, install the `sealed-secrets/sealed-secrets` chart, using `Helm` (notice that a dedicated `sealed-secrets` namespace is created as well):
 
 ```shell
-HELM_CHART_VERSION="2.0.2"
+HELM_CHART_VERSION="2.1.6"
 
 helm install sealed-secrets-controller sealed-secrets/sealed-secrets --version "${HELM_CHART_VERSION}" \
   --namespace sealed-secrets \
@@ -125,7 +125,7 @@ helm install sealed-secrets-controller sealed-secrets/sealed-secrets --version "
 
 **Notes:**
 
-- A `specific` version for the `Helm` chart is used. In this case `2.0.2` is picked, which maps to the `0.17.1` version of the application. It’s good practice in general, to lock on a specific version. This helps to have predictable results, and allows versioning control via `Git`.
+- A `specific` version for the `Helm` chart is used. In this case `2.1.6` is picked, which maps to the `0.17.5` version of the application. It’s good practice in general, to lock on a specific version. This helps to have predictable results, and allows versioning control via `Git`.
 - You will want to `restrict` access to the sealed-secrets `namespace` for other users that have access to your `DOKS` cluster, to prevent `unauthorized` access to the `private key` (e.g. use `RBAC` policies).
 
 Next, list the deployment status for `Sealed Secrets` controller (the `STATUS` column value should be `deployed`):
@@ -138,7 +138,7 @@ The output looks similar to:
 
 ```text
 NAME                            NAMESPACE       REVISION        UPDATED                                 STATUS          CHART                   APP VERSION
-sealed-secrets-controller       sealed-secrets  1               2021-10-04 18:25:03.594564 +0300 EEST   deployed        sealed-secrets-2.0.2   v0.17.1
+sealed-secrets-controller       sealed-secrets  1               2021-10-04 18:25:03.594564 +0300 EEST   deployed        sealed-secrets-2.1.6   v0.17.5
 ```
 
 Finally, inspect the `Kubernetes` resources created by the `Sealed Secrets` Helm deployment:

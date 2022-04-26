@@ -20,7 +20,7 @@ Resources used by the Starter Kit include the following:
     [![loki-stack](https://img.shields.io/static/v1?label=loki-stack&message=2.5.1&color=success)](https://artifacthub.io/packages/helm/grafana/loki-stack/2.5.1)
     [![velero](https://img.shields.io/static/v1?label=velero&message=2.27.3&color=success)](https://artifacthub.io/packages/helm/vmware-tanzu/velero/2.27.3)
     ![triliovault](https://img.shields.io/static/v1?label=triliovault&message=2.6.3&color=success)
-    [![sealed-secrets](https://img.shields.io/static/v1?label=sealed-secrets&message=2.0.2&color=success)](https://artifacthub.io/packages/helm/bitnami-labs/sealed-secrets/2.0.2)
+    [![sealed-secrets](https://img.shields.io/static/v1?label=sealed-secrets&message=2.1.6&color=success)](https://artifacthub.io/packages/helm/bitnami-labs/sealed-secrets/2.1.6)
 
 **Notes:**
 
