@@ -444,7 +444,6 @@ doctl kubernetes cluster delete <DOKS_CLUSTER_NAME> --dangerous
 
 to delete the kubernetes cluster and also destroying the associated `Load Balancer`.
 
-
 Next, re-create the cluster, as described in [Section 1 - Set up DigitalOcean Kubernetes](../01-setup-DOKS/README.md). Please make sure the new `DOKS` cluster node count is `equal or greater` with to the original one - this is important!
 
 Then, install Velero `CLI` and `Server`, as described in the [Prerequisites](#prerequisites) section, and [Step 2 - Installing Velero](step-2---installing-velero) respectively. Please make sure to use the `same Helm Chart version` - this is important!
