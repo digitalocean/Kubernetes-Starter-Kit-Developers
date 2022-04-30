@@ -428,13 +428,21 @@ velero backup logs all-cluster-backup
 
 ### Re-creating the DOKS Cluster and Restoring Applications
 
-An important aspect to keep in mind is that whenever you destroy a `DOKS` cluster and then restore it, a new `Load Balancer` with a new external `IP` is created as well when `Velero` restores your `ingress` controller. So, please make sure to update your DigitalOcean DNS `A records` accordingly.
+An important aspect to keep in mind is that whenever you destroy a `DOKS` cluster without specifying the `--dangerous` flag to the `doctl` command and then restore it, the same `Load Balancer` with the same `IP` is created. This means that you don't need to update your DigitalOcean DNS `A records`. When the `--dangerous` flag is supplied to the `doctl` command, the existing `Load Balancer` will be destroyed and a new `Load Balancer` with a new external `IP` is created as well when `Velero` restores your `ingress` controller. So, please make sure to update your DigitalOcean DNS `A records` accordingly.
 
 First, delete the whole `DOKS` cluster (make sure to replace the `<>` placeholders accordingly):
 
 ```shell
 doctl kubernetes cluster delete <DOKS_CLUSTER_NAME>
 ```
+
+to delete the kubernetes cluster without destroying the associated `Load Balancer` or
+
+```shell
+doctl kubernetes cluster delete <DOKS_CLUSTER_NAME> --dangerous
+```
+
+to delete the kubernetes cluster and also destroying the associated `Load Balancer`.
 
 Next, re-create the cluster, as described in [Section 1 - Set up DigitalOcean Kubernetes](../01-setup-DOKS/README.md). Please make sure the new `DOKS` cluster node count is `equal or greater` with to the original one - this is important!
 
