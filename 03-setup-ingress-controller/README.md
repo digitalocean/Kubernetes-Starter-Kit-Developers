@@ -12,9 +12,10 @@ As there are many vendors, `Kubernetes API` has an `Ingress` spec. The idea is t
 
 Starter Kit will present you both, using the same structure and steps for each so that you can see how basic ingress functionality is achieved. In the end, you can decide which one suits best your needs.
 
-Without further ado, please pick one to start with from the list below.
+Without further ado, please pick one to start from below list.
 
 ### Starter Kit Ingress Controllers
 
-- [Ambassador Edge Stack](ambassador.md)
-- [NGINX](nginx.md)
+| Ambassador Edge Stack | Nginx |
+|:------------------------------------------------------:|:---------------------------------------------------:|
+| [![aes](assets/images/aes-logo.png)](ambassador.md) | [![nginx](assets/images/nginx_ingress-logo.png)](nginx.md) |
