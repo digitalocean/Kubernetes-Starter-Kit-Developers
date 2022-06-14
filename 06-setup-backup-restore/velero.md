@@ -6,7 +6,7 @@ In this tutorial, you will learn how to deploy `Velero` to your `Kubernetes` clu
 
 `Backups` can be run `one off` or `scheduled`. It’s a good idea to have `scheduled` backups so you are certain you have a `recent` backup to easily fall back to. You can also create [backup hooks](https://velero.io/docs/v1.6/backup-hooks/), if you want to execute actions `before` or `after` a backup is made.
 
-Why choose `Velero` ?
+Why choose `Velero`?
 
 `Velero` gives you tools to `back up` and `restore` your `Kubernetes cluster resources` and `persistent volumes`. You can run `Velero` with a `cloud provider` or `on-premises`.
 
@@ -109,7 +109,7 @@ Steps to follow:
 
     ```text
     NAME                    CHART VERSION   APP VERSION     DESCRIPTION
-    vmware-tanzu/velero     2.27.3          1.7.1           A Helm chart for velero
+    vmware-tanzu/velero     2.29.7          1.8.1           A Helm chart for velero
     ```
 
     **Note:**
@@ -118,7 +118,7 @@ Steps to follow:
 3. Then, open and inspect the Velero `Helm` values file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). You can use [VS Code](https://code.visualstudio.com) for example:
 
     ```shell
-    VELERO_CHART_VERSION="2.27.3"
+    VELERO_CHART_VERSION="2.29.7"
 
     code 06-setup-backup-restore/assets/manifests/velero-values-v${VELERO_CHART_VERSION}.yaml
     ```
@@ -127,7 +127,7 @@ Steps to follow:
 5. Finally, install `Velero` using `Helm`:
 
     ```shell
-    VELERO_CHART_VERSION="2.27.3"
+    VELERO_CHART_VERSION="2.29.7"
 
     helm install velero vmware-tanzu/velero --version "${VELERO_CHART_VERSION}" \
       --namespace velero \
@@ -137,7 +137,7 @@ Steps to follow:
 
     **Note:**
 
-    A `specific` version for the `Velero` Helm chart is used. In this case `2.27.3` is picked, which maps to the `1.7.1` version of the application (see the output from `Step 2.`). It’s good practice in general, to lock on a specific version. This helps to have predictable results, and allows versioning control via `Git`.
+    A `specific` version for the `Velero` Helm chart is used. In this case `2.29.7` is picked, which maps to the `1.8.1` version of the application (see the output from `Step 2.`). It’s good practice in general, to lock on a specific version. This helps to have predictable results, and allows versioning control via `Git`.
 
 Now, please check your `Velero` deployment:
 
@@ -149,7 +149,7 @@ The output looks similar to the following (`STATUS` column should display `deplo
 
 ```text
 NAME    NAMESPACE       REVISION        UPDATED                                 STATUS          CHART           APP VERSION
-velero  velero          1               2022-01-10 12:25:13.069965 +0200 EET   deployed        velero-2.27.3   1.7.1
+velero  velero          1               2022-06-09 08:38:24.868664 +0300 EEST   deployed        velero-2.29.7   1.8.1  
 ```
 
 Next, verify that `Velero` is up and running:
@@ -446,7 +446,7 @@ to delete the kubernetes cluster and also destroying the associated `Load Balanc
 
 Next, re-create the cluster, as described in [Section 1 - Set up DigitalOcean Kubernetes](../01-setup-DOKS/README.md). Please make sure the new `DOKS` cluster node count is `equal or greater` with to the original one - this is important!
 
-Then, install Velero `CLI` and `Server`, as described in the [Prerequisites](#prerequisites) section, and [Step 2 - Installing Velero](step-2---installing-velero) respectively. Please make sure to use the `same Helm Chart version` - this is important!
+Then, install Velero `CLI` and `Server`, as described in the [Prerequisites](#prerequisites) section, and [Step 1 - Installing Velero using Helm](#step-1---installing-velero-using-helm) respectively. Please make sure to use the `same Helm Chart version` - this is important!
 
 Finally, `restore` everything by using  below command:
 
@@ -456,13 +456,15 @@ velero restore create --from-backup all-cluster-backup
 
 ### Checking DOKS Cluster Applications State
 
-First, check the `Phase` line from the `all-cluster-backup` restore describe command output. It should say `Completed` (also, please take a note of the `Warnings` section - it tells if something went bad or not):
+First, check the `Phase` line from the `all-cluster-backup` restore describe command output (please replace the `<>` placeholders accordingly). It should say `Completed` (also, please take a note of the `Warnings` section - it tells if something went bad or not):
 
 ```shell
-velero restore describe all-cluster-backup
+velero restore describe all-cluster-backup-<timestamp>
 ```
 
-Next, an important aspect to keep in mind is that whenever you destroy a `DOKS` cluster, the associated `Load Balancer` is destroyed as well. It means that each time the `DOKS` cluster is re-created, the `Load Balancer` is re-created as well with a different `IP` address. You have to make sure that `DNS` records will be `updated` as well, to reflect the change.
+An important aspect to keep in mind is that whenever you destroy a `DOKS` cluster without specifying the `--dangerous` flag to the `doctl` command and then restore it, the same `Load Balancer` with the same `IP` is created. This means that you don't need to update your DigitalOcean DNS `A records`. When the `--dangerous` flag is supplied to the `doctl` command, the existing `Load Balancer` will be destroyed and a new `Load Balancer` with a new external `IP` is created as well when `Velero` restores your `ingress` controller. So, please make sure to update your DigitalOcean DNS `A records` accordingly.
+
+Next, an important aspect to keep in mind is that whenever you destroy a `DOKS` cluster without specifying the `--dangerous` flag to the `doctl` command and then restore it, the same `Load Balancer` with the same `IP` is created. When the `--dangerous` flag is supplied to the `doctl` command, the existing `Load Balancer` will be destroyed and a new `Load Balancer` with a new external `IP` is created as well when `Velero` restores your `ingress` controller. You have to make sure that `DNS` records will be `updated` as well, to reflect the change.
 
 Now, verify all cluster `Kubernetes` resources (you should have everything in place):
 

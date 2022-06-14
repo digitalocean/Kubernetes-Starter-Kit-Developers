@@ -8,13 +8,13 @@ controller:
     requests:
       cpu: 100m
       memory: 90Mi
-  # service:
-  #   type: LoadBalancer
-  #   annotations:
-  #     # Enable proxy protocol
-  #     service.beta.kubernetes.io/do-loadbalancer-enable-proxy-protocol: "true"
-  #     # Specify whether the DigitalOcean Load Balancer should pass encrypted data to backend droplets
-  #     service.beta.kubernetes.io/do-loadbalancer-tls-passthrough: "true"
+  service:
+    type: LoadBalancer
+    annotations:
+      # Enable proxy protocol
+      service.beta.kubernetes.io/do-loadbalancer-enable-proxy-protocol: "true"
+      # Specify whether the DigitalOcean Load Balancer should pass encrypted data to backend droplets
+      service.beta.kubernetes.io/do-loadbalancer-tls-passthrough: "true"
   #     # You can keep your existing LB when migrating to a new DOKS cluster, or when reinstalling AES
   #     kubernetes.digitalocean.com/load-balancer-id: "<YOUR_DO_LB_ID_HERE>"
   #     service.kubernetes.io/do-loadbalancer-disown: false
@@ -26,8 +26,8 @@ controller:
   #   "net.ipv4.ip_local_port_range": "1024 65000"
 
   ## Will add custom configuration options to Nginx https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/configmap/
-  # config:
-  #   use-proxy-protocol: "true"
+  config:
+    use-proxy-protocol: "true"
   #   keep-alive-requests: "10000"
   #   upstream-keepalive-requests: "1000"
   #   worker-processes: "auto"

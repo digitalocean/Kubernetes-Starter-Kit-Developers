@@ -11,4 +11,4 @@ spec:
       namespace: tvk
   backupPlanComponents:
     helmReleases:
-      - ambassador
+      - edge-stack
