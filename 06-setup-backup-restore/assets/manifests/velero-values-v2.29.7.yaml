@@ -8,10 +8,10 @@ configuration:
   # https://velero.io/docs/v1.6/api-types/backupstoragelocation/
   backupStorageLocation:
     # bucket is the name of the bucket to store backups in. Required.
-    bucket: starterkit-velero
+    bucket: <YOUR_DO_SPACES_BUCKET_NAME_HERE>
     config:
-      region: fra1# e.g. nyc1
-      s3Url: https://fra1.digitaloceanspaces.com  # e.g.: https://nyc1.digitaloceanspaces.com 
+      region: <YOUR_DO_SPACES_BUCKET_REGION_HERE> # e.g. nyc1
+      s3Url: https://<YOUR_DO_SPACES_BUCKET_REGION_HERE>.digitaloceanspaces.com  # e.g.: https://nyc1.digitaloceanspaces.com 
 
   # Parameters for the `default` VolumeSnapshotLocation. See
   # https://velero.io/docs/v1.6/api-types/volumesnapshotlocation/
@@ -20,15 +20,15 @@ configuration:
 
   # Additional key/value pairs to be used as environment variables
   extraEnvVars:
-    DIGITALOCEAN_TOKEN: dop_v1_01e1c10478012026ee9cd0f77b4b994d40a0a83ca4b1447e9ee9c7f628487b93
+    DIGITALOCEAN_TOKEN: <YOUR_DO_API_TOKEN_HERE>
 
 # Info about the DO Spaces credentials to be used by the Velero deployment
 credentials:
   secretContents:
     cloud: |
       [default]
-      aws_access_key_id=TVMIARKQQPZPBCNWGIKK
-      aws_secret_access_key=1KHFdgV07i6g4+bY5RYruLH0ZF4GKn/iuzZZvvh9ZDQ
+      aws_access_key_id=<YOUR_DO_SPACES_ACCESS_KEY_HERE>
+      aws_secret_access_key=<YOUR_DO_SPACES_SECRET_KEY_HERE>
 
 # Init containers to add to the Velero deployment's pod spec. At least one plugin provider image is required.
 initContainers:
