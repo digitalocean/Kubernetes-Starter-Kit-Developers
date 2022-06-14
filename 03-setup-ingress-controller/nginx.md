@@ -83,25 +83,25 @@ Steps to follow:
 
     ```text
     NAME                            CHART VERSION   APP VERSION     DESCRIPTION
-    ingress-nginx/ingress-nginx     4.0.13           1.1.0           Ingress controller for Kubernetes using NGINX
+    ingress-nginx/ingress-nginx     4.1.3           1.2.1           Ingress controller for Kubernetes using NGINX
     ```
 
     **Note:**
 
     The chart of interest is `ingress-nginx/ingress-nginx`, which will install Kubernetes-maintained `Nginx` on the cluster. Please visit the [kubernetes-nginx](https://github.com/kubernetes/ingress-nginx/tree/main/charts/ingress-nginx) page, for more details about this chart.
-3. Then, open and inspect the `03-setup-ingress-controller/assets/manifests/nginx-values-v4.0.13.yaml` file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://code.visualstudio.com):
+3. Then, open and inspect the `03-setup-ingress-controller/assets/manifests/nginx-values-v4.1.3.yaml` file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://code.visualstudio.com):
 
     ```shell
-    code 03-setup-ingress-controller/assets/manifests/nginx-values-v4.0.13.yaml
+    code 03-setup-ingress-controller/assets/manifests/nginx-values-v4.1.3.yaml
     ```
 
     **Note:**
 
-    There are times when you want to re-use the existing `load balancer`. This is for preserving your `DNS` settings and other `load balancer` configurations. If so, make sure to modify the `nginx-values-v4.0.13.yaml` file, and add the annotation for your existing load balancer. Please refer to the `DigitalOcean` Kubernetes guide - [How To Migrate Load Balancers](https://docs.digitalocean.com/products/kubernetes/how-to/migrate-load-balancers) for more details.
+    There are times when you want to re-use the existing `load balancer`. This is for preserving your `DNS` settings and other `load balancer` configurations. If so, make sure to modify the `nginx-values-v4.1.3.yaml` file, and add the annotation for your existing load balancer. Please refer to the `DigitalOcean` Kubernetes guide - [How To Migrate Load Balancers](https://docs.digitalocean.com/products/kubernetes/how-to/migrate-load-balancers) for more details.
 4. Finally, install the `Nginx Ingress Controller` using `Helm` (a dedicated `ingress-nginx` namespace will be created as well):
 
     ```shell
-    NGINX_CHART_VERSION="4.0.13"
+    NGINX_CHART_VERSION="4.1.3"
 
     helm install ingress-nginx ingress-nginx/ingress-nginx --version "$NGINX_CHART_VERSION" \
       --namespace ingress-nginx \
@@ -111,7 +111,7 @@ Steps to follow:
 
     **Note:**
 
-    A `specific` version for the ingress-nginx `Helm` chart is used. In this case `4.0.13` was picked, which maps to the `1.1.0` release of `Nginx` (see the output from `Step 2.`). It’s good practice in general, to lock on a specific version. This helps to have predictable results, and allows versioning control via `Git`.
+    A `specific` version for the ingress-nginx `Helm` chart is used. In this case `4.1.3` was picked, which maps to the `1.2.1` release of `Nginx` (see the output from `Step 2.`). It’s good practice in general, to lock on a specific version. This helps to have predictable results, and allows versioning control via `Git`.
 
 **Observations and results:**
 
@@ -125,7 +125,7 @@ The output looks similar to (notice that the `STATUS` column value is `deployed`
 
 ```text
 NAME            NAMESPACE       REVISION   UPDATED                                 STATUS     CHART                   APP VERSION
-ingress-nginx   ingress-nginx   1          2021-11-02 10:12:44.799499 +0200 EET    deployed   ingress-nginx-4.0.13     1.1.0
+ingress-nginx   ingress-nginx   1          2021-11-02 10:12:44.799499 +0200 EET    deployed   ingress-nginx-4.1.3     1.2.0
 ```
 
 Next check Kubernetes resources created for the `ingress-nginx` namespace (notice the `deployment` and `replicaset` resources which should be healthy, as well as the `LoadBalancer` resource having an `external IP` assigned):
@@ -502,16 +502,16 @@ Next, update the `jetstack` chart repository:
 helm repo update jetstack
 ```
 
-Then, open and inspect the `03-setup-ingress-controller/assets/manifests/cert-manager-values-v1.6.1.yaml` file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://code.visualstudio.com):
+Then, open and inspect the `03-setup-ingress-controller/assets/manifests/cert-manager-values-v1.8.0.yaml` file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://code.visualstudio.com):
 
 ```shell
-code 03-setup-ingress-controller/assets/manifests/cert-manager-values-v1.6.1.yaml
+code 03-setup-ingress-controller/assets/manifests/cert-manager-values-v1.8.0.yaml
 ```
 
 Finally, you can install the `jetstack/cert-manager` chart using Helm:
 
 ```shell
-CERT_MANAGER_HELM_CHART_VERSION="1.6.1"
+CERT_MANAGER_HELM_CHART_VERSION="1.8.0"
 
 helm install cert-manager jetstack/cert-manager --version "$CERT_MANAGER_HELM_CHART_VERSION" \
   --namespace cert-manager \
@@ -529,7 +529,7 @@ The output looks similar to (notice the `STATUS` column which has the `deployed`
 
 ```text
 NAME            NAMESPACE       REVISION        UPDATED                                 STATUS          CHART                   APP VERSION
-cert-manager    cert-manager    1               2021-10-20 12:13:05.124264 +0300 EEST   deployed        cert-manager-v1.6.1     v1.6.1
+cert-manager    cert-manager    1               2021-10-20 12:13:05.124264 +0300 EEST   deployed        cert-manager-v1.8.0     v1.8.0
 ```
 
 Inspect `Kubernetes` resources created by the `cert-manager` Helm release:
@@ -651,16 +651,20 @@ Explanation for the above configuration:
 - `spec.tls.hosts`: List of hosts included in the TLS certificate.
 - `spec.tls.secretName`: Name of the secret used to terminate TLS traffic on port 443.
 
-Now, please open `echo_host.yaml` using a text editor of your choice (preferably with `YAML` lint support). Then, uncomment `annotations` and `spec.tls`, as explained above. For example, you can use [VS Code](https://code.visualstudio.com):
+Now, please open `echo_host.yaml` and `quote_host.yaml` using a text editor of your choice (preferably with `YAML` lint support). Then, uncomment `annotations` and `spec.tls`, as explained above. For example, you can use [VS Code](https://code.visualstudio.com):
 
 ```shell
 code 03-setup-ingress-controller/assets/manifests/nginx/echo_host.yaml
+
+code 03-setup-ingress-controller/assets/manifests/nginx/quote_host.yaml
 ```
 
-Save the `echo_host.yaml` file, and apply changes using `kubectl`:
+Save the `echo_host.yaml` and `quote_host.yaml` files, and apply changes using `kubectl`:
 
 ```shell
 kubectl apply -f 03-setup-ingress-controller/assets/manifests/nginx/echo_host.yaml
+
+kubectl apply -f 03-setup-ingress-controller/assets/manifests/nginx/quote_host.yaml
 ```
 
 After a few moments, inspect `ingress` object `state`:
@@ -669,11 +673,11 @@ After a few moments, inspect `ingress` object `state`:
 kubectl get ingress -n backend
 ```
 
-The output looks similar to (notice that the `echo.starter-kit.online` host has now proper `TLS` termination, denoted by the `443` port number presence in the `PORTS` column):
+The output looks similar to (notice that the `echo.starter-kit.online` and `quote.starter-kit.online` hosts now have proper `TLS` termination, denoted by the `443` port number presence in the `PORTS` column):
 
 ```text
-NAME            CLASS   HOSTS                      ADDRESS           PORTS     AGE
-ingress-echo    nginx   echo.starter-kit.online    143.244.204.126   80, 443   71m
+ingress-echo    nginx   echo.starter-kit.online    157.230.66.23   80, 443   11m
+ingress-quote   nginx   quote.starter-kit.online   157.230.66.23   80, 443   11m
 ```
 
 Check that the certificate resource was created as well:
@@ -685,11 +689,11 @@ kubectl get certificates -n backend
 The output looks similar to (notice the `READY` column status which should be `True`):
 
 ```text
-NAME                READY   SECRET              AGE
-letsencrypt-nginx   True    letsencrypt-nginx   87m
+letsencrypt-nginx-echo    True    letsencrypt-nginx-echo    3m50s
+letsencrypt-nginx-quote   True    letsencrypt-nginx-quote   38s
 ```
 
-Finally, test the `echo` service via `curl` (notice that you receive a `redirect` to use `HTTPS` instead):
+Finally, test the `echo` and `quote` services via `curl` (notice that you receive a `redirect` to use `HTTPS` instead):
 
 ```shell
 curl -Li http://echo.starter-kit.online/
@@ -728,6 +732,33 @@ User-Agent: curl/7.77.0
 Accept: */*
 ```
 
+```shell
+curl -Li http://quote.starter-kit.online/
+```
+
+The output looks similar to:
+
+```text
+HTTP/1.1 308 Permanent Redirect
+Date: Tue, 07 Jun 2022 06:10:26 GMT
+Content-Type: text/html
+Content-Length: 164
+Connection: keep-alive
+Location: https://quote.starter-kit.online
+
+HTTP/2 200 
+date: Tue, 07 Jun 2022 06:10:27 GMT
+content-type: application/json
+content-length: 159
+strict-transport-security: max-age=15724800; includeSubDomains
+
+{
+    "server": "lumbering-mulberry-30bd7l5q",
+    "quote": "A principal idea is omnipresent, much like candy.",
+    "time": "2022-06-07T06:10:27.046014854Z"
+}
+```
+
 You can also test the service using a web browser of your choice. Notice that you're redirected to use `HTTPS` instead, and that the `certificate` is a valid one, issued by [Let's Encrypt](https://letsencrypt.org):
 
 ![Echo Host Let's Encrypt Certificate](assets/images/nginx_echo_tls_cert.png)
@@ -748,7 +779,7 @@ After deploying the [Backend Services](#step-3---creating-the-nginx-backend-serv
 First, you need to edit the `Helm` values file provided in the `Starter Kit` repository using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://visualstudio.microsoft.com):
 
 ```shell
-code 03-setup-ingress-controller/assets/manifests/nginx-values-v4.0.13.yaml
+code 03-setup-ingress-controller/assets/manifests/nginx-values-v4.1.3.yaml
 ```
 
 Then, uncomment the `annotations` settings from the `service` section, like in the below example:
@@ -777,14 +808,14 @@ config:
 Then, save the values file and apply changes using `Helm`:
 
 ```shell
-NGINX_CHART_VERSION="4.0.13"
+NGINX_CHART_VERSION="4.1.3"
 
 helm upgrade ingress-nginx ingress-nginx/ingress-nginx --version "$NGINX_CHART_VERSION" \
   --namespace ingress-nginx \
   -f "03-setup-ingress-controller/assets/manifests/nginx-values-v${NGINX_CHART_VERSION}.yaml"
 ```
 
-Finally, test the echo service via curl (notice that your Public IP will be present in `X-Forwarded-For` and `X-Real-Ip` headers):
+Finally, test the `echo` service via `curl` (notice that your Public IP will be present in `X-Forwarded-For` and `X-Real-Ip` headers):
 
 ```shell
 curl -Li https://echo.starter-kit.online/
