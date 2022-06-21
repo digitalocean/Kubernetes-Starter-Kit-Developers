@@ -125,7 +125,7 @@ The output looks similar to (notice that the `STATUS` column value is `deployed`
 
 ```text
 NAME            NAMESPACE       REVISION   UPDATED                                 STATUS     CHART                   APP VERSION
-ingress-nginx   ingress-nginx   1          2021-11-02 10:12:44.799499 +0200 EET    deployed   ingress-nginx-4.1.3     1.2.0
+ingress-nginx   ingress-nginx   1          2021-11-02 10:12:44.799499 +0200 EET    deployed   ingress-nginx-4.1.3     1.2.1
 ```
 
 Next check Kubernetes resources created for the `ingress-nginx` namespace (notice the `deployment` and `replicaset` resources which should be healthy, as well as the `LoadBalancer` resource having an `external IP` assigned):

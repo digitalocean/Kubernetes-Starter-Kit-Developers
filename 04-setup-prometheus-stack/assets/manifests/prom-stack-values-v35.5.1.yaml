@@ -23,9 +23,6 @@ kubeScheduler:
 kubeEtcd:
   enabled: false
 
-## Configuration for alertmanager
-## ref: https://prometheus.io/docs/alerting/alertmanager/
-##
 alertmanager:
   ## Deploy alertmanager
   ##
@@ -37,11 +34,11 @@ grafana:
   enabled: true
   adminPassword: prom-operator # Please change the default password in production !!!
   # # Starter Kit setup for DigitalOcean Block Storage
-  persistence:
-    enabled: true
-    storageClassName: do-block-storage
-    accessModes: ["ReadWriteOnce"]
-    size: 5Gi
+  # persistence:
+  #   enabled: true
+  #   storageClassName: do-block-storage
+  #   accessModes: ["ReadWriteOnce"]
+  #   size: 5Gi
 
 ## Manages Prometheus and Alertmanager components
 ##
@@ -55,17 +52,17 @@ prometheus:
 
   ## Starter Kit components service monitors
   #
-  additionalServiceMonitors:
+  # additionalServiceMonitors:
   # Uncomment the following section to enable ambassador service monitoring
-    - name: "ambassador-monitor"
-      selector:
-        matchLabels:
-          service: "ambassador-admin"
-      namespaceSelector:
-        matchNames:
-          - ambassador
-      endpoints:
-        - port: "ambassador-admin"
+    # - name: "ambassador-monitor"
+    #   selector:
+    #     matchLabels:
+    #       service: "ambassador-admin"
+    #   namespaceSelector:
+    #     matchNames:
+    #       - ambassador
+    #   endpoints:
+    #     - port: "ambassador-admin"
 
   # # Uncomment the following section to enable ingress-nginx service monitoring
   #   - name: "ingress-nginx-monitor"
@@ -107,12 +104,12 @@ prometheus:
   ##
   # Starter Kit setup for DigitalOcean Block Storage
   #
-  prometheusSpec:
-    storageSpec:
-      volumeClaimTemplate:
-        spec:
-          storageClassName: do-block-storage
-          accessModes: ["ReadWriteOnce"]
-          resources:
-            requests:
-              storage: 5Gi
+  # prometheusSpec:
+  #   storageSpec:
+  #     volumeClaimTemplate:
+  #       spec:
+  #         storageClassName: do-block-storage
+  #         accessModes: ["ReadWriteOnce"]
+  #         resources:
+  #           requests:
+  #             storage: 5Gi
