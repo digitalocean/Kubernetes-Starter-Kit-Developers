@@ -60,7 +60,7 @@ helm repo update jetstack
 Then, open and inspect the `Helm` values file for `Cert-Manager` provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://code.visualstudio.com):
 
 ```shell
-CERT_MANAGER_HELM_CHART_VERSION="1.6.1"
+CERT_MANAGER_HELM_CHART_VERSION="1.8.0"
 
 code 03-setup-ingress-controller/assets/manifests/cert-manager-values-v${CERT_MANAGER_HELM_CHART_VERSION}.yaml
 ```
@@ -68,7 +68,7 @@ code 03-setup-ingress-controller/assets/manifests/cert-manager-values-v${CERT_MA
 Finally, you can install the `jetstack/cert-manager` chart using Helm:
 
 ```shell
-CERT_MANAGER_HELM_CHART_VERSION="1.6.1"
+CERT_MANAGER_HELM_CHART_VERSION="1.8.0"
 
 helm install cert-manager jetstack/cert-manager --version "$CERT_MANAGER_HELM_CHART_VERSION" \
   --namespace cert-manager \
@@ -86,7 +86,7 @@ The output looks similar to (notice the `STATUS` column which has the `deployed`
 
 ```text
 NAME            NAMESPACE       REVISION        UPDATED                                 STATUS          CHART                   APP VERSION
-cert-manager    cert-manager    1               2021-10-20 12:13:05.124264 +0300 EEST   deployed        cert-manager-v1.6.1     v1.6.1
+cert-manager    cert-manager    1               2021-10-20 12:13:05.124264 +0300 EEST   deployed        cert-manager-v1.8.0     v1.8.0
 ```
 
 Inspect `Kubernetes` resources created by the `cert-manager` Helm release:

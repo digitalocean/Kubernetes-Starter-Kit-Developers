@@ -132,13 +132,13 @@ NAME                         PROVISIONER                 RECLAIMPOLICY   VOLUMEB
 do-block-storage (default)   dobs.csi.digitalocean.com   Delete          Immediate           true                   10d
 ```
 
-The `TrilioVault` installation also need `volumeSnapshot` Custom Resource Definition (CRD) for the successful installation. You can check using below command:
+The `TrilioVault` installation also needs `volumeSnapshot` Custom Resource Definition (CRD) for a successful installation. You can check using below command:
 
 ```shell
 kubectl get crd | grep volumesnapshot
 ```
 
-The output should look similar to (If not installed, refer to [Installing VolumeSnapshot CRDs](https://docs.trilio.io/kubernetes/appendix/csi-drivers/installing-volumesnapshot-crds)):
+The output should look similar to (if not installed, refer to [Installing VolumeSnapshot CRDs](https://docs.trilio.io/kubernetes/appendix/csi-drivers/installing-volumesnapshot-crds)):
 
 ```text
 volumesnapshotclasses.snapshot.storage.k8s.io         2022-02-01T06:01:14Z
@@ -146,13 +146,13 @@ volumesnapshotcontents.snapshot.storage.k8s.io        2022-02-01T06:01:14Z
 volumesnapshots.snapshot.storage.k8s.io               2022-02-01T06:01:15Z
 ```
 
-Also make sure that the CRD support both `v1beta1` and `v1` API version. You can run below command to check the API version:
+Also make sure that the CRD supports both `v1beta1` and `v1` API version. You can run the below command to check the API version:
 
 ```shell
 kubectl get crd volumesnapshots.snapshot.storage.k8s.io -o yaml
 ```
 
-At the end of the CRD yaml you should see a `storedVersions` list, containing both `v1beta1` and `v1` values (If not installed, refer to [Installing VolumeSnapshot CRDs](https://docs.trilio.io/kubernetes/appendix/csi-drivers/installing-volumesnapshot-crds)):
+At the end of the CRD yaml you should see a `storedVersions` list, containing both `v1beta1` and `v1` values (if not installed, refer to [Installing VolumeSnapshot CRDs](https://docs.trilio.io/kubernetes/appendix/csi-drivers/installing-volumesnapshot-crds)):
 
 ```text
 ...
@@ -203,7 +203,7 @@ Please follow the steps below, to install `TrilioVault` via `Helm`:
 
    ```text
    NAME                                            CHART VERSION   APP VERSION     DESCRIPTION
-   triliovault-operator/k8s-triliovault-operator   2.7.0           2.7.0           K8s-TrilioVault-Operator is an operator designe...
+   triliovault-operator/k8s-triliovault-operator   2.9.2           2.9.2           K8s-TrilioVault-Operator is an operator designe...
    ```
 
    **Note:**
@@ -213,7 +213,7 @@ Please follow the steps below, to install `TrilioVault` via `Helm`:
 3. Then, open and inspect the TrilioVault `Helm` values file file provided in the `Starter kit` repository, using an editor of your choice (preferably with `YAML` lint support). You can use [VS Code](https://code.visualstudio.com) for example:
 
    ```shell
-   code 06-setup-backup-restore/assets/manifests/triliovault-values.yaml
+   code 06-setup-backup-restore/assets/manifests/triliovault-values-v2.9.2.yaml
    ```
 
 4. Finally, install `TrilioVault for Kubernetes` using `Helm`:
@@ -242,9 +242,8 @@ The output looks similar to the following (`STATUS` column should display `deplo
 
 ```text
 NAME                    NAMESPACE       REVISION        UPDATED                                 STATUS          CHART                           APP VERSION
-triliovault-manager-tvk tvk             1               2022-02-23 10:32:08.413360507 +0000 UTC deployed        k8s-triliovault-2.7.0           2.7.0
-triliovault-operator    tvk             1               2022-02-22 13:56:32.152803549 +0000 UTC deployed        k8s-triliovault-operator-2.7.0  2.7.0
-
+triliovault-manager-tvk tvk             1               2022-06-08 08:30:08.490304959 +0000 UTC deployed        k8s-triliovault-2.9.2           2.9.2      
+triliovault-operator    tvk             1               2022-06-08 11:32:55.755395 +0300 EEST   deployed        k8s-triliovault-operator-2.9.2  2.9.2
 ```
 
 Next, verify that `TrilioVault` is up and running:
@@ -275,7 +274,7 @@ By default, when installing `TVK` via `Helm`, there is no `Free Trial` license i
 **Notes:**
 
 - **TrilioVault is free of charge for Kubernetes clusters with up to 100000 nodes for DigitalOcean users. They can follow below steps to create a special license available for DO customers only**
-- `Starter Kit` examples rely on a `Cluster` license type to function properly.
+- `Starter Kit` examples relies on a `Cluster` license type to function properly.
 
 ### Creating and Checking TVK Application Licensing
 
@@ -515,7 +514,7 @@ Next, you will discover the TVK web console which is a really nice and useful ad
 
 ## Step 3 - Getting to Know the TVK Web Management Console
 
-While you can manage backup and restore operations from the `CLI` entirely via `kubectl` and `CRDs`, `TVK` provides a [Web Management Console](https://docs.trilio.io/kubernetes/management-console/user-interface) to accomplish the same operations via the GUI. The management console simplifies common tasks via point and click operations, provides better visualization and inspection of TVK cluster objects, as well as to create disaster recovery plans (or `DRPs`).
+While you can manage backup and restore operations from the `CLI` entirely via `kubectl` and `CRDs`, `TVK` provides a [Web Management Console](https://docs.trilio.io/kubernetes/management-console-ui/about-the-ui) to accomplish the same operations via the GUI. The management console simplifies common tasks via point and click operations, provides better visualization and inspection of TVK cluster objects, as well as to create disaster recovery plans (or `DRPs`).
 
 The Helm based installation covered in [Step 1 - Installing TrilioVault for Kubernetes](#step-1---installing-triliovault-for-kubernetes) already took care of installing the required components for the web management console.
 
@@ -642,7 +641,7 @@ Going further, you can browse the target and list the available backups by click
 
 ![TVK Target Browser](assets/images/tvk_target_browser.png)
 
-For more information and available features, please consult the [TVK Web Management Console User Interface](https://docs.trilio.io/kubernetes/management-console/user-interface/overview) official documentation.
+For more information and available features, please consult the [TVK Web Management Console User Interface](https://docs.trilio.io/kubernetes/getting-started-3/getting-started-with-management-console) official documentation.
 
 Next, you will learn how to perform backup and restore operations for specific use cases, like:
 
@@ -732,7 +731,7 @@ Steps to initiate the `Ambassador` Helm release one time backup:
     code 06-setup-backup-restore/assets/manifests/triliovault/ambassador-helm-release-backup.yaml
     ```
 
-4. Finally, create the `BackupPlan` and `Backup` resources, using `kubectl`:
+4. Finally, create the `BackupPlan` and `Backup` resources, using `kubectl`, please note that the `BackupPlan` needs to be available first so it mai take a minute to create that:
 
     ```shell
     kubectl apply -f 06-setup-backup-restore/assets/manifests/triliovault/ambassador-helm-release-backup-plan.yaml
@@ -793,6 +792,29 @@ The output looks similar to (notice that the listing contains the json manifests
 2021-11-25 07:04           28  s3://trilio-starter-kit/6c68af15-5392-45bb-a70b-b26a93605bd9/5ebfffb5-442a-455c-b0de-1db98e18b425/custom/
 2021-11-25 07:04           28  s3://trilio-starter-kit/6c68af15-5392-45bb-a70b-b26a93605bd9/5ebfffb5-442a-455c-b0de-1db98e18b425/custom/metadata-snapshot/
 2021-11-25 07:04          330  s3://trilio-starter-kit/6c68af15-5392-45bb-a70b-b26a93605bd9/5ebfffb5-442a-455c-b0de-1db98e18b425/custom/metadata-snapshot/metadata.json.manifest.00000002
+...
+```
+
+**Hint:**
+In case the backup fails to become available, you can inspect the logs from the `metamover` Pod to find the issue:
+
+```shell
+# First, you need to find the metamover pod
+kubectl get pods -n ambassador | grep metamover
+
+# Output looks similar to:
+ambassador-helm-release-full-backup-metamover-mg9gl0--1-2d6wx   1/1     Running   0          4m32s
+
+# Now, fetch logs data
+kubectl logs pod/ambassador-helm-release-full-backup-metamover-mg9gl0--1-2d6wx -n ambassador -f
+```
+
+The output looks similar to (any errors during the backup will be shown here):
+
+```text
+...
+{"component":"meta-mover","file":"pkg/metamover/snapshot/parser/commons.go:1366","func":"github.com/trilioData/k8s-triliovault/pkg/metamover/snapshot/parser.(*Component).ParseForDataComponents","level":"info","msg":"Parsing data components of resource rbac.authorization.k8s.io/v1, Kind=ClusterRoleBinding: [edge-stack]","time":"2022-06-14T06:20:56Z"}
+{"component":"meta-mover","file":"pkg/metamover/snapshot/parser/commons.go:1366","func":"github.com/trilioData/k8s-triliovault/pkg/metamover/snapshot/parser.(*Component).ParseForDataComponents","level":"info","msg":"Parsing data components of resource rbac.authorization.k8s.io/v1, Kind=RoleBinding: [edge-stack-agent-config]","time":"2022-06-14T06:20:56Z"}
 ...
 ```
 

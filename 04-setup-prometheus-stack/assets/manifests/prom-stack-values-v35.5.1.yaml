@@ -23,9 +23,6 @@ kubeScheduler:
 kubeEtcd:
   enabled: false
 
-## Configuration for alertmanager
-## ref: https://prometheus.io/docs/alerting/alertmanager/
-##
 alertmanager:
   ## Deploy alertmanager
   ##
@@ -56,16 +53,16 @@ prometheus:
   ## Starter Kit components service monitors
   #
   # additionalServiceMonitors:
-  # # Uncomment the following section to enable ambassador service monitoring
-  #   - name: "ambassador-monitor"
-  #     selector:
-  #       matchLabels:
-  #         service: "ambassador-admin"
-  #     namespaceSelector:
-  #       matchNames:
-  #         - ambassador
-  #     endpoints:
-  #       - port: "ambassador-admin"
+  # Uncomment the following section to enable ambassador service monitoring
+    # - name: "ambassador-monitor"
+    #   selector:
+    #     matchLabels:
+    #       service: "ambassador-admin"
+    #   namespaceSelector:
+    #     matchNames:
+    #       - ambassador
+    #   endpoints:
+    #     - port: "ambassador-admin"
 
   # # Uncomment the following section to enable ingress-nginx service monitoring
   #   - name: "ingress-nginx-monitor"

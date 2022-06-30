@@ -7,7 +7,7 @@ operator-webhook-init:
 k8s-triliovault-operator:
   repository: k8s-triliovault-operator
 
-tag: "2.6.7"
+tag: "2.9.2"
 
 tvkHelmRepo: ""
 

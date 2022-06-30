@@ -82,29 +82,29 @@ NAME                                            CHART VERSION   APP VERSION     
 grafana/grafana                                 6.20.5          8.3.4           The leading tool for querying and visualizing t...
 grafana/enterprise-metrics                      1.7.2           v1.6.1         Grafana Enterprise Metrics
 grafana/fluent-bit                              2.3.0           v2.1.0          Uses fluent-bit Loki go plugin for gathering lo...
-grafana/loki-stack                              2.5.1           v2.1.0          Loki: like Prometheus, but for logs.
+grafana/loki-stack                              2.6.4           v2.4.2          Loki: like Prometheus, but for logs.
 ...
 ```
 
 **Notes:**
 
 - The chart of interest is `grafana/loki-stack`, which will install standalone `Loki` on the cluster. Please visit the [loki-stack](https://github.com/grafana/helm-charts/tree/main/charts/loki-stack) page for more details about this chart.
-- It's good practice in general, to use a specific version for the `Helm` chart. This way, you can `version` it using `Git`, and target if for a specific `release`. In this tutorial, the Helm chart version `2.5.1` is picked for `loki-stack`, which maps to application version `2.1.0`.
+- It's good practice in general, to use a specific version for the `Helm` chart. This way, you can `version` it using `Git`, and target if for a specific `release`. In this tutorial, the Helm chart version `2.6.4` is picked for `loki-stack`, which maps to application version `2.4.2`.
 
-For your convenience, there's a ready to use sample values file provided in the `Starter Kit` Git repository (`loki-stack-values-v2.5.1.yaml`). Please use your favorite text editor (preferably with `YAML` lint support), for inspection. You can use [VS Code](https://code.visualstudio.com), for example:
+For your convenience, there's a ready to use sample values file provided in the `Starter Kit` Git repository (`loki-stack-values-v2.6.4.yaml`). Please use your favorite text editor (preferably with `YAML` lint support), for inspection. You can use [VS Code](https://code.visualstudio.com), for example:
 
 ```shell
-code 05-setup-loki-stack/assets/manifests/loki-stack-values-v2.5.1.yaml
+code 05-setup-loki-stack/assets/manifests/loki-stack-values-v2.6.4.yaml
 ```
 
 **Note:**
 
 The above values file, enables `Loki` and `Promtail` for you, so no other input is required. `Prometheus` and `Grafana` installation is disabled, because [Section 4 - Set up Prometheus Stack](../04-setup-prometheus-stack/README.md) took care of it already. `Fluent Bit` is not used, so it is disabled by default as well.
 
-Next, install the stack using `Helm`. The following command installs version `2.5.1` of `grafana/loki-stack` in your cluster, using the `Starter Kit` repository `values` file (also creates the `loki-stack` namespace, if it doesn't exist):
+Next, install the stack using `Helm`. The following command installs version `2.6.4` of `grafana/loki-stack` in your cluster, using the `Starter Kit` repository `values` file (also creates the `loki-stack` namespace, if it doesn't exist):
 
 ```shell
-HELM_CHART_VERSION="2.5.1"
+HELM_CHART_VERSION="2.6.4"
 
 helm install loki grafana/loki-stack --version "${HELM_CHART_VERSION}" \
   --namespace=loki-stack \
@@ -122,7 +122,7 @@ The output looks similar to (`STATUS` column should display 'deployed'):
 
 ```text
 NAME    NAMESPACE       REVISION        UPDATED                                 STATUS          CHART                   APP VERSION
-loki    loki-stack      1               2021-09-23 15:02:56.993218 +0300 EEST   deployed        loki-stack-2.5.1        v2.1.0
+loki    loki-stack      1               2022-06-08 10:00:06.838665 +0300 EEST   deployed        loki-stack-2.6.4        v2.4.2    
 ```
 
 Next, inspect all the `Kubernetes` resources created for `Loki`:
@@ -166,7 +166,7 @@ You should **NOT** expose `Grafana` to `public` network (eg. create an ingress m
 
 Next, open a web browser on [localhost:3000](http://localhost:3000), and follow below steps:
 
-1. Click the `Settings` gear from the left panel.
+1. Click the `Configuration` gear from the left panel.
 2. Select `Data sources`.
 3. Click the `Add data source` blue button.
 4. Select `Loki` from the list and add `Loki` url `http://loki.loki-stack:3100`.
@@ -174,9 +174,9 @@ Next, open a web browser on [localhost:3000](http://localhost:3000), and follow 
 
 If everything goes well, a green label message will appear, saying `Data source connected and labels found.`
 
-Now, you can access logs from the `Explore` tab of `Grafana`. Make sure to select `Loki` as the data source. Use `Help` button for log search cheat sheet.
+Now, you can access logs from the `Explore` tab of `Grafana`. Make sure to select `Loki` as the data source. Use the `Help` button for log search cheat sheet.
 
-In the next step, you'll be introduced to `LogQL`, which is the `PromQL` brother, but for logs. Some basic features of `LogQL` will be presented as well.
+In the next step, you'll be introduced to `LogQL`, which is `PromQL`'s brother, but for logs. Some basic features of `LogQL` will be presented as well.
 
 ## Step 3 - Using LogQL
 
@@ -308,10 +308,10 @@ In most of the cases you may not want to fetch logs from all namespaces (and pod
 
 `Promtail` allows you to filter logs on a namespace basis, via the `drop` stage. You can use `Helm` to configure `Promtail` for `namespace filtering`.
 
-First, open the `05-setup-loki-stack/assets/manifests/loki-stack-values-v2.5.1.yaml` file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support). For example you can use [VS Code](https://code.visualstudio.com) (please make sure to `change directory` where the `Starter Kit` repository was cloned first):
+First, open the `05-setup-loki-stack/assets/manifests/loki-stack-values-v2.6.4.yaml` file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support). For example you can use [VS Code](https://code.visualstudio.com) (please make sure to `change directory` where the `Starter Kit` repository was cloned first):
 
 ```shell
-code 05-setup-loki-stack/assets/manifests/loki-stack-values-v2.5.1.yaml
+code 05-setup-loki-stack/assets/manifests/loki-stack-values-v2.6.4.yaml
 ```
 
 Next, please remove the comments surrounding the `pipelineStages` section. In the following example, you will configure `Promtail` to drop all logs coming from all `namespaces` prefixed with `kube-`, meaning: `kube-node-lease`, `kube-public`, `kube-system`. The output looks similar to:
@@ -341,7 +341,7 @@ Explanations for the above configuration:
 Finally, save the values file and apply changes using `Helm` upgrade:
 
 ```shell
-HELM_CHART_VERSION="2.5.1"
+HELM_CHART_VERSION="2.6.4"
 
 helm upgrade loki grafana/loki-stack --version "${HELM_CHART_VERSION}" \
   --namespace=loki-stack \
@@ -376,8 +376,8 @@ The output window **should not return any data** for any of the above queries.
 
 - You can have as many drop stages as you want by using different regex expressions, or combine them together under a single stage if desired, via the regex `OR` operator (`|`).
 - You can also leverage the power of `ServiceMonitors` and enable Promtail `metrics` collection, as learned in [Step 2 - Configure Prometheus and Grafana](../04-setup-prometheus-stack/README.md#step-2---configure-prometheus-and-grafana) from the `Prometheus` tutorial:
-  - First, make sure to enable both the [Loki ServiceMonitor](../04-setup-prometheus-stack/assets/manifests/prom-stack-values-v30.0.1.yaml#L63) and [Promtail ServiceMonitor](../04-setup-prometheus-stack/assets/manifests/prom-stack-values-v30.0.1.yaml#L75) from `Prometheus Stack`, followed by a `Helm upgrade`.
-  - Next, enable [Promtail Service](assets/manifests/loki-stack-values-v2.5.1.yaml#L33) from `Loki Stack`, followed by a `Helm upgrade`.
+  - First, make sure to enable both the [Loki ServiceMonitor](../04-setup-prometheus-stack/assets/manifests/prom-stack-values-v35.5.1.yaml#L63) and [Promtail ServiceMonitor](../04-setup-prometheus-stack/assets/manifests/prom-stack-values-v35.5.1.yaml#L75) from `Prometheus Stack`, followed by a `Helm upgrade`.
+  - Next, enable [Promtail Service](assets/manifests/loki-stack-values-v2.6.4.yaml#L33) from `Loki Stack`, followed by a `Helm upgrade`.
   - Then, you can install the [Loki&Promtail](https://grafana.com/grafana/dashboards/10880) Grafana dashboard provided by the community, and inspect the `volume` of data `ingested` by `Loki`. After a while, you can get a visual feedback of what it means to filter unnecessary application logs, as seen in the picture below (`before` fitlering - on the `left` side, and `after` - on the `right` side):
 
     ![Loki Namespace Filtering Data Ingestion](assets/images/loki_data_ing.png)
@@ -403,10 +403,10 @@ First, change directory where the `Starter Kit` repository was cloned:
 cd Kubernetes-Starter-Kit-Developers
 ```
 
-Next, open the `loki-stack-values-v2.5.1.yaml` file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support). You can use [VS Code](https://code.visualstudio.com), for example:
+Next, open the `loki-stack-values-v2.6.4.yaml` file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support). You can use [VS Code](https://code.visualstudio.com), for example:
 
 ```shell
-code 05-setup-loki-stack/assets/manifests/loki-stack-values-v2.5.1.yaml
+code 05-setup-loki-stack/assets/manifests/loki-stack-values-v2.6.4.yaml
 ```
 
 Then, please remove the comments surrounding the `schema_config` and `storage_config` keys. The final `Loki` storage setup configuration looks similar to (please replace the `<>` placeholders accordingly):
@@ -447,7 +447,7 @@ Explanation for the above configuration:
 Apply settings, using `Helm`:
 
   ```shell
-  HELM_CHART_VERSION="2.5.1"
+  HELM_CHART_VERSION="2.6.4"
 
   helm upgrade loki grafana/loki-stack --version "${HELM_CHART_VERSION}" \
     --namespace=loki-stack \

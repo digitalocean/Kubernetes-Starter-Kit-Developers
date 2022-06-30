@@ -93,12 +93,12 @@ Steps to follow:
     The output looks similar to the following:
 
     ```text
-    NAME                         CHART VERSION  APP VERSION  DESCRIPTION
-    datawire/ambassador          6.9.3          1.14.2       A Helm chart for Datawire Ambassador
-    datawire/ambassador-operator 0.3.0          v1.3.0       A Helm chart for Kubernetes
-    datawire/edge-stack          7.2.2          2.1.2        A Helm chart for Ambassador Edge Stack
-    datawire/emissary-ingress    7.2.2          2.1.2        A Helm chart for Emissary Ingress
-    datawire/telepresence        2.4.10         2.4.10        A chart for deploying the server-side component
+    NAME                            CHART VERSION   APP VERSION     DESCRIPTION                   
+    datawire/ambassador             6.9.4           1.14.3          A Helm chart for Datawire Ambassador       
+    datawire/ambassador-operator    0.3.0           v1.3.0          A Helm chart for Kubernetes              
+    datawire/edge-stack             7.3.2           2.2.2           A Helm chart for Ambassador Edge Stack  
+    datawire/emissary-ingress       7.3.2           2.2.2           A Helm chart for Emissary Ingress
+    datawire/telepresence           2.6.5           2.6.5           A chart for deploying the server-side component...
     ```
 
     **Note:**
@@ -107,25 +107,25 @@ Steps to follow:
 3. Before installing **Ambassador Edge Stack 2.X** itself, you must configure your Kubernetes cluster to support the `getambassador.io/v3alpha1` and `getambassador.io/v2` configuration resources. This is required.
 
     ```shell
-    kubectl apply -f https://app.getambassador.io/yaml/edge-stack/2.1.2/aes-crds.yaml
+    kubectl apply -f https://app.getambassador.io/yaml/edge-stack/2.3.0/aes-crds.yaml
     ```
 
     **Note:**
 
     **Ambassador Edge Stack 2.X** includes a Deployment in the `emissary-system` namespace called `edge-stack-apiext`. This is the APIserver extension that supports converting Ambassador Edge Stack CRDs between `getambassador.io/v3alpha1` and `getambassador.io/v2`. This Deployment needs to be running at all times.
-4. Then, open and inspect the `03-setup-ingress-controller/assets/manifests/ambassador-values-v7.2.2.yaml` file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://code.visualstudio.com):
+4. Then, open and inspect the `03-setup-ingress-controller/assets/manifests/ambassador-values-v7.3.2.yaml` file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://code.visualstudio.com):
 
     ```shell
-    code 03-setup-ingress-controller/assets/manifests/ambassador-values-v7.2.2.yaml
+    code 03-setup-ingress-controller/assets/manifests/ambassador-values-v7.3.2.yaml
     ```
 
     **Note:**
 
-    There are times when you want to re-use the existing `Load Balancer`. This is for preserving your `DNS` settings and other `Load Balancer` configurations. If so, make sure to modify the `ambassador-values-v7.2.2.yaml` file, and add the annotation for your existing `Load Balancer`. Likewise, you can enable `Proxy Protocol` as part of modules section in the `ambassador-values-v7.2.2.yaml` file. Please refer to the `DigitalOcean Kubernetes` guide - [How To Migrate Load Balancers](https://docs.digitalocean.com/products/kubernetes/how-to/migrate-load-balancers) for more details.
+    There are times when you want to re-use the existing `Load Balancer`. This is for preserving your `DNS` settings and other `Load Balancer` configurations. If so, make sure to modify the `ambassador-values-v7.3.2.yaml` file, and add the annotation for your existing `Load Balancer`. Likewise, you can enable `Proxy Protocol` as part of modules section in the `ambassador-values-v7.3.2.yaml` file. Please refer to the `DigitalOcean Kubernetes` guide - [How To Migrate Load Balancers](https://docs.digitalocean.com/products/kubernetes/how-to/migrate-load-balancers) for more details.
 5. Finally, install `Ambassador Edge Stack` using `Helm` (a dedicated `ambassador` namespace will be created as well):
 
     ```shell
-    HELM_CHART_VERSION="7.2.2"
+    HELM_CHART_VERSION="7.3.2"
 
     helm install edge-stack datawire/edge-stack --version "$HELM_CHART_VERSION" \
         --namespace ambassador \
@@ -135,7 +135,7 @@ Steps to follow:
 
     **Note:**
 
-    A `specific` version for the ambassador `Helm` chart is used. In this case `7.2.2` was picked, which maps to the `2.1.2` release of `Ambassador Edge Stack` (see the output from `Step 2.`). It’s good practice in general, to lock on a specific version. This helps to have predictable results, and allows versioning control via `Git`.
+    A `specific` version for the ambassador `Helm` chart is used. In this case `7.3.2` was picked, which maps to the `2.2.2` release of `Ambassador Edge Stack` (see the output from `Step 2.`). It’s good practice in general, to lock on a specific version. This helps to have predictable results, and allows versioning control via `Git`.
 
 **Observations and results:**
 
@@ -149,7 +149,7 @@ The output looks similar to (notice that the `STATUS` column value is `deployed`
 
 ```text
 NAME         NAMESPACE   REVISION  UPDATED                                STATUS      CHART               APP VERSION
-edge-stack   ambassador  1         2022-02-03 09:56:55.80197 +0200 EET   deployed    edge-stack-7.2.2   2.1.2
+edge-stack   ambassador  1         2022-02-03 09:56:55.80197 +0200 EET   deployed    edge-stack-7.3.2   2.2.2
 ```
 
 Next check Kubernetes resources created for the `ambassador` namespace (notice the `deployment` and `replicaset` resources which should be healthy, as well as the `LoadBalancer` resource having an `external IP` assigned):
@@ -200,7 +200,7 @@ In the next step, you will learn how to create the `Listener` CRDs that tells to
 
 ## Step 2 - Defining the Listener for Ambassador Edge Stack
 
-The `Listener` CRD defines where, and how, Ambassador Edge Stack should listen for requests from the network (eg DO Load Balancer), and which Host definitions should be used to process those requests.
+The `Listener` CRD defines where, and how, Ambassador Edge Stack should listen for requests from the network (e.g. DO Load Balancer), and which Host definitions should be used to process those requests.
 
 **Note:**
 
@@ -234,7 +234,7 @@ Explanations for the above configuration:
 
 Ambassador Edge Stack offers multiple configurations for [protocolStack](https://www.getambassador.io/docs/edge-stack/2.1/topics/running/listener/#securitymodel) and our recommandation is the `XFP` flag to be setup for all the connections to be secure. If the `X-Forwarded-Proto` header is present in the requests the AES will decide automatically to redirect all the requests from HTTP over to HTTPS for greater security.
 
-For more details, please visit the AES [Listener](https://www.getambassador.io/docs/edge-stack/2.1/topics/running/listener/) CRD official documentation.
+For more details, please visit the AES [Listener](https://www.getambassador.io/docs/edge-stack/2.2/topics/running/listener/) CRD official documentation.
 
 First, change directory (if not already) where you cloned the `Starter Kit` repository.
 
@@ -648,7 +648,7 @@ To enable proxy protocol for `AES Backend Services`, you need to run the below s
 2. Edit the `Helm` values file provided in the `Starter Kit` repository using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://visualstudio.microsoft.com):
 
     ```shell
-    code 03-setup-ingress-controller/assets/manifests/ambassador-values-v7.2.2.yaml
+    code 03-setup-ingress-controller/assets/manifests/ambassador-values-v7.3.2.yaml
     ```
 
 3. Uncomment the `annotations` settings from the `service` section, like in the below example:
@@ -671,7 +671,7 @@ To enable proxy protocol for `AES Backend Services`, you need to run the below s
 4. Save the values file and apply changes using `Helm`:
 
     ```shell
-    HELM_CHART_VERSION="7.2.2"
+    HELM_CHART_VERSION="7.3.2"
 
     helm upgrade edge-stack datawire/edge-stack --version "$HELM_CHART_VERSION" \
     --namespace ambassador  \
