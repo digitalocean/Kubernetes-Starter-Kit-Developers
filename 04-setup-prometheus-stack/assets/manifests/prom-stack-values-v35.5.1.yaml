@@ -53,16 +53,20 @@ prometheus:
   ## Starter Kit components service monitors
   #
   # additionalServiceMonitors:
-  # Uncomment the following section to enable ambassador service monitoring
-    # - name: "ambassador-monitor"
-    #   selector:
-    #     matchLabels:
-    #       service: "ambassador-admin"
-    #   namespaceSelector:
-    #     matchNames:
-    #       - ambassador
-    #   endpoints:
-    #     - port: "ambassador-admin"
+  # # Uncomment the following section to enable ambassador service monitoring
+  #   - name: "emojivoto-monitor"
+  #     selector:
+  #       matchExpressions:
+  #         - key: app
+  #           operator: In
+  #           values:
+  #             - emoji-svc
+  #             - voting-svc
+  #     namespaceSelector:
+  #       matchNames: 
+  #         - emojivoto
+  #     endpoints:
+  #       - port: "prom"
 
   # # Uncomment the following section to enable ingress-nginx service monitoring
   #   - name: "ingress-nginx-monitor"
