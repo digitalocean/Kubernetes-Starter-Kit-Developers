@@ -6,7 +6,7 @@ The value for each metric, like: `CPU Utilisation`, `CPU Requests Commitment`, `
 
 ![Dashboard-Cost-CPU-Monitoring-Cluster](assets/images/monitoring_cpu_ram_cluster.png)
 
-There are even more dashboards available to study, so please navigate to `Dashboards -> Manage` and pick `Kubernetes/Compute Resources/Cluster` for example. It shows `CPU/Memory` usage for each `namespace` (`velero`, `ambassador`, `prometheus/loki/grafana`).
+There are even more dashboards available to study, so please navigate to `Dashboards -> Manage` and pick `Kubernetes/Compute Resources/Namespace (Workloads)` for example. It shows `CPU/Memory` usage for each `namespace` (`velero`, `ambassador`, `prometheus/loki/grafana`).
 
 Our observation on the resource utilization of the starter kit components are as follows. Note that this is the default state - meaning Ambassador is processing almost no traffic, there's no active backups going on, and there're only infrastructure logs and metrics to process:
 
