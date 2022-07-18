@@ -14,7 +14,7 @@ After finishing this tutorial, you will be able to:
 
 - `Configure` monitoring for all pods running in your `DOKS` cluster
 - `Visualize` metrics for your `applications` in real time, using `Grafana`
-- Configure `ServiceMonitors` via the `Prometheus Operator`, for your services (e.g. `Ambassador Edge Stack`)
+- Configure `ServiceMonitors` for your services (e.g. `Emojivoto`) via the `Prometheus Operator`
 - Use `PromQL` to perform queries on metrics.
 - Configure `persistent` storage for `Prometheus`, to safely store all your `DOKS` cluster and `application` metrics.
 - Configure `persistent` storage for `Grafana`, to safely store all your `dashboards`.
@@ -43,6 +43,7 @@ To complete this tutorial, you will need:
 2. [Helm](https://www.helms.sh), for managing `Promtheus` stack releases and upgrades.
 3. [Kubectl](https://kubernetes.io/docs/tasks/tools), for `Kubernetes` interaction.
 4. [Curl](https://curl.se/download.html), for testing the examples (backend applications).
+5. [Emojivoto Sample App](https://github.com/digitalocean/kubernetes-sample-apps/tree/master/emojivoto-example) deployed in the cluster. Please follow the steps in its repository README.
 
 Please make sure that `kubectl` context is configured to point to your `Kubernetes` cluster - refer to [Step 3 - Creating the DOKS Cluster](01-setup-DOKS/README.md#step-3---creating-the-doks-cluster) from the `DOKS` setup tutorial.
 
@@ -165,55 +166,58 @@ You should **NOT** expose `Grafana` to `public` network (eg. create an ingress m
 
 `Grafana` installation comes with a number of dashboards. Open a web browser on [localhost:3000](http://localhost:3000). Once in, you can go to `Dashboards -> Browse`, and choose different dashboards.
 
-In the next part, you will discover how to set up `Prometheus` to discover targets for monitoring. As an example, the `Ambassador Edge Stack` will be used. You'll learn what a `ServiceMonitor` is, as well.
+In the next part, you will discover how to set up `Prometheus` to discover targets for monitoring. As an example, the `Emojivoto` sample application will be used. You'll learn what a `ServiceMonitor` is, as well.
 
 ## Step 2 - Configure Prometheus and Grafana
 
 You already deployed `Prometheus` and `Grafana` into the cluster. In this step, you will learn how to use a `ServiceMonitor`. A `ServiceMonitor` is one of the preferred ways to tell `Prometheus` how to discover a new target for monitoring.
 
-The [Ambassador Edge Stack Deployment](../03-setup-ingress-controller/ambassador.md#step-1---installing-the-ambassador-edge-stack) created earlier in the tutorial, provides the `/metrics` endpoint by default on port `8877` via a `Kubernetes` service.
+The `Emojivoto Deployment` created in `Step 5` of the [Prerequisites](#prerequisites) section provides the `/metrics` endpoint by default on port `8801` via a `Kubernetes` service.
 
-Next, you will discover the `Ambassador` service responsible with exposing metrics data for `Prometheus` to consume. The service in question is called `edge-stack-admin` (note that it's using the `ambassador` namespace):
+Next, you will discover the `Emojivoto` services responsible with exposing metrics data for `Prometheus` to consume. The services in question are called `emoji-svc` and `voting-svc` (note that it's using the `emojivoto` namespace):
 
 ```shell
-kubectl get svc -n ambassador
+kubectl get svc -n emojivoto
 ```
 
 The output looks similar to the following:
 
 ```text
-NAME               TYPE           CLUSTER-IP     EXTERNAL-IP      PORT(S)                      AGE
-edge-stack         LoadBalancer   10.245.39.13   68.183.252.190   80:31499/TCP,443:30759/TCP   3d3h
-edge-stack-admin   ClusterIP      10.245.68.14   <none>           8877/TCP,8005/TCP            3d3h
-edge-stack-redis   ClusterIP      10.245.9.81    <none>           6379/TCP                     3d3h
+NAME         TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)             AGE
+emoji-svc    ClusterIP   10.245.135.93    <none>        8080/TCP,8801/TCP   22h
+voting-svc   ClusterIP   10.245.164.222   <none>        8080/TCP,8801/TCP   22h
+web-svc      ClusterIP   10.245.61.229    <none>        80/TCP              22h
 ```
 
 Next, please perform a `port-forward`, to inspect the metrics:
 
 ```shell
-kubectl port-forward svc/edge-stack-admin 8877:8877 -n ambassador
+kubectl port-forward svc/emoji-svc 8801:8801 -n emojivoto
 ```
 
-The exposed `metrics` can be `visualized` using the web browser on [localhost](http://localhost:8877/metrics), or using `curl`:
+The exposed `metrics` can be `visualized` by navigating with a web browser to [localhost](http://localhost:8801/metrics), or via curl:
 
 ```shell
-curl -s http://localhost:8877/metrics
+curl -s http://localhost:8801/metrics
 ```
 
 The output looks similar to the following:
 
 ```text
-# TYPE envoy_cluster_assignment_stale counter
-envoy_cluster_assignment_stale{envoy_cluster_name="cluster_127_0_0_1_8500_ambassador"} 0
-envoy_cluster_assignment_stale{envoy_cluster_name="cluster_127_0_0_1_8877_ambassador"} 0
-envoy_cluster_assignment_stale{envoy_cluster_name="cluster_echo_backend_ambassador"} 0
-envoy_cluster_assignment_stale{envoy_cluster_name="cluster_extauth_127_0_0_1_8500_ambassador"} 0
-envoy_cluster_assignment_stale{envoy_cluster_name="cluster_quote_backend_ambassador"} 0
-envoy_cluster_assignment_stale{envoy_cluster_name="cluster_quote_default_default"} 0
-envoy_cluster_assignment_stale{envoy_cluster_name="xds_cluster"} 0
+# TYPE go_gc_duration_seconds summary
+go_gc_duration_seconds{quantile="0"} 5.317e-05
+go_gc_duration_seconds{quantile="0.25"} 0.000105305
+go_gc_duration_seconds{quantile="0.5"} 0.000138168
+go_gc_duration_seconds{quantile="0.75"} 0.000225651
+go_gc_duration_seconds{quantile="1"} 0.016986437
+go_gc_duration_seconds_sum 0.607979843
+go_gc_duration_seconds_count 2097
 ```
 
-Next, connect `Prometheus` to the `Ambassador` metrics service. There are several ways of doing this:
+**Note:**
+To inspect the metrics for the `voting-svc` service, stop the `emoji-svc` port-forward and perform the same steps for the second service.
+
+Next, connect `Prometheus` to the `Emojivoto` metrics service. There are several ways of doing this:
 
 - [<static_config>](https://prometheus.io/docs/prometheus/latest/configuration/configuration/#static_config) - allows specifying a list of targets and a common label set for them.
 - [<kubernetes_sd_config>](https://prometheus.io/docs/prometheus/latest/configuration/configuration/#kubernetes_sd_config) - allows retrieving scrape targets from `Kubernetes' REST API` and always staying synchronized with the cluster state.
@@ -223,7 +227,7 @@ As you can see, there are many ways to tell `Prometheus` to scrape an endpoint, 
 
 Next, you will make use of the `ServiceMonitor` CRD exposed by the `Prometheus Operator`, to define a new target for monitoring.
 
-Steps required to add the `Ambassador` service, for `Prometheus` to monitor:
+Steps required to add all `Emojivoto` services for `Prometheus` monitoring:
 
 1. First, change directory (if not already) where the `Starter Kit` Git repository was cloned:
 
@@ -235,21 +239,25 @@ Steps required to add the `Ambassador` service, for `Prometheus` to monitor:
 
     ```yaml
     additionalServiceMonitors:
-      - name: "ambassador-monitor"
+      - name: "emojivoto-monitor"
         selector:
-          matchLabels:
-            service: "ambassador-admin"
+          matchExpressions:
+            - key: app
+              operator: In
+              values:
+                - emoji-svc
+                - voting-svc
         namespaceSelector:
-          matchNames:
-            - ambassador
+          matchNames: 
+            - emojivoto
         endpoints:
-        - port: "ambassador-admin"
+          - port: "prom"
     ```
 
     Explanations for the above configuration:
 
-    - `selector -> matchLabels` - tells `ServiceMonitor` what service to monitor.
-    - `namespaceSelector` - here, you want to match the namespace where `Ambassador Edge Stack` was deployed.
+    - `selector -> matchExpressions` - tells `ServiceMonitor` which service to monitor. It will target all services with the label key `app` and the values `emoji-svc` and `voting-svc`. The labels can be fetched by running: `kubectl get svc --show-labels -n emojivoto`
+    - `namespaceSelector` - here, you want to match the namespace where `Emojivoto` was deployed.
     - `endpoints -> port` - references the port of the service to monitor.
 
 3. Finally, apply changes using `Helm`:
@@ -262,32 +270,18 @@ Steps required to add the `Ambassador` service, for `Prometheus` to monitor:
       -f "04-setup-prometheus-stack/assets/manifests/prom-stack-values-v${HELM_CHART_VERSION}.yaml"
     ```
 
-Next, please check if the `Ambassador` target is added to `Prometheus` for scraping. Create a port forward for `Prometheus` on port `9090`:
+Next, please check if the `Emojivoto` target is added to `Prometheus` for scraping. Create a port forward for `Prometheus` on port `9090`:
 
 ```shell
 kubectl port-forward svc/kube-prom-stack-kube-prome-prometheus 9090:9090 -n monitoring
 ```
 
-Open a web browser on [localhost:9090](http://localhost:9090). Then, navigate to `Status -> Targets` page, and inspect the results (notice the `serviceMonitor/monitoring/ambassador-monitor/0` path):
+Open a web browser on [localhost:9090](http://localhost:9090). Then, navigate to `Status -> Targets` page, and inspect the results (notice the `serviceMonitor/monitoring/emojivoto-monitor/0` path):
 
-![Ambassador Prometheus Target](assets/images/prom_amb_target.png)
+![Emojivoto Prometheus Target](assets/images/prom_emojivoto_target.png)
 
 **Note:**
-
-There are **3 entries** under the discovered target because the `AES` deployment consists of 3 `Pods`. Verify it via:
-
-```shell
-kubectl get deployments -n ambassador
-```
-
-The output looks similar to the following (notice the `ambassador` line):
-
-```text
-NAME               READY   UP-TO-DATE   AVAILABLE   AGE
-edge-stack         3/3     3            3           7h17m
-edge-stack-agent   1/1     1            1           7h17m
-edge-stack-redis   1/1     1            1           7h17m
-```
+There are **2 entries** under the discovered targets because the `Emojivoto` deployment consists of 2 `services` exposing the metrics endpoint.
 
 In the next step, you'll discover `PromQL` along with some simple examples, to get you started, and discover the language.
 
@@ -299,7 +293,7 @@ What is `PromQL`?
 
 It's a `DSL` or `Domain Specific Language` that is specifically built for `Prometheus` and allows you to query for metrics. Because it’s a `DSL` built upon `Go`, you’ll find that `PromQL` has a lot in common with the language. But it’s also a `NFL` or `Nested Functional Language`, where data appears as nested expressions within larger expressions. The outermost, or overall, expression defines the final value, while nested expressions represent values for arguments and operands. For more in depth explanations, please visit the official [PromQL](https://prometheus.io/docs/prometheus/latest/querying) page.
 
-Next, you're going to inspect one of the `Ambassador Edge` metrics, namely the `ambassador_edge_stack_promhttp_metric_handler_requests_total`, which represents the total of `HTTP` requests `Prometheus` performed for the `AES` metrics endpoint.
+Next, you're going to inspect one of the `Emojivoto` metrics, namely the `emojivoto_votes_total`, which represents the total number of `votes`. It's a counter value that increases with each request against the `Emojivoto` votes endpoint.
 
 Steps to follow:
 
@@ -310,41 +304,50 @@ Steps to follow:
     ```
 
 2. Next, open the [expression browser](http://localhost:9090/graph).
-3. In the query input field paste `ambassador_edge_stack_promhttp_metric_handler_requests_total`, and hit `Enter`. The output looks similar to:
+3. In the query input field paste `emojivoto_votes_total`, and hit `Enter`. The output looks similar to:
 
     ```text
-    ambassador_edge_stack_promhttp_metric_handler_requests_total{code="200", container="ambassador", endpoint="ambassador-admin", instance="10.244.0.196:8877", job="ambassador-admin", namespace="ambassador", pod="ambassador-bcb5b8d67-k6q4v", service="ambassador-admin"} 21829
-    ambassador_edge_stack_promhttp_metric_handler_requests_total{code="200", container="ambassador", endpoint="ambassador-admin", instance="10.244.0.228:8877", job="ambassador-admin", namespace="ambassador", pod="ambassador-bcb5b8d67-8v9nn", service="ambassador-admin"} 21829
-    ambassador_edge_stack_promhttp_metric_handler_requests_total{code="200", container="ambassador", endpoint="ambassador-admin", instance="10.244.0.32:8877", job="ambassador-admin", namespace="ambassador", pod="ambassador-bcb5b8d67-rlqwm", service="ambassador-admin"}  21832
-    ambassador_edge_stack_promhttp_metric_handler_requests_total{code="500", container="ambassador", endpoint="ambassador-admin", instance="10.244.0.196:8877", job="ambassador-admin", namespace="ambassador", pod="ambassador-bcb5b8d67-k6q4v", service="ambassador-admin"} 0
-    ambassador_edge_stack_promhttp_metric_handler_requests_total{code="500", container="ambassador", endpoint="ambassador-admin", instance="10.244.0.228:8877", job="ambassador-admin", namespace="ambassador", pod="ambassador-bcb5b8d67-8v9nn", service="ambassador-admin"} 0
-    ambassador_edge_stack_promhttp_metric_handler_requests_total{code="500", container="ambassador", endpoint="ambassador-admin", instance="10.244.0.32:8877", job="ambassador-admin", namespace="ambassador", pod="ambassador-bcb5b8d67-rlqwm", service="ambassador-admin"}  0
-    ambassador_edge_stack_promhttp_metric_handler_requests_total{code="503", container="ambassador", endpoint="ambassador-admin", instance="10.244.0.196:8877", job="ambassador-admin", namespace="ambassador", pod="ambassador-bcb5b8d67-k6q4v", service="ambassador-admin"} 0
-    ambassador_edge_stack_promhttp_metric_handler_requests_total{code="503", container="ambassador", endpoint="ambassador-admin", instance="10.244.0.228:8877", job="ambassador-admin", namespace="ambassador", pod="ambassador-bcb5b8d67-8v9nn", service="ambassador-admin"} 0
-    ambassador_edge_stack_promhttp_metric_handler_requests_total{code="503", container="ambassador", endpoint="ambassador-admin", instance="10.244.0.32:8877", job="ambassador-admin", namespace="ambassador", pod="ambassador-bcb5b8d67-rlqwm", service="ambassador-admin"}  0
+    emojivoto_votes_total{container="voting-svc", emoji=":100:", endpoint="prom", instance="10.244.25.31:8801", job="voting-svc", namespace="emojivoto", pod="voting-74ff7f8b55-jl6qs", service="voting-svc"} 20
+    emojivoto_votes_total{container="voting-svc", emoji=":bacon:", endpoint="prom", instance="10.244.25.31:8801", job="voting-svc", namespace="emojivoto", pod="voting-74ff7f8b55-jl6qs", service="voting-svc"} 17
+    emojivoto_votes_total{container="voting-svc", emoji=":balloon:", endpoint="prom", instance="10.244.25.31:8801", job="voting-svc", namespace="emojivoto", pod="voting-74ff7f8b55-jl6qs", service="voting-svc"} 21
+    emojivoto_votes_total{container="voting-svc", emoji=":basketball_man:", endpoint="prom", instance="10.244.25.31:8801", job="voting-svc", namespace="emojivoto", pod="voting-74ff7f8b55-jl6qs", service="voting-svc"} 10
+    emojivoto_votes_total{container="voting-svc", emoji=":beach_umbrella:", endpoint="prom", instance="10.244.25.31:8801", job="voting-svc", namespace="emojivoto", pod="voting-74ff7f8b55-jl6qs", service="voting-svc"} 10
+    emojivoto_votes_total{container="voting-svc", emoji=":beer:", endpoint="prom", instance="10.244.25.31:8801", job="voting-svc", namespace="emojivoto", pod="voting-74ff7f8b55-jl6qs", service="voting-svc"} 11
     ```
 
-4. `PromQL` groups similar data in what's called a `vector`. As seen above, each `vector` has a set of `attributes` which differentiates it from one another. What you can do then, is to group results based on an attribute of interest. For example, if you care only about `HTTP` requests that ended with a `200` response code, then please type the following in the query field:
+4. Navigate to the `Emojivoto` application and from the homepage click on the `100` emoji to vote for it.
+5. Navigate to the query results page from `Step 3` and click on the `Execute` button. You should see the counter for the `100` emoji increase by one. The ouput looks similar to:
+
+    ```text
+    emojivoto_votes_total{container="voting-svc", emoji=":100:", endpoint="prom", instance="10.244.25.31:8801", job="voting-svc", namespace="emojivoto", pod="voting-74ff7f8b55-jl6qs", service="voting-svc"} 21
+    emojivoto_votes_total{container="voting-svc", emoji=":bacon:", endpoint="prom", instance="10.244.25.31:8801", job="voting-svc", namespace="emojivoto", pod="voting-74ff7f8b55-jl6qs", service="voting-svc"} 17
+    emojivoto_votes_total{container="voting-svc", emoji=":balloon:", endpoint="prom", instance="10.244.25.31:8801", job="voting-svc", namespace="emojivoto", pod="voting-74ff7f8b55-jl6qs", service="voting-svc"} 21
+    emojivoto_votes_total{container="voting-svc", emoji=":basketball_man:", endpoint="prom", instance="10.244.25.31:8801", job="voting-svc", namespace="emojivoto", pod="voting-74ff7f8b55-jl6qs", service="voting-svc"} 10
+    emojivoto_votes_total{container="voting-svc", emoji=":beach_umbrella:", endpoint="prom", instance="10.244.25.31:8801", job="voting-svc", namespace="emojivoto", pod="voting-74ff7f8b55-jl6qs", service="voting-svc"} 10
+    emojivoto_votes_total{container="voting-svc", emoji=":beer:", endpoint="prom", instance="10.244.25.31:8801", job="voting-svc", namespace="emojivoto", pod="voting-74ff7f8b55-jl6qs", service="voting-svc"} 11
+    ```
+
+6. `PromQL` groups similar data in what's called a `vector`. As seen above, each `vector` has a set of `attributes` which differentiates it from one another. What you can do then, is to group results based on an attribute of interest. For example, if you care only about requests that come from the `voting-svc` service, then please type the following in the query field:
 
     ```json
-    ambassador_edge_stack_promhttp_metric_handler_requests_total{code="200"}
+    emojivoto_votes_total{service="voting-svc"}
     ```
 
     The output looks similar to (note that it selects only the results that match your criteria):
 
     ```json
-    ambassador_edge_stack_promhttp_metric_handler_requests_total{code="200", container="ambassador", endpoint="ambassador-admin", instance="10.244.0.196:8877", job="ambassador-admin", namespace="ambassador", pod="ambassador-bcb5b8d67-k6q4v", service="ambassador-admin"} 21843
-    ambassador_edge_stack_promhttp_metric_handler_requests_total{code="200", container="ambassador", endpoint="ambassador-admin", instance="10.244.0.228:8877", job="ambassador-admin", namespace="ambassador", pod="ambassador-bcb5b8d67-8v9nn", service="ambassador-admin"} 21843
-    ambassador_edge_stack_promhttp_metric_handler_requests_total{code="200", container="ambassador", endpoint="ambassador-admin", instance="10.244.0.32:8877", job="ambassador-admin", namespace="ambassador", pod="ambassador-bcb5b8d67-rlqwm", service="ambassador-admin"}  21845
+    emojivoto_votes_total{container="voting-svc", emoji=":100:", endpoint="prom", instance="10.244.6.91:8801", job="voting-svc", namespace="emojivoto", pod="voting-6548959dd7-hssh2", service="voting-svc"} 492
+    emojivoto_votes_total{container="voting-svc", emoji=":bacon:", endpoint="prom", instance="10.244.6.91:8801", job="voting-svc", namespace="emojivoto", pod="voting-6548959dd7-hssh2", service="voting-svc"} 532
+    emojivoto_votes_total{container="voting-svc", emoji=":balloon:", endpoint="prom", instance="10.244.6.91:8801", job="voting-svc", namespace="emojivoto", pod="voting-6548959dd7-hssh2", service="voting-svc"} 521
     ```
 
  **Note:**
 
-  The above result shows the total requests for each `Pod` from the `AES` deployment (which consists of `3`, as seen in the `kubectl get deployments -n ambassador` command output). Each `Pod` is exposing the same `/metrics` endpoint, and the `Kubernetes` service makes sure that the requests are distributed to each `Pod`. Numbers at the end of each line represent the total `HTTP` requests, so you can see that is roughly the same: `21843`, `21843`, `21845`. This demonstrates the `Round Robin` method being used by the service.
+  The above result shows the total requests for each `Pod` from the `Emojivoto` deployment which emits metrics (which consists of `2`).
 
 This is just a very simple introduction to what `PromQL` is and what it's capable of. But it can do much more than that, like: `counting` metrics, computing the `rate` over a predefined `interval`, etc. Please visit the official [PromQL](https://prometheus.io/docs/prometheus/latest/querying/basics/) page, for more features of the language.
 
-In the next step, you will learn ho to use `Grafana` to `visualize` metrics for one of the `Starter Kit` components - the `Ambassador Edge Stack`.
+In the next step, you will learn ho to use `Grafana` to `visualize` metrics for the `Emojivoto` sample application.
 
 ## Step 4 - Visualizing Metrics Using Grafana
 
@@ -364,50 +367,17 @@ No extra steps are needed for installation, because [Step 1 - Installing the Pro
 kubectl --namespace monitoring port-forward svc/kube-prom-stack-grafana 3000:80
 ```
 
-In order to see all the `Ambassador Edge Stack` metrics, you're going to add this well-designed [dashboard](https://grafana.com/grafana/dashboards/4698) from the `Grafana` community.
+In order to see all the `Emojivoto` metrics, you're going to use one of the default installed dashboards from `Grafana`.
 
-Creating the `Ambassador` dashboard for `Grafana`:
+Accessing the `Kubernetes/Compute Resources/Namespace(Pods)` dashboard for `Grafana`:
 
-1. First, navigate to the [dashboard import](http://localhost:3000/dashboard/import) section (or hover the mouse on the `+` sign from the left pane, then click `Import`).
-2. Next, paste this ID: `4698` in the `Import via grafana.com` field. Then, click `Load`.
-3. Finally, select a data source - `Prometheus`, then hit the `Import` button.
+1. Navigate to the [Grafana Dashboards](http://localhost:3000/dashboards) section.
+2. Next, search for the `General/Kubernetes/Compute Resources/Namespace(Pods)` dashboard and access it.
+3. Finally, select the `Prometheus` data source and add the `emojivoto` namespace.
 
 The picture down below shows the available options:
 
-![Grafana Ambassador Setup](assets/images/grafana_amb_setup.png)
-
-Explanations for the above `Dashboard` import window:
-
-- `Name` - the dashboard name (defaults to `Ambassador`).
-- `Folder` - the folder name where to store this dashboard (defaults to `General`).
-- `Prometheus` - the `Prometheus` instance to use (you have only one in this example).
-- `Listener port` - the `Envoy` listener port (defaults to `8080`).
-
-After clicking `Import`, it will create the following dashboard, as seen below:
-
-![Grafana Ambassador Dashboard](assets/images/amb_grafana_dashboard.png)
-
-In the next step, you're going to monitor the number of `API` calls for the `quote` backend service created using the [Ambassador Edge Stack Backend Services](../03-setup-ingress-controller/ambassador.md##step-4---creating-the-ambassador-edge-stack-backend-services) step, from the Ambassador Edge Stack `Starter Kit` tutorial (or [Nginx Backend Services](#step-3---creating-the-nginx-backend-services), for `Nginx`).
-
-The graph of interest is: `API Response Codes`.
-
-If you call the service `2` times, you will see `4` responses being plotted. This is normal behavior, because the `API Gateway` (from the `Ambassador Edge Stack`) is hit first, and then the real service. Same thing happens when a reply is being sent back, so we have a total of: `2 + 2 = 4` responses being plotted in the `API Response Codes` graph.
-
-`CLI` command used for testing the above scenario:
-
-```shell
-curl -Lk https://quote.starter-kit.online/quote/
-```
-
-The output looks similar to the following:
-
-```json
-{
-    "server": "buoyant-pear-girnlk37",
-    "quote": "A small mercy is nothing at all?",
-    "time": "2021-08-11T18:18:56.654108372Z"
-}
-```
+![Grafana Dashboard](assets/images/grafana_emojivoto_dashboard.png)
 
 You can play around and add more panels in `Grafana`, for visualizing other data sources, as well as `group` them together based on `scope`. Also, you can explore the available dashboards for `Kubernetes` from the Grafana [kube-mixin](https://github.com/kubernetes-monitoring/kubernetes-mixin) project.
 
