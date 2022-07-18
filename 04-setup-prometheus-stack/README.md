@@ -14,7 +14,7 @@ After finishing this tutorial, you will be able to:
 
 - `Configure` monitoring for all pods running in your `DOKS` cluster
 - `Visualize` metrics for your `applications` in real time, using `Grafana`
-- Configure `ServiceMonitors` via the `Prometheus Operator`, for your services (e.g. `Emojivoto`)
+- Configure `ServiceMonitors` for your services (e.g. `Emojivoto`) via the `Prometheus Operator`
 - Use `PromQL` to perform queries on metrics.
 - Configure `persistent` storage for `Prometheus`, to safely store all your `DOKS` cluster and `application` metrics.
 - Configure `persistent` storage for `Grafana`, to safely store all your `dashboards`.
@@ -43,8 +43,7 @@ To complete this tutorial, you will need:
 2. [Helm](https://www.helms.sh), for managing `Promtheus` stack releases and upgrades.
 3. [Kubectl](https://kubernetes.io/docs/tasks/tools), for `Kubernetes` interaction.
 4. [Curl](https://curl.se/download.html), for testing the examples (backend applications).
-5. [Kustomize](https://kubectl.docs.kubernetes.io/installation/kustomize/), for deploying a kubernetes sample app from the Kubernetes Sample Apps[Repository](https://github.com/digitalocean/kubernetes-sample-apps).
-6. [Emojivoto Sample App](https://github.com/digitalocean/kubernetes-sample-apps/tree/master/emojivoto-example) deployed in the cluster. Please follow the steps in its repository README.
+5. [Emojivoto Sample App](https://github.com/digitalocean/kubernetes-sample-apps/tree/master/emojivoto-example) deployed in the cluster. Please follow the steps in its repository README.
 
 Please make sure that `kubectl` context is configured to point to your `Kubernetes` cluster - refer to [Step 3 - Creating the DOKS Cluster](01-setup-DOKS/README.md#step-3---creating-the-doks-cluster) from the `DOKS` setup tutorial.
 
@@ -173,7 +172,7 @@ In the next part, you will discover how to set up `Prometheus` to discover targe
 
 You already deployed `Prometheus` and `Grafana` into the cluster. In this step, you will learn how to use a `ServiceMonitor`. A `ServiceMonitor` is one of the preferred ways to tell `Prometheus` how to discover a new target for monitoring.
 
-The `Emojivoto Deployment` created in `Step 6` of the [Prerequisites](#prerequisites) section provides the `/metrics` endpoint by default on port `8801` via a `Kubernetes` service.
+The `Emojivoto Deployment` created in `Step 5` of the [Prerequisites](#prerequisites) section provides the `/metrics` endpoint by default on port `8801` via a `Kubernetes` service.
 
 Next, you will discover the `Emojivoto` services responsible with exposing metrics data for `Prometheus` to consume. The services in question are called `emoji-svc` and `voting-svc` (note that it's using the `emojivoto` namespace):
 
@@ -196,7 +195,7 @@ Next, please perform a `port-forward`, to inspect the metrics:
 kubectl port-forward svc/emoji-svc 8801:8801 -n emojivoto
 ```
 
-The exposed `metrics` can be `visualized` using the web browser on [localhost](http://localhost:8801/metrics), or using `curl`:
+The exposed `metrics` can be `visualized` by navigating with a web browser to [localhost](http://localhost:8801/metrics), or via curl:
 
 ```shell
 curl -s http://localhost:8801/metrics
@@ -228,7 +227,7 @@ As you can see, there are many ways to tell `Prometheus` to scrape an endpoint, 
 
 Next, you will make use of the `ServiceMonitor` CRD exposed by the `Prometheus Operator`, to define a new target for monitoring.
 
-Steps required to add the `Emojivoto` service, for `Prometheus` to monitor:
+Steps required to add all `Emojivoto` services for `Prometheus` monitoring:
 
 1. First, change directory (if not already) where the `Starter Kit` Git repository was cloned:
 
@@ -282,8 +281,7 @@ Open a web browser on [localhost:9090](http://localhost:9090). Then, navigate to
 ![Emojivoto Prometheus Target](assets/images/prom_emojivoto_target.png)
 
 **Note:**
-
-There are **2 entries** under the discovered targets because the `Emojivoto` deployments of pods which emit metric consists of 2 `Pods`.
+There are **2 entries** under the discovered targets because the `Emojivoto` deployment consists of 2 `services` exposing the metrics endpoint.
 
 In the next step, you'll discover `PromQL` along with some simple examples, to get you started, and discover the language.
 
@@ -295,7 +293,7 @@ What is `PromQL`?
 
 It's a `DSL` or `Domain Specific Language` that is specifically built for `Prometheus` and allows you to query for metrics. Because it’s a `DSL` built upon `Go`, you’ll find that `PromQL` has a lot in common with the language. But it’s also a `NFL` or `Nested Functional Language`, where data appears as nested expressions within larger expressions. The outermost, or overall, expression defines the final value, while nested expressions represent values for arguments and operands. For more in depth explanations, please visit the official [PromQL](https://prometheus.io/docs/prometheus/latest/querying) page.
 
-Next, you're going to inspect one of the `Emojivoto` metrics, namely the `emojivoto_votes_total`, which represents the total of `votes` requests performed for the `Emojivoto` metrics endpoint.
+Next, you're going to inspect one of the `Emojivoto` metrics, namely the `emojivoto_votes_total`, which represents the total number of `votes`. It's a counter value that increases with each request against the `Emojivoto` votes endpoint.
 
 Steps to follow:
 
@@ -309,15 +307,27 @@ Steps to follow:
 3. In the query input field paste `emojivoto_votes_total`, and hit `Enter`. The output looks similar to:
 
     ```text
-    emojivoto_votes_total{container="voting-svc", emoji=":100:", endpoint="prom", instance="10.244.6.91:8801", job="emoji-svc", namespace="emojivoto", pod="voting-6548959dd7-hssh2", service="emoji-svc"} 492
-    emojivoto_votes_total{container="voting-svc", emoji=":bacon:", endpoint="prom", instance="10.244.6.91:8801", job="emoji-svc", namespace="emojivoto", pod="voting-6548959dd7-hssh2", service="emoji-svc"} 532
-    emojivoto_votes_total{container="voting-svc", emoji=":balloon:", endpoint="prom", instance="10.244.6.91:8801", job="emoji-svc", namespace="emojivoto", pod="voting-6548959dd7-hssh2", service="emoji-svc"} 518
-    emojivoto_votes_total{container="voting-svc", emoji=":basketball_man:", endpoint="prom", instance="10.244.6.91:8801", job="emoji-svc", namespace="emojivoto", pod="voting-6548959dd7-hssh2", service="emoji-svc"} 485
-    emojivoto_votes_total{container="voting-svc", emoji=":beach_umbrella:", endpoint="prom", instance="10.244.6.91:8801", job="emoji-svc", namespace="emojivoto", pod="voting-6548959dd7-hssh2", service="emoji-svc"} 510
-    emojivoto_votes_total{container="voting-svc", emoji=":beer:", endpoint="prom", instance="10.244.6.91:8801", job="voting-svc", namespace="emojivoto", pod="voting-6548959dd7-hssh2", service="voting-svc"} 532
+    emojivoto_votes_total{container="voting-svc", emoji=":100:", endpoint="prom", instance="10.244.25.31:8801", job="voting-svc", namespace="emojivoto", pod="voting-74ff7f8b55-jl6qs", service="voting-svc"} 20
+    emojivoto_votes_total{container="voting-svc", emoji=":bacon:", endpoint="prom", instance="10.244.25.31:8801", job="voting-svc", namespace="emojivoto", pod="voting-74ff7f8b55-jl6qs", service="voting-svc"} 17
+    emojivoto_votes_total{container="voting-svc", emoji=":balloon:", endpoint="prom", instance="10.244.25.31:8801", job="voting-svc", namespace="emojivoto", pod="voting-74ff7f8b55-jl6qs", service="voting-svc"} 21
+    emojivoto_votes_total{container="voting-svc", emoji=":basketball_man:", endpoint="prom", instance="10.244.25.31:8801", job="voting-svc", namespace="emojivoto", pod="voting-74ff7f8b55-jl6qs", service="voting-svc"} 10
+    emojivoto_votes_total{container="voting-svc", emoji=":beach_umbrella:", endpoint="prom", instance="10.244.25.31:8801", job="voting-svc", namespace="emojivoto", pod="voting-74ff7f8b55-jl6qs", service="voting-svc"} 10
+    emojivoto_votes_total{container="voting-svc", emoji=":beer:", endpoint="prom", instance="10.244.25.31:8801", job="voting-svc", namespace="emojivoto", pod="voting-74ff7f8b55-jl6qs", service="voting-svc"} 11
     ```
 
-4. `PromQL` groups similar data in what's called a `vector`. As seen above, each `vector` has a set of `attributes` which differentiates it from one another. What you can do then, is to group results based on an attribute of interest. For example, if you care only about requests that come from the `voting-svc` service, then please type the following in the query field:
+4. Navigate to the `Emojivoto` application and from the homepage click on the `100` emoji to vote for it.
+5. Navigate to the query results page from `Step 3` and click on the `Execute` button. You should see the counter for the `100` emoji increase by one. The ouput looks similar to:
+
+    ```text
+    emojivoto_votes_total{container="voting-svc", emoji=":100:", endpoint="prom", instance="10.244.25.31:8801", job="voting-svc", namespace="emojivoto", pod="voting-74ff7f8b55-jl6qs", service="voting-svc"} 21
+    emojivoto_votes_total{container="voting-svc", emoji=":bacon:", endpoint="prom", instance="10.244.25.31:8801", job="voting-svc", namespace="emojivoto", pod="voting-74ff7f8b55-jl6qs", service="voting-svc"} 17
+    emojivoto_votes_total{container="voting-svc", emoji=":balloon:", endpoint="prom", instance="10.244.25.31:8801", job="voting-svc", namespace="emojivoto", pod="voting-74ff7f8b55-jl6qs", service="voting-svc"} 21
+    emojivoto_votes_total{container="voting-svc", emoji=":basketball_man:", endpoint="prom", instance="10.244.25.31:8801", job="voting-svc", namespace="emojivoto", pod="voting-74ff7f8b55-jl6qs", service="voting-svc"} 10
+    emojivoto_votes_total{container="voting-svc", emoji=":beach_umbrella:", endpoint="prom", instance="10.244.25.31:8801", job="voting-svc", namespace="emojivoto", pod="voting-74ff7f8b55-jl6qs", service="voting-svc"} 10
+    emojivoto_votes_total{container="voting-svc", emoji=":beer:", endpoint="prom", instance="10.244.25.31:8801", job="voting-svc", namespace="emojivoto", pod="voting-74ff7f8b55-jl6qs", service="voting-svc"} 11
+    ```
+
+6. `PromQL` groups similar data in what's called a `vector`. As seen above, each `vector` has a set of `attributes` which differentiates it from one another. What you can do then, is to group results based on an attribute of interest. For example, if you care only about requests that come from the `voting-svc` service, then please type the following in the query field:
 
     ```json
     emojivoto_votes_total{service="voting-svc"}
@@ -359,11 +369,11 @@ kubectl --namespace monitoring port-forward svc/kube-prom-stack-grafana 3000:80
 
 In order to see all the `Emojivoto` metrics, you're going to use one of the default installed dashboards from `Grafana`.
 
-Navigating to the `Kubernetes/Compute Resources/Namespace(Pods)` dashboard for `Grafana`:
+Accessing the `Kubernetes/Compute Resources/Namespace(Pods)` dashboard for `Grafana`:
 
-1. Navigate to the [dashboard browse](http://localhost:3000/dashboards) section.
+1. Navigate to the [Grafana Dashboards](http://localhost:3000/dashboards) section.
 2. Next, search for the `General/Kubernetes/Compute Resources/Namespace(Pods)` dashboard and access it.
-3. Finally, select a data source - `Prometheus` and the `emojivoto` namespace
+3. Finally, select the `Prometheus` data source and add the `emojivoto` namespace.
 
 The picture down below shows the available options:
 
