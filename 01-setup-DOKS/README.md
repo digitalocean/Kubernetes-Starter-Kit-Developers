@@ -19,7 +19,7 @@ As an alternative to this chapter, you can use the DOKS UI to create a cluster. 
 - [Step 1 - Doctl CLI Introduction](#step-1---doctl-cli-introduction)
 - [Step 2 - Authenticating to DigitalOcean API](#step-2---authenticating-to-digitalocean-api)
 - [Step 3 - Creating the DOKS Cluster](#step-3---creating-the-doks-cluster)
-- [Step 4 [OPTIONAL] - Adding an extra node for observability](#step-4-optional---adding-an-extra-node-for-observability)
+- [Step 4 [OPTIONAL] - Adding a dedicated node for observability](#step-4-optional---adding-a-dedicated-node-for-observability)
 - [Conclusion](#conclusion)
 
 ## Prerequisites
@@ -334,13 +334,12 @@ kubectl describe node <worker_node_name>
 
 After running the above command, please look at the `Events` section (last line from command output), to check if something went wrong. There are many other useful sections to look at, like `Conditions`, `System Info`, `Allocated resources`, to help you troubleshoot worker nodes issues in the future.
 
-## Step 4 [OPTIONAL] - Adding an extra node for observability
+## Step 4 [OPTIONAL] - Adding a dedicated node for observability
 
-If you are planning to use this cluster in a development environment you can skip this section.
-If you are planning to use this cluster to serve in a production environment we recommand that you also setup, apart from the basic nodes, another fixed size node pool with the purpose of serving the observability tools the tutorial will be going through in [Chapter 4 - 04-setup-prometheus-stack](../04-setup-prometheus-stack/README.md).
-It is, in general, a good practice to separate the observability side of things from the application side of things.
-Monitoring is an essential aspect of any infrastructure, and it should be highly-available as much as possible.
-Later on, you will use [Node affinity](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#affinity-and-anti-affinity) to schedule `observability` related pods on the newly added node.
+If you plan to use this cluster to serve in a production environment it is recommended that you also setup, apart from the basic nodes, another fixed size node pool with the purpose of serving the observability stack from [Chapter 4 - 04-setup-prometheus-stack](../04-setup-prometheus-stack/README.md).
+In general, it is good practice to separate the observability stack from user applications. This way, one cannot interfere with another or get affected by downtime when performing cluster or node pool maintenance, etc.
+On the other hand, monitoring is a crucial aspect of any modern infrastructure hence high-availability is a must.
+Later on, you will use [Node affinity](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#affinity-and-anti-affinity) to schedule `observability` related pods on the dedicated node pool.
 
 To add another node pool to the cluster created earlier run the following command:
 
@@ -379,20 +378,20 @@ observability-cd111     Ready    <none>   2m44s   v1.22.11
 Next you will add a label to the new node. This will make it easier to schedule pods onto this node using a distinct label and node affinity.
 
 ```shell
-kubectl label nodes <YOUR_NODE_NAME> prefered=observability
+kubectl label nodes <YOUR_NODE_NAME> preferred=observability
 ```
 
-Verify that your node has a `prefered=observability` label:
+Verify that your node has a `preferred=observability` label:
 
 ```shell
 kubectl get nodes <YOUR_NODE_NAME> --show-labels
 ```
 
-The output looks similar to (notice the `prefered=observability` label):
+The output looks similar to (notice the `preferred=observability` label):
 
 ```text
 NAME                  STATUS   ROLES    AGE     VERSION   LABELS
-observability-cd111   Ready    <none>   9m27s   v1.22.8   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/instance-type=s-4vcpu-8gb-amd,beta.kubernetes.io/os=linux,doks.digitalocean.com/node-id=eb199834-a852-40fe-9785-42c361536ec0,doks.digitalocean.com/node-pool-id=92e14637-73d1-4703-a902-11fef09ca4f2,doks.digitalocean.com/node-pool=observability,doks.digitalocean.com/version=1.22.8-do.1,failure-domain.beta.kubernetes.io/region=nyc3,kubernetes.io/arch=amd64,kubernetes.io/hostname=observability-cd111,kubernetes.io/os=linux,node.kubernetes.io/instance-type=s-4vcpu-8gb-amd,prefered=observability,region=nyc3,topology.kubernetes.io/region=nyc3
+observability-cd111   Ready    <none>   9m27s   v1.22.8   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/instance-type=s-4vcpu-8gb-amd,beta.kubernetes.io/os=linux,doks.digitalocean.com/node-id=eb199834-a852-40fe-9785-42c361536ec0,doks.digitalocean.com/node-pool-id=92e14637-73d1-4703-a902-11fef09ca4f2,doks.digitalocean.com/node-pool=observability,doks.digitalocean.com/version=1.22.8-do.1,failure-domain.beta.kubernetes.io/region=nyc3,kubernetes.io/arch=amd64,kubernetes.io/hostname=observability-cd111,kubernetes.io/os=linux,node.kubernetes.io/instance-type=s-4vcpu-8gb-amd,preferred=observability,region=nyc3,topology.kubernetes.io/region=nyc3
 ```
 
 ## Conclusion
