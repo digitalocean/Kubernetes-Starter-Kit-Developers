@@ -33,6 +33,17 @@ alertmanager:
 grafana:
   enabled: true
   adminPassword: prom-operator # Please change the default password in production !!!
+  # affinity:
+  #   nodeAffinity:
+  #     preferredDuringSchedulingIgnoredDuringExecution:
+  #     - weight: 1
+  #       preference:
+  #         matchExpressions:
+  #         - key: prefered
+  #           operator: In
+  #           values:
+  #           - observability
+
   # # Starter Kit setup for DigitalOcean Block Storage
   # persistence:
   #   enabled: true
@@ -53,7 +64,7 @@ prometheus:
   ## Starter Kit components service monitors
   #
   # additionalServiceMonitors:
-  # # Uncomment the following section to enable ambassador service monitoring
+  # # Uncomment the following section to enable emojivoto service monitoring
   #   - name: "emojivoto-monitor"
   #     selector:
   #       matchExpressions:
@@ -109,11 +120,22 @@ prometheus:
   # Starter Kit setup for DigitalOcean Block Storage
   #
   # prometheusSpec:
-  #   storageSpec:
-  #     volumeClaimTemplate:
-  #       spec:
-  #         storageClassName: do-block-storage
-  #         accessModes: ["ReadWriteOnce"]
-  #         resources:
-  #           requests:
-  #             storage: 5Gi
+    # affinity:
+    #   nodeAffinity:
+    #     preferredDuringSchedulingIgnoredDuringExecution:
+    #     - weight: 1
+    #       preference:
+    #         matchExpressions:
+    #         - key: prefered
+    #           operator: In
+    #           values:
+    #           - observability
+    # storageSpec:
+    #   volumeClaimTemplate:
+    #     spec:
+    #       storageClassName: do-block-storage
+    #       accessModes: ["ReadWriteOnce"]
+    #       resources:
+    #         requests:
+    #           storage: 5Gi
+

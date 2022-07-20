@@ -19,6 +19,7 @@ As an alternative to this chapter, you can use the DOKS UI to create a cluster. 
 - [Step 1 - Doctl CLI Introduction](#step-1---doctl-cli-introduction)
 - [Step 2 - Authenticating to DigitalOcean API](#step-2---authenticating-to-digitalocean-api)
 - [Step 3 - Creating the DOKS Cluster](#step-3---creating-the-doks-cluster)
+- [Step 4 [OPTIONAL] - Adding a dedicated node for observability](#step-4-optional---adding-a-dedicated-node-for-observability)
 - [Conclusion](#conclusion)
 
 ## Prerequisites
@@ -332,6 +333,66 @@ kubectl describe node <worker_node_name>
 ```
 
 After running the above command, please look at the `Events` section (last line from command output), to check if something went wrong. There are many other useful sections to look at, like `Conditions`, `System Info`, `Allocated resources`, to help you troubleshoot worker nodes issues in the future.
+
+## Step 4 [OPTIONAL] - Adding a dedicated node for observability
+
+If you plan to use this cluster to serve in a production environment it is recommended that you also setup, apart from the basic nodes, another fixed size node pool with the purpose of serving the observability stack from [Chapter 4 - 04-setup-prometheus-stack](../04-setup-prometheus-stack/README.md).
+In general, it is good practice to separate the observability stack from user applications. This way, one cannot interfere with another or get affected by downtime when performing cluster or node pool maintenance, etc.
+On the other hand, monitoring is a crucial aspect of any modern infrastructure hence high-availability is a must.
+Later on, you will use [Node affinity](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#affinity-and-anti-affinity) to schedule `observability` related pods on the dedicated node pool.
+
+To add another node pool to the cluster created earlier run the following command:
+
+```shell
+doctl kubernetes cluster node-pool create starterkit-cluster-2 \
+    --name "observability" \
+    --size "s-4vcpu-8gb-amd" \
+    --min-nodes 1 \
+    --max-nodes 1 \
+    --count 1
+```
+
+The ouput looks similar to:
+
+```text
+ID                                      Name             Size                    Count    Tags                                                   
+7b5037c8-637c-4a8b-abbe-3296b5aa92fa    observability    s-4vcpu-8gb-amd         1        k8s,k8s:1dcda264-15d6-4bcb-92b1-e64d236f59c1,k8s:worker      
+```
+
+Next check the cluster's nodes created:
+
+```shell
+kubectl get nodes
+```
+
+The output looks similar to (notice the `observability` prefix in the node name):
+
+```text
+NAME                    STATUS   ROLES    AGE     VERSION
+basicnp-c4k0f           Ready    <none>   2m34s   v1.22.11
+basicnp-c4k0q           Ready    <none>   2m38s   v1.22.11
+basicnp-c4k0y           Ready    <none>   2m38s   v1.22.11
+observability-cd111     Ready    <none>   2m44s   v1.22.11
+```
+
+Next you will add a label to the new node. This will make it easier to schedule pods onto this node using a distinct label and node affinity.
+
+```shell
+kubectl label nodes <YOUR_NODE_NAME> preferred=observability
+```
+
+Verify that your node has a `preferred=observability` label:
+
+```shell
+kubectl get nodes <YOUR_NODE_NAME> --show-labels
+```
+
+The output looks similar to (notice the `preferred=observability` label):
+
+```text
+NAME                  STATUS   ROLES    AGE     VERSION   LABELS
+observability-cd111   Ready    <none>   9m27s   v1.22.8   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/instance-type=s-4vcpu-8gb-amd,beta.kubernetes.io/os=linux,doks.digitalocean.com/node-id=eb199834-a852-40fe-9785-42c361536ec0,doks.digitalocean.com/node-pool-id=92e14637-73d1-4703-a902-11fef09ca4f2,doks.digitalocean.com/node-pool=observability,doks.digitalocean.com/version=1.22.8-do.1,failure-domain.beta.kubernetes.io/region=nyc3,kubernetes.io/arch=amd64,kubernetes.io/hostname=observability-cd111,kubernetes.io/os=linux,node.kubernetes.io/instance-type=s-4vcpu-8gb-amd,preferred=observability,region=nyc3,topology.kubernetes.io/region=nyc3
+```
 
 ## Conclusion
 

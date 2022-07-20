@@ -79,7 +79,44 @@ Steps to follow:
 
     The chart of interest is `prometheus-community/kube-prometheus-stack`, which will install `Prometheus`, `Promtail`, `Alertmanager` and `Grafana` on the cluster. Please visit the [kube-prometheus-stack](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack) page for more details about this chart.
 3. Then, open and inspect the `04-setup-prometheus-stack/assets/manifests/prom-stack-values-v35.5.1.yaml` file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). By default, `kubeSched` and `etcd` metrics are disabled - those components are managed by `DOKS` and are not accessible to `Prometheus`. Note that `storage` is set to `emptyDir`. It means the **storage will be gone** if `Prometheus` pods restart (you will fix this later on, in the [Configuring Persistent Storage for Prometheus](#configuring-persistent-storage-for-prometheus) section).
-4. Finally, install the `kube-prometheus-stack`, using `Helm`:
+4. [OPTIONAL] If you followed - [Step 4 - Adding a dedicated node for observability](../01-setup-DOKS/README.md#step-4-optional---adding-a-dedicated-node-for-observability) from [Chapter 1 - 01-setup-DOKS](../01-setup-DOKS/README.md) you will need to edit the `04-setup-prometheus-stack/assets/manifests/prom-stack-values-v35.5.1.yaml` file provided in the `Starter Kit` repository, and uncomment the `affinity` sections for both `Grafana` and `Prometheus`.
+
+    ```yaml
+    prometheusSpec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 1
+            preference:
+              matchExpressions:
+              - key: preferred
+                operator: In
+                values:
+                - observability
+    ```
+
+    ```yaml
+    grafana:
+      enabled: true
+      adminPassword: prom-operator # Please change the default password in production !!!
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 1
+            preference:
+              matchExpressions:
+              - key: preferred
+                operator: In
+                values:
+                - observability
+    ```
+
+    Explanations for the above configuration:
+
+    - `preferredDuringSchedulingIgnoredDuringExecution` - the scheduler tries to find a node that meets the rule. If a matching node is not available, the scheduler still schedules the Pod.
+    - `preference.matchExpressions` - selector used to match a specific node based on a criteria. Above example tells the scheduler to place workloads (e.g. Pods) on nodes labeled using key - `preferred` and value - `observability`.
+
+5. Finally, install the `kube-prometheus-stack`, using `Helm`:
 
     ```shell
     HELM_CHART_VERSION="35.5.1"
