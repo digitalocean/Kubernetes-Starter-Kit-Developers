@@ -42,7 +42,7 @@ alertmanager:
   #   receivers:
   #     - name: "slack-notifications"
   #       slack_configs:
-  #         - channel: "#channel-name"
+  #         - channel: "#<YOUR_SLACK_CHANNEL_NAME_HERE>"
   #           send_resolved: false
   #           title: '[{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] Monitoring Event Notification'
   #           text: "Emojivoto instance down."
@@ -96,21 +96,21 @@ prometheus:
 
   ## Starter Kit components service monitors
   #
-  additionalServiceMonitors:
-  # Uncomment the following section to enable emojivoto service monitoring
-    - name: "emojivoto-monitor"
-      selector:
-        matchExpressions:
-          - key: app
-            operator: In
-            values:
-              - emoji-svc
-              - voting-svc
-      namespaceSelector:
-        matchNames: 
-          - emojivoto
-      endpoints:
-        - port: "prom"
+  # additionalServiceMonitors:
+  # # Uncomment the following section to enable emojivoto service monitoring
+  #   - name: "emojivoto-monitor"
+  #     selector:
+  #       matchExpressions:
+  #         - key: app
+  #           operator: In
+  #           values:
+  #             - emoji-svc
+  #             - voting-svc
+  #     namespaceSelector:
+  #       matchNames: 
+  #         - emojivoto
+  #     endpoints:
+  #       - port: "prom"
 
   # # Uncomment the following section to enable ingress-nginx service monitoring
   #   - name: "ingress-nginx-monitor"
@@ -150,8 +150,6 @@ prometheus:
   ## Prometheus StorageSpec for persistent data
   ## ref: https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/user-guides/storage.md
   ##
-  # Starter Kit setup for DigitalOcean Block Storage
-  #
   # prometheusSpec:
   #   affinity:
   #     nodeAffinity:
