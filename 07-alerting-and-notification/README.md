@@ -2,14 +2,23 @@
 
 ## Table of contents
 
+- [Prerequisites](#prerequisites)
 - [Alerting and Notification Overview](#alerting-and-notification-overview)
 - [List of Included Alerts](#list-of-included-alerts)
 - [Creating a New Alert](#creating-a-new-alert)
 - [Configuring Alertmanager to Send Notification to Slack](#configuring-alertmanager-to-send-notification-to-slack)
 
+## Prerequisites
+
+To complete this tutorial, you will need:
+
+1. The prometheus monitoring stack added to the cluster from [Chapter 4 - 04-setup-prometheus-stack](../04-setup-prometheus-stack/README.md).
+2. [Emojivoto Sample App](https://github.com/digitalocean/kubernetes-sample-apps/tree/master/emojivoto-example) deployed in the cluster. Please follow the steps in its repository README. You will be creating alerts for this application.
+3. Administrative rights over a `Slack` workspace. Later on you will be creating an application with an incoming `webhook` which will be used to send notifications from `Alertmanager`.
+
 ## Alerting and Notification Overview
 
-Often times we need to be notified immediately about any critical issue in our cluster. That is where `AlertManager` comes into the picture. `Alertmanager` helps in aggregating the `alerts`, and sending `notifications` as shown in the diagram below.
+Often times you need to be notified immediately about any critical issue in our cluster. That is where `Alertmanager` comes into the picture. `Alertmanager` helps in aggregating the `alerts`, and sending `notifications` as shown in the diagram below.
 
 ![AlertManager Overview](assets/images/alert-manager-overview.png)
 
@@ -81,13 +90,13 @@ To complete this section you need to have administrative rights over a workspace
 
 Steps to follow:
 
-1. From the `Slack` desktop or web application, select the `Administration` --> `Manage Apps`.
-2. In the `Manage apps` directory, search for `Incoming WebHooks` in the search bar and click on the `Add to Slack button.
-3. In the `Post to Channel` section choose a channel you want AlertManager to send notifications to.
-4. On the next page, a `Webhook URL` will be displeyd. Make sure to copy it as you will use it in the next steps.
-5. Click on the `Save Settings` button at the bottom of the page.
+1. Open a web browser and navigate to `https://api.slack.com/apps` and click on the `Create New App` button.
+2. From the `Create an app` modal click on the `From scratch` option, add the `app name` and the `workspace` you want to add the app to.
+3. From the `Basic Information` page click on the `Incoming Webhooks` option, turn it on and click on the `Add New Webhook to Workspace` button at the bottom.
+4. On the next page, from the `Search for a channel...` drop-down select the channel you want to send monitoring related notifications to and click on the `Allow` button.
+5. Take note of the `Webhook URL` value displayed on the page. You will be using it in the next section.
 
-Next, we will add the necessary config to `AlertManager` to enable `Slack` notifications. Open the `04-setup-prometheus-stack/assets/manifests/prom-stack-values.yaml` file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support). Uncomment the `config` block. Make sure to update the `slack_api_url` and `channel` values.
+Next, you will add the necessary config to `AlertManager` to enable `Slack` notifications. Open the `04-setup-prometheus-stack/assets/manifests/prom-stack-values.yaml` file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support). Uncomment the `config` block. Make sure to update the `slack_api_url` and `channel` values.
 
 ```yaml
 alertmanager:
@@ -95,21 +104,22 @@ alertmanager:
   config:
     global:
       resolve_timeout: 5m
-      slack_api_url: "https://hooks.slack.com/services/TXXXX/BXXXX/<token>"
+      slack_api_url: "<YOUR_SLACK_APP_INCOMING_WEBHOOK_URL_HERE>"
     route:
-      repeat_interval: 1h
+      receiver: "slack-notifications"
+      repeat_interval: 12h
       routes:
-      - match:
-          alertname: EmojivotoInstanceDown
-        receiver: 'slack'
-        continue: true
-    Receivers:
-    - name: 'slack'
-      slack_configs:
-      - channel: '#channelName'
-        send_resolved: false
-        title: '[{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] Monitoring Event Notification'
-        text: "Emojivoto number of pods less than expected."
+        - match:
+            alertname: EmojivotoInstanceDown
+          receiver: "slack-notifications"
+          continue: true
+    receivers:
+      - name: "slack-notifications"
+        slack_configs:
+          - channel: "#channel-name"
+            send_resolved: false
+            title: '[{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] Monitoring Event Notification'
+            text: "Emojivoto instance down."
 ```
 
 Explanations for the above configuration:
@@ -125,10 +135,26 @@ Finally, upgrade the `kube-prometheus-stack`, using `Helm`:
 
   helm upgrade kube-prom-stack prometheus-community/kube-prometheus-stack --version "${HELM_CHART_VERSION}" \
     --namespace monitoring \
-    --create-namespace \
     -f "04-setup-prometheus-stack/assets/manifests/prom-stack-values-v${HELM_CHART_VERSION}.yaml"
   ```
 
 At this point, you should see the slack `notifications` for firing alerts when the expected number of pods for `Emojivoto` is less than 4.
+Next, you will be testing the firing of the `Alert` and the sending of the `Slack` notification by downscaling the number of replicas for a `deployment` in the `emojivoto` namespace.
+
+Steps to follow:
+
+1. From your terminal run the following command to bring the number of replicas for the `emoji` deployment to 0:
+
+    ```shell
+    kubectl scale --replicas=0 deployment/emoji -n emojivoto
+    ```
+
+2. Open a web browser on [localhost:9091](http://localhost:9091) and access the `Alerts` menu item. Search for the `EmojivotoInstanceDown` alert created earlier. The status of the alert should be `Firing` after about one minute of scaling down the deployment.
+3. A message notification will be sent to `Slack` to the channel you configured earlier if everything went well. The notification should look like:
+
+![Emojivoto Slack Notification](assets/images/emojivoto-slack-notification.png)
+
+**Note:**
+Clicking on the notification name in `Slack` will open a web browser to an unreachable web page with the internal Kubernetes DNS of the `Alertmanager` pod. This is expected. For more information you can check out this [article](https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/).
 
 Go to [Section 08 - Encrypt Kubernetes Secrets Using Sealed Secrets](../08-kubernetes-sealed-secrets/README.md).

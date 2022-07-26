@@ -30,21 +30,22 @@ alertmanager:
   # config:
   #   global:
   #     resolve_timeout: 5m
-  #     slack_api_url: "https://hooks.slack.com/services/TXXXX/BXXXX/<token>"
+  #     slack_api_url: "<YOUR_SLACK_APP_INCOMING_WEBHOOK_URL_HERE>"
   #   route:
-  #     repeat_interval: 1h
+  #     receiver: "slack-notifications"
+  #     repeat_interval: 12h
   #     routes:
-  #     - match:
-  #         alertname: EmojivotoInstanceDown
-  #       receiver: 'slack'
-  #       continue: true
+  #       - match:
+  #           alertname: EmojivotoInstanceDown
+  #         receiver: "slack-notifications"
+  #         continue: true
   #   receivers:
-  #   - name: 'slack'
-  #     slack_configs:
-  #     - channel: '#channelName'
-  #       send_resolved: false
-  #       title: '[{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] Monitoring Event Notification'
-  #       text: "Emojivoto instance down."
+  #     - name: "slack-notifications"
+  #       slack_configs:
+  #         - channel: "#channel-name"
+  #           send_resolved: false
+  #           title: '[{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] Monitoring Event Notification'
+  #           text: "Emojivoto instance down."
 
 # additionalPrometheusRulesMap:
 #   rule-name:
@@ -52,7 +53,7 @@ alertmanager:
 #     - name: emojivoto-instance-down
 #       rules:
 #         - alert: EmojivotoInstanceDown
-#           expr: sum(kube_pod_owner{namespace="emojivoto"}) by (namespace) < 10
+#           expr: sum(kube_pod_owner{namespace="emojivoto"}) by (namespace) < 4
 #           for: 1m
 #           labels:
 #             severity: 'critical'
@@ -95,21 +96,21 @@ prometheus:
 
   ## Starter Kit components service monitors
   #
-  # additionalServiceMonitors:
-  # # Uncomment the following section to enable emojivoto service monitoring
-  #   - name: "emojivoto-monitor"
-  #     selector:
-  #       matchExpressions:
-  #         - key: app
-  #           operator: In
-  #           values:
-  #             - emoji-svc
-  #             - voting-svc
-  #     namespaceSelector:
-  #       matchNames: 
-  #         - emojivoto
-  #     endpoints:
-  #       - port: "prom"
+  additionalServiceMonitors:
+  # Uncomment the following section to enable emojivoto service monitoring
+    - name: "emojivoto-monitor"
+      selector:
+        matchExpressions:
+          - key: app
+            operator: In
+            values:
+              - emoji-svc
+              - voting-svc
+      namespaceSelector:
+        matchNames: 
+          - emojivoto
+      endpoints:
+        - port: "prom"
 
   # # Uncomment the following section to enable ingress-nginx service monitoring
   #   - name: "ingress-nginx-monitor"
