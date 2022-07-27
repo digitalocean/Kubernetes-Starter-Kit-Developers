@@ -7,14 +7,16 @@
 - [List of Included Alerts](#list-of-included-alerts)
 - [Creating a New Alert](#creating-a-new-alert)
 - [Configuring Alertmanager to Send Notifications to Slack](#configuring-alertmanager-to-send-notifications-to-slack)
+- [Debugging a Firing Alert](#debugging-a-firing-alert)
 
 ## Prerequisites
 
 To complete this tutorial, you will need:
 
 1. Prometheus monitoring stack installed in your cluster as explained in [Chapter 4 - 04-setup-prometheus-stack](../04-setup-prometheus-stack/README.md) from the `Starter Kit`.
-2. [Emojivoto Sample App](https://github.com/digitalocean/kubernetes-sample-apps/tree/master/emojivoto-example) deployed in the cluster. Please follow the [steps](https://github.com/digitalocean/kubernetes-sample-apps/tree/master/emojivoto-example#deploying-to-kubernetes) from the main repository. You will be creating alerts for this application.
-3. Administrative rights over a `Slack` workspace. Later on you will be creating an application with an incoming `webhook` which will be used to send notifications from `Alertmanager`.
+2. Loki stack installed in your cluster as explained in [Chapter 5- 05-setup-loki-stack](../05-setup-loki-stack/README.md) from the `Starter Kit`.
+3. [Emojivoto Sample App](https://github.com/digitalocean/kubernetes-sample-apps/tree/master/emojivoto-example) deployed in the cluster. Please follow the [steps](https://github.com/digitalocean/kubernetes-sample-apps/tree/master/emojivoto-example#deploying-to-kubernetes) from the main repository. You will be creating alerts for this application.
+4. Administrative rights over a `Slack` workspace. Later on you will be creating an application with an incoming `webhook` which will be used to send notifications from `Alertmanager`.
 
 ## Alerting and Notification Overview
 
@@ -156,5 +158,27 @@ Steps to follow:
 
 **Note:**
 Clicking on the notification name in `Slack` will open a web browser to an unreachable web page with the internal Kubernetes DNS of the `Alertmanager` pod. This is expected. For more information you can check out this [article](https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/).
+
+## Debugging a Firing Alert
+
+When an alert fires and sends a notification in Slack it's important that you can debug the problem and find the root cause in a timely manner.
+To do this you can make use of `Grafana` which has already been installed in [Chapter 4 - 04-setup-prometheus-stack](../04-setup-prometheus-stack/README.md) and of `Loki` [Chapter 5- 05-setup-loki-stack](../05-setup-loki-stack/README.md).
+
+Steps to follow:
+
+1. Create a port forward for `Grafana` on port `3000`:
+
+    ```shell
+    kubectl --namespace monitoring port-forward svc/kube-prom-stack-grafana 3000:80
+    ```
+
+2. Open a web browser on [localhost:3000](http://localhost:3000) and log in using the default credentials (`admin/prom-operator`).
+3. Navigate to the [Alerting](http://localhost:3000/alerting) section
+4. From the `State` filter click on the `Firing` option, identify the `emojivoto-instance-down` alert defined in the [Creating a New Alert](#creating-a-new-alert) section and expand it. You should see the following:
+![Grafana Alert](assets/images/grafana-alert.png)
+5. Click on the `See graph` button. From the next page you can observe the count for the number of pods in the `emojivoto` namespace displayed as a metric.
+6. From the `Explore` tab select the `Loki` data source and in the `Log browser` input the following: `{namespace="emojivoto"}` and click on the `Run query` button from the top right side of the page. You should see the following:
+![Loki Logs](assets/images/loki-logs.png)
+7. From this page you can filter the log results further. For example to filter the logs for the `web-svc` container of the `emojivoto` namespace you can enter the following query: `{namespace="emojivoto", container="web-svc"}`. More explanations about using `LogQL` can be found in [Step 3 - Using LogQL](../05-setup-loki-stack/README.md#step-3---using-logql) from [Chapter 5 - 05-setup-loki-stack](../05-setup-loki-stack/README.md).
 
 Go to [Section 08 - Encrypt Kubernetes Secrets Using Sealed Secrets](../08-kubernetes-sealed-secrets/README.md).
