@@ -30,22 +30,28 @@ alertmanager:
   # config:
   #   global:
   #     resolve_timeout: 5m
-  #     slack_api_url: "<YOUR_SLACK_APP_INCOMING_WEBHOOK_URL_HERE>"
+  #     slack_api_url: "https://hooks.slack.com/services/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"
   #   route:
   #     receiver: "slack-notifications"
+  #     group_by: [alert_type]
   #     repeat_interval: 12h
   #     routes:
-  #       - match:
-  #           alertname: EmojivotoInstanceDown
+  #       - matchers:
+  #         - alertname = "EmojivotoInstanceDown"
   #         receiver: "slack-notifications"
-  #         continue: true
   #   receivers:
   #     - name: "slack-notifications"
   #       slack_configs:
-  #         - channel: "#<YOUR_SLACK_CHANNEL_NAME_HERE>"
-  #           send_resolved: false
-  #           title: '[{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] Monitoring Event Notification'
-  #           text: "Emojivoto instance down."
+  #         - channel: "#testing-deployments"
+  #           send_resolved: true
+  #           title: |-
+  #             [{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] {{ .CommonLabels.alertname }}
+  #           text: >-
+  #             {{ range .Alerts -}}
+
+  #             *Description:* {{ .Annotations.description }}
+
+  #             {{ end }}
 
 # additionalPrometheusRulesMap:
 #   rule-name:
@@ -57,9 +63,10 @@ alertmanager:
 #           for: 1m
 #           labels:
 #             severity: 'critical'
+#             alert_type: 'infrastructure'
 #           annotations:
-#                   title: 'Instance {{ $labels.instance }} down'
-#                   description: 'Emojivoto pod(s) is down for more than 1 minute.'
+#             description: ' The Number of pods from the namespace {{ $labels.namespace }} is lower than the expected 4. '
+#             summary: 'Pod {{ $labels.pod }} down'
 
 ## Using default values from https://github.com/grafana/helm-charts/blob/main/charts/grafana/values.yaml
 ##
