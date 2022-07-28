@@ -7,14 +7,16 @@
 - [List of Included Alerts](#list-of-included-alerts)
 - [Creating a New Alert](#creating-a-new-alert)
 - [Configuring Alertmanager to Send Notifications to Slack](#configuring-alertmanager-to-send-notifications-to-slack)
+- [Debugging a Firing Alert](#debugging-a-firing-alert)
 
 ## Prerequisites
 
 To complete this tutorial, you will need:
 
 1. Prometheus monitoring stack installed in your cluster as explained in [Chapter 4 - 04-setup-prometheus-stack](../04-setup-prometheus-stack/README.md) from the `Starter Kit`.
-2. [Emojivoto Sample App](https://github.com/digitalocean/kubernetes-sample-apps/tree/master/emojivoto-example) deployed in the cluster. Please follow the [steps](https://github.com/digitalocean/kubernetes-sample-apps/tree/master/emojivoto-example#deploying-to-kubernetes) from the main repository. You will be creating alerts for this application.
-3. Administrative rights over a `Slack` workspace. Later on you will be creating an application with an incoming `webhook` which will be used to send notifications from `Alertmanager`.
+2. Loki stack installed in your cluster as explained in [Chapter 5- 05-setup-loki-stack](../05-setup-loki-stack/README.md) from the `Starter Kit`.
+3. [Emojivoto Sample App](https://github.com/digitalocean/kubernetes-sample-apps/tree/master/emojivoto-example) deployed in the cluster. Please follow the [steps](https://github.com/digitalocean/kubernetes-sample-apps/tree/master/emojivoto-example#deploying-to-kubernetes) from the main repository. You will be creating alerts for this application.
+4. Administrative rights over a `Slack` workspace. Later on you will be creating an application with an incoming `webhook` which will be used to send notifications from `Alertmanager`.
 
 ## Alerting and Notification Overview
 
@@ -61,17 +63,18 @@ First, open the `04-setup-prometheus-stack/assets/manifests/prom-stack-values.ya
 ```yaml
 additionalPrometheusRulesMap:
   rule-name:
-   groups:
-   - name: emojivoto-instance-down
-     rules:
-      - alert: EmojivotoInstanceDown
-        expr: sum(kube_pod_owner{namespace="emojivoto"}) by (namespace) < 4
-        for: 1m
-        labels:
-          severity: 'critical'
-  annotations:
-          title: 'Instance {{ $labels.instance }} down'
-          description: 'Emojivoto pod(s) is down for more than 1 minute.'
+    groups:
+    - name: emojivoto-instance-down
+      rules:
+        - alert: EmojivotoInstanceDown
+          expr: sum(kube_pod_owner{namespace="emojivoto"}) by (namespace) < 4
+          for: 1m
+          labels:
+            severity: 'critical'
+            alert_type: 'infrastructure'
+          annotations:
+            description: ' The Number of pods from the namespace {{ $labels.namespace }} is lower than the expected 4. '
+            summary: 'Pod {{ $labels.pod }} down'
 ```
 
 Finally, apply settings using `Helm`:
@@ -107,25 +110,31 @@ alertmanager:
       slack_api_url: "<YOUR_SLACK_APP_INCOMING_WEBHOOK_URL_HERE>"
     route:
       receiver: "slack-notifications"
+      group_by: [alert_type]
       repeat_interval: 12h
       routes:
-        - match:
-            alertname: EmojivotoInstanceDown
+        - matchers:
+          - alertname = "EmojivotoInstanceDown"
           receiver: "slack-notifications"
-          continue: true
     receivers:
       - name: "slack-notifications"
         slack_configs:
           - channel: "#<YOUR_SLACK_CHANNEL_NAME_HERE>"
-            send_resolved: false
-            title: '[{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] Monitoring Event Notification'
-            text: "Emojivoto instance down."
+            send_resolved: true
+            title: |-
+              [{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] {{ .CommonLabels.alertname }}
+            text: >-
+              {{ range .Alerts -}}
+
+              *Description:* {{ .Annotations.description }}
+
+              {{ end }}
 ```
 
 Explanations for the above configuration:
 
 - `slack_api_url` - incoming Slack webhook URL created in step 4.
-- `routes.match.alertname` - match a specific alert name as defined in the `additionalPrometheusRulesMap` (e.g. `EmojivotoInstanceDown`).
+- `routes.matchers.alertname` - match a specific alert name as defined in the `additionalPrometheusRulesMap` (e.g. `EmojivotoInstanceDown`).
 - `receivers.[].slack_configs` - defines the Slack channel used to send notifications, notification title and the actual message. It is also possible to format the notification message (or body) based on your requirements.
 
 Finally, upgrade the `kube-prometheus-stack`, using `Helm`:
@@ -152,9 +161,37 @@ Steps to follow:
 2. Open a web browser on [localhost:9091](http://localhost:9091) and access the `Alerts` menu item. Search for the `EmojivotoInstanceDown` alert created earlier. The status of the alert should be `Firing` after about one minute of scaling down the deployment.
 3. A message notification will be sent to `Slack` to the channel you configured earlier if everything went well. The notification should look like:
 
-![Emojivoto Slack Notification](assets/images/emojivoto-slack-notification.png)
+![Emojivoto Slack Notification Firing](assets/images/emojivoto-slack-notification-firing.png)
 
-**Note:**
+Once the problem is resolved and the number of pods for the `emojivoto` is back to its expected 4 the notification should look like:
+
+![Emojivoto Slack Notification Resolved](assets/images/emojivoto-slack-nofitication-resolved.png)
+
+**Notes:**
 Clicking on the notification name in `Slack` will open a web browser to an unreachable web page with the internal Kubernetes DNS of the `Alertmanager` pod. This is expected. For more information you can check out this [article](https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/).
+For additional information about the configuration parameters for `Alertmanager` you can check out this [doc](https://prometheus.io/docs/alerting/latest/configuration/).
+You can also at some notification examples in this [article](https://prometheus.io/docs/alerting/latest/notification_examples/).
+
+## Debugging a Firing Alert
+
+When an alert fires and sends a notification in Slack it's important that you can debug the problem easily and find the root cause in a timely manner.
+To do this you can make use of `Grafana` which has already been installed in [Chapter 4 - 04-setup-prometheus-stack](../04-setup-prometheus-stack/README.md) and of `Loki` [Chapter 5- 05-setup-loki-stack](../05-setup-loki-stack/README.md).
+
+Steps to follow:
+
+1. Create a port forward for `Grafana` on port `3000`:
+
+    ```shell
+    kubectl --namespace monitoring port-forward svc/kube-prom-stack-grafana 3000:80
+    ```
+
+2. Open a web browser on [localhost:3000](http://localhost:3000) and log in using the default credentials (`admin/prom-operator`).
+3. Navigate to the [Alerting](http://localhost:3000/alerting) section
+4. From the `State` filter click on the `Firing` option, identify the `emojivoto-instance-down` alert defined in the [Creating a New Alert](#creating-a-new-alert) section and expand it. You should see the following:
+![Grafana Alert](assets/images/grafana-alert.png)
+5. Click on the `See graph` button. From the next page you can observe the count for the number of pods in the `emojivoto` namespace displayed as a metric. Take note that `Grafana` filters results using a time range of `Last 1 hour` by default. Adjust this to the time interval when the `Alert` fired. You can adjust the time range using an `absolute time range` using a `From To` option for a more granular result or using a `Quick range` such as `Last 30 minutes`.
+6. From the `Explore` tab select the `Loki` data source and in the `Log browser` input the following: `{namespace="emojivoto"}` and click on the `Run query` button from the top right side of the page. You should see the following:
+![Loki Logs](assets/images/loki-logs.png)
+7. From this page you can filter the log results further. For example to filter the logs for the `web-svc` container of the `emojivoto` namespace you can enter the following query: `{namespace="emojivoto", container="web-svc"}`. More explanations about using `LogQL` can be found in [Step 3 - Using LogQL](../05-setup-loki-stack/README.md#step-3---using-logql) from [Chapter 5 - 05-setup-loki-stack](../05-setup-loki-stack/README.md).
 
 Go to [Section 08 - Encrypt Kubernetes Secrets Using Sealed Secrets](../08-kubernetes-sealed-secrets/README.md).
