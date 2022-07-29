@@ -65,7 +65,7 @@ After finishing this tutorial, you will be able to:
 To complete this tutorial, you will need:
 
 1. A [Git](https://git-scm.com/downloads) client, to clone the `Starter Kit` repository.
-2. [Kubeseal](https://github.com/bitnami-labs/sealed-secrets/releases/tag/v0.17.3), for encrypting secrets and `Sealed Secrets Controller` interaction.
+2. [Kubeseal](https://github.com/bitnami-labs/sealed-secrets/releases/tag/v0.18.1), for encrypting secrets and `Sealed Secrets Controller` interaction.
 3. [Helm](https://www.helms.sh), for managing `Sealed Secrets Controller` releases and upgrades.
 4. [Kubectl](https://kubernetes.io/docs/tasks/tools), for `Kubernetes` interaction.
 
@@ -103,19 +103,19 @@ The output looks similar to:
 
 ```text
 NAME                            CHART VERSION   APP VERSION     DESCRIPTION
-sealed-secrets/sealed-secrets   2.1.6          v0.17.5         Helm chart for the sealed-secrets controller.
+sealed-secrets/sealed-secrets   2.4.0           v0.18.1         Helm chart for the sealed-secrets controller.
 ```
 
-Now, open and inspect the `08-kubernetes-sealed-secrets/assets/manifests/sealed-secrets-values-v2.1.6.yaml` file provided in the `Starter kit` repository, using an editor of your choice (preferably with `YAML` lint support). You can use [VS Code](https://code.visualstudio.com), for example:
+Now, open and inspect the `08-kubernetes-sealed-secrets/assets/manifests/sealed-secrets-values-v2.4.0.yaml` file provided in the `Starter kit` repository, using an editor of your choice (preferably with `YAML` lint support). You can use [VS Code](https://code.visualstudio.com), for example:
 
 ```shell
-code 08-kubernetes-sealed-secrets/assets/manifests/sealed-secrets-values-v2.1.6.yaml
+code 08-kubernetes-sealed-secrets/assets/manifests/sealed-secrets-values-v2.4.0.yaml
 ```
 
 Next, install the `sealed-secrets/sealed-secrets` chart, using `Helm` (notice that a dedicated `sealed-secrets` namespace is created as well):
 
 ```shell
-HELM_CHART_VERSION="2.1.6"
+HELM_CHART_VERSION="2.4.0"
 
 helm install sealed-secrets-controller sealed-secrets/sealed-secrets --version "${HELM_CHART_VERSION}" \
   --namespace sealed-secrets \
@@ -125,7 +125,7 @@ helm install sealed-secrets-controller sealed-secrets/sealed-secrets --version "
 
 **Notes:**
 
-- A `specific` version for the `Helm` chart is used. In this case `2.1.6` is picked, which maps to the `0.17.5` version of the application. It’s good practice in general, to lock on a specific version. This helps to have predictable results, and allows versioning control via `Git`.
+- A `specific` version for the `Helm` chart is used. In this case `2.4.0` is picked, which maps to the `0.18.1` version of the application. It’s good practice in general, to lock on a specific version. This helps to have predictable results, and allows versioning control via `Git`.
 - You will want to `restrict` access to the sealed-secrets `namespace` for other users that have access to your `DOKS` cluster, to prevent `unauthorized` access to the `private key` (e.g. use `RBAC` policies).
 
 Next, list the deployment status for `Sealed Secrets` controller (the `STATUS` column value should be `deployed`):
@@ -137,8 +137,8 @@ helm ls -n sealed-secrets
 The output looks similar to:
 
 ```text
-NAME                            NAMESPACE       REVISION        UPDATED                                 STATUS          CHART                   APP VERSION
-sealed-secrets-controller       sealed-secrets  1               2021-10-04 18:25:03.594564 +0300 EEST   deployed        sealed-secrets-2.1.6   v0.17.5
+NAME                            NAMESPACE       REVISION        UPDATED                                 STATUS          CHART                  APP VERSION
+sealed-secrets-controller       sealed-secrets  1               2021-10-04 18:25:03.594564 +0300 EEST   deployed        sealed-secrets-2.4.0   v0.18.1
 ```
 
 Finally, inspect the `Kubernetes` resources created by the `Sealed Secrets` Helm deployment:
@@ -329,7 +329,7 @@ In terms of security, `Sealed Secrets` allows you to `restrict` other users to d
 
 Next, you can apply some of the best practices highlighted below:
 
-- Make sure to change periodically **both** `secrets` (like passwords, tokens, etc), and the `private key` used for `encryption`. This way, if the `encryption key` is ever `leaked`, sensitive data doesn't get exposed. And even if it is, the secrets are not valid anymore. You can read more on the topic by referring to the [Secret Rotation](https://github.com/bitnami-labs/sealed-secrets#secret-rotation) chapter, from the official documentation.
+- Make sure to change **both** `secrets` periodically (like passwords, tokens, etc), and the `private key` used for `encryption`. This way, if the `encryption key` is ever `leaked`, sensitive data doesn't get exposed. And even if it is, the secrets are not valid anymore. You can read more on the topic by referring to the [Secret Rotation](https://github.com/bitnami-labs/sealed-secrets#secret-rotation) chapter, from the official documentation.
 - You can leverage the power of `RBAC` for your `Kubernetes` cluster to `restrict` access to `namespaces`. So, if you store all your Kubernetes secrets in a `specific namespace`, then you can `restrict` access to `unwanted users` and `applications` for that `specific namespace`. This is important, because plain `Kubernetes Secrets` are `base64` encoded and can be `decoded` very easy by anyone. `Sealed Secrets` provides an `encryption` layer on top of `encoding`, but in your `DOKS` cluster sealed secrets are transformed back to `generic` Kubernetes secrets.
 - To avoid `private key leaks`, please make sure that the `namespace` where you deployed the `Sealed Secrets` controller is protected as well, via corresponding `RBAC` rules.
 

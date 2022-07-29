@@ -14,12 +14,12 @@ prometheus:
 replicas: 2
 
 # See: https://github.com/kubernetes-sigs/prometheus-adapter/blob/master/docs/config.md
-# rules:
-#   custom:
-#     - seriesQuery: 'http_requests_total{pod!=""}'
-#       resources:
-#         template: "<<.Resource>>"
-#       name:
-#         matches: "^(.*)_total"
-#         as: "${1}_per_second"
-#       metricsQuery: "sum(rate(<<.Series>>{<<.LabelMatchers>>}[2m])) by (<<.GroupBy>>)"
+rules:
+  custom:
+    - seriesQuery: 'http_requests_total{pod!=""}'
+      resources:
+        template: "<<.Resource>>"
+      name:
+        matches: "^(.*)_total"
+        as: "${1}_per_second"
+      metricsQuery: "sum(rate(<<.Series>>{<<.LabelMatchers>>}[2m])) by (<<.GroupBy>>)"
