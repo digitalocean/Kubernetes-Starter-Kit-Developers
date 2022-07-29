@@ -189,7 +189,7 @@ Finally, upgrade the `kube-prometheus-stack`, using `Helm`:
     -f "04-setup-prometheus-stack/assets/manifests/prom-stack-values-v${HELM_CHART_VERSION}.yaml"
   ```
 
-At this point you should only receieve alerts from the matching `EmojivotoInstanceDown` alertname. Since the `continue` is set to false `Alertmanager` will only send notifications from this alert and stop sending for others. 
+At this point you should only receieve alerts from the matching `EmojivotoInstanceDown` alertname. Since the `continue` is set to false `Alertmanager` will only send notifications from this alert and stop sending for others.
 
 **Notes:**
 Clicking on the notification name in `Slack` will open a web browser to an unreachable web page with the internal Kubernetes DNS of the `Alertmanager` pod. This is expected. For more information you can check out this [article](https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/).
