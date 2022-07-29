@@ -40,19 +40,11 @@ To access the prometheus console, first do a port-forward to your local machine.
 kubectl --namespace monitoring port-forward svc/kube-prom-stack-kube-prome-prometheus 9091:9090
 ```
 
-Open a web browser on [localhost:9091](http://localhost:9091) and access the `Alerts` menu item. You should see the following alerts:
+Open a web browser on [localhost:9091](http://localhost:9091) and access the `Alerts` menu item. You should see some predefined `Alerts` and it should look like the following:
 
-- *TargetDown:* One or more targets are unreachable or down.
-- *Watchdog :* An alert that should always be firing to certify that `Alertmanager` is working properly.
-- *KubePodCrashLooping:* when Pod is crash-looping, Pod is restarting some times / 10 minutes. Also `AlertManager` creates an alert.
-- *KubePodNotReady:* An alert that Pod has been in a non-ready state for longer than 15 minutes.
-- *KubeDeploymentReplicasMismatch:* when a deployment has not matched the expected number of replicas, AlertManager is creating this alert.
-- *KubeStatefulSetReplicasMismatch:* when StatefulSet has not matched the expected number of replicas for longer than 15 minutes, AlertManager creates an alert.
-- *KubeJobCompletion:* when a job is taking more than 12 hours to complete, Job did not complete in time
-- *KubeJobFailed:* when a job failed to complete. Removing a failed job after investigation should clear this alert.
-- *CPUThrottlingHigh:* when you reach CPU Limits, CPUthrottling is firing this rule to urge you.
-- *KubeControllerManagerDown:* kube-controller-manager is a kind of job that helps kube-controller-manager run or not when it has disappeared from Prometheus target discovery. this rule will detect this unwanted situation.
-- *KubeSchedulerDown:* kube-scheduler is an important part of kubernetes. This job is searching for a kube-scheduler that is running when it is absent. This rule helps us to understand it’s health.
+![Predefined Alerts](assets/images/predefined-alerts.png)
+
+Click on any of the alerts to expand it. You can see information about expression it queries, the labels it has setup and annotations which is very important from a templating perspective. Prometheus supports templating in the annotations and labels of alerts. For more information check out the official [documentation](https://prometheus.io/docs/prometheus/latest/configuration/template_examples/).
 
 ## Creating a New Alert
 
@@ -71,7 +63,6 @@ additionalPrometheusRulesMap:
           for: 1m
           labels:
             severity: 'critical'
-            alert_type: 'infrastructure'
           annotations:
             description: ' The Number of pods from the namespace {{ $labels.namespace }} is lower than the expected 4. '
             summary: 'Pod {{ $labels.pod }} down'
@@ -87,9 +78,12 @@ Finally, apply settings using `Helm`:
     -f "04-setup-prometheus-stack/assets/manifests/prom-stack-values-v${HELM_CHART_VERSION}.yaml"
   ```
 
+To check that the alert has been created successfully, navigate to the [Promethes Console][localhost:9091](http://localhost:9091) click on the `Alerts` menu item and identify the `EmojivotioInstanceDown` alert. It should be visible at the bottom of the list.
+
 ## Configuring Alertmanager to Send Notifications to Slack
 
 To complete this section you need to have administrative rights over a workspace. This will enable you to create the incoming webhook you will need in the next steps. You will also need to create a channel where you would like to receive notifications from `AlertManager`.
+You will be configuring `Alertmanager` to range over all of the alerts received printing their respective summaries and descriptions on new lines.
 
 Steps to follow:
 
@@ -110,32 +104,31 @@ alertmanager:
       slack_api_url: "<YOUR_SLACK_APP_INCOMING_WEBHOOK_URL_HERE>"
     route:
       receiver: "slack-notifications"
-      group_by: [alert_type]
       repeat_interval: 12h
       routes:
-        - matchers:
-          - alertname = "EmojivotoInstanceDown"
-          receiver: "slack-notifications"
+        - receiver: "slack-notifications"
+          # matchers:
+          #   - alertname="EmojivotoInstanceDown"
+          # continue: false
     receivers:
       - name: "slack-notifications"
         slack_configs:
           - channel: "#<YOUR_SLACK_CHANNEL_NAME_HERE>"
             send_resolved: true
-            title: |-
-              [{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] {{ .CommonLabels.alertname }}
-            text: >-
-              {{ range .Alerts -}}
-
-              *Description:* {{ .Annotations.description }}
-
-              {{ end }}
+            title: "{{ range .Alerts }}{{ .Annotations.summary }}\n{{ end }}"
+            text: "{{ range .Alerts }}{{ .Annotations.description }}\n{{ end }}"
 ```
 
 Explanations for the above configuration:
 
 - `slack_api_url` - incoming Slack webhook URL created in step 4.
-- `routes.matchers.alertname` - match a specific alert name as defined in the `additionalPrometheusRulesMap` (e.g. `EmojivotoInstanceDown`).
 - `receivers.[].slack_configs` - defines the Slack channel used to send notifications, notification title and the actual message. It is also possible to format the notification message (or body) based on your requirements.
+- `title` and `text` - iterates over the firing alerts and prints out the summary and description using the `Prometheus` templating system.
+- `send_resolved` - boolean indicating if `Alertmanager` should send a notification when an `Alert` is not firing anymore.
+
+**Note:**
+
+The `matcher` and `continue` parameters are still commented out as you will be uncomentting that later on in the guide. For now it should stay commented.
 
 Finally, upgrade the `kube-prometheus-stack`, using `Helm`:
 
@@ -147,8 +140,9 @@ Finally, upgrade the `kube-prometheus-stack`, using `Helm`:
     -f "04-setup-prometheus-stack/assets/manifests/prom-stack-values-v${HELM_CHART_VERSION}.yaml"
   ```
 
-At this point, you should receive slack `notifications` for firing alerts when the expected number of pods for `Emojivoto` is less than 4.
-Next, you're going to test if the `EmojivotoInstanceDown` alert works by downscaling the number of replicas for the `emoji` deployment from the `emojivoto` namespace.
+At this point, you should receive slack `notifications` for all the firing alerts.
+
+Next, you're going to test if the `EmojivotoInstanceDown` alert added previously works and sends a notification to `Slack` by downscaling the number of replicas for the `emoji` deployment from the `emojivoto` namespace.
 
 Steps to follow:
 
@@ -159,13 +153,43 @@ Steps to follow:
     ```
 
 2. Open a web browser on [localhost:9091](http://localhost:9091) and access the `Alerts` menu item. Search for the `EmojivotoInstanceDown` alert created earlier. The status of the alert should be `Firing` after about one minute of scaling down the deployment.
-3. A message notification will be sent to `Slack` to the channel you configured earlier if everything went well. The notification should look like:
+3. A message notification will be sent to `Slack` to the channel you configured earlier if everything went well. You should see the "The Number of pods from the namespace emojivoto is lower than the expected 4." alert in the `Slack` message as configure in the `annotations.description` config of the `additionalPrometheusRulesMap` block.
 
-![Emojivoto Slack Notification Firing](assets/images/emojivoto-slack-notification-firing.png)
+Currently all of the `Alerts` firing will be sent to the `Slack` channel. This can be cause for notification fatigue. To drill down on what is sent you can restrict `Alertmanager` to only send notification for alerts which match a certain pattern. This is done using the `matcher` parameter. Open the `04-setup-prometheus-stack/assets/manifests/prom-stack-values.yaml` file provided in the `Starter Kit repository`, using a text editor of your choice (preferably with YAML lint support). Then, uncomment the entire `alertmanager.config` block. Make sure to uncomment the `matcher` and the `continue` parameters:
 
-Once the problem is resolved and the number of pods for the `emojivoto` is back to its expected 4 the notification should look like:
+```yaml
+  config:
+    global:
+      resolve_timeout: 5m
+      slack_api_url: "<YOUR_SLACK_APP_INCOMING_WEBHOOK_URL_HERE>"
+    route:
+      receiver: "slack-notifications"
+      repeat_interval: 12h
+      routes:
+        - receiver: "slack-notifications"
+          matchers:
+            - alertname="EmojivotoInstanceDown"
+          continue: false
+    receivers:
+      - name: "slack-notifications"
+        slack_configs:
+          - channel: "#<YOUR_SLACK_CHANNEL_NAME_HERE>"
+            send_resolved: true
+            title: "{{ range .Alerts }}{{ .Annotations.summary }}\n{{ end }}"
+            text: "{{ range .Alerts }}{{ .Annotations.description }}\n{{ end }}"
+```
 
-![Emojivoto Slack Notification Resolved](assets/images/emojivoto-slack-nofitication-resolved.png)
+Finally, upgrade the `kube-prometheus-stack`, using `Helm`:
+
+  ```shell
+  HELM_CHART_VERSION="35.5.1"
+
+  helm upgrade kube-prom-stack prometheus-community/kube-prometheus-stack --version "${HELM_CHART_VERSION}" \
+    --namespace monitoring \
+    -f "04-setup-prometheus-stack/assets/manifests/prom-stack-values-v${HELM_CHART_VERSION}.yaml"
+  ```
+
+At this point you should only receieve alerts from the matching `EmojivotoInstanceDown` alertname. Since the `continue` is set to false `Alertmanager` will only send notifications from this alert and stop sending for others. 
 
 **Notes:**
 Clicking on the notification name in `Slack` will open a web browser to an unreachable web page with the internal Kubernetes DNS of the `Alertmanager` pod. This is expected. For more information you can check out this [article](https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/).
@@ -191,7 +215,7 @@ Steps to follow:
 ![Grafana Alert](assets/images/grafana-alert.png)
 5. Click on the `See graph` button. From the next page you can observe the count for the number of pods in the `emojivoto` namespace displayed as a metric. Take note that `Grafana` filters results using a time range of `Last 1 hour` by default. Adjust this to the time interval when the `Alert` fired. You can adjust the time range using an `absolute time range` using a `From To` option for a more granular result or using a `Quick range` such as `Last 30 minutes`.
 6. From the `Explore` tab select the `Loki` data source and in the `Log browser` input the following: `{namespace="emojivoto"}` and click on the `Run query` button from the top right side of the page. You should see the following:
-![Loki Logs](assets/images/loki-logs.png)
+![Loki Logs](assets/images/loki-logs.png). Make sure you adjust the time interval accordingly.
 7. From this page you can filter the log results further. For example to filter the logs for the `web-svc` container of the `emojivoto` namespace you can enter the following query: `{namespace="emojivoto", container="web-svc"}`. More explanations about using `LogQL` can be found in [Step 3 - Using LogQL](../05-setup-loki-stack/README.md#step-3---using-logql) from [Chapter 5 - 05-setup-loki-stack](../05-setup-loki-stack/README.md).
 
 Go to [Section 08 - Encrypt Kubernetes Secrets Using Sealed Secrets](../08-kubernetes-sealed-secrets/README.md).

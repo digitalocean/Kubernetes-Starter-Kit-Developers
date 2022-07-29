@@ -33,25 +33,19 @@ alertmanager:
   #     slack_api_url: "<YOUR_SLACK_APP_INCOMING_WEBHOOK_URL_HERE>"
   #   route:
   #     receiver: "slack-notifications"
-  #     group_by: [alert_type]
   #     repeat_interval: 12h
   #     routes:
-  #       - matchers:
-  #         - alertname = "EmojivotoInstanceDown"
-  #         receiver: "slack-notifications"
+  #       - receiver: "slack-notifications"
+  #         # matchers:
+  #         #   - alertname="EmojivotoInstanceDown"
+  #         # continue: false
   #   receivers:
   #     - name: "slack-notifications"
   #       slack_configs:
   #         - channel: "#<YOUR_SLACK_CHANNEL_NAME_HERE>"
   #           send_resolved: true
-  #           title: |-
-  #             [{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] {{ .CommonLabels.alertname }}
-  #           text: >-
-  #             {{ range .Alerts -}}
-
-  #             *Description:* {{ .Annotations.description }}
-
-  #             {{ end }}
+  #           title: "{{ range .Alerts }}{{ .Annotations.summary }}\n{{ end }}"
+  #           text: "{{ range .Alerts }}{{ .Annotations.description }}\n{{ end }}"
 
 # additionalPrometheusRulesMap:
 #   rule-name:
@@ -66,7 +60,7 @@ alertmanager:
 #             alert_type: 'infrastructure'
 #           annotations:
 #             description: ' The Number of pods from the namespace {{ $labels.namespace }} is lower than the expected 4. '
-#             summary: 'Pod {{ $labels.pod }} down'
+#             summary: 'Pod in {{ $labels.namespace }} namespace down'
 
 ## Using default values from https://github.com/grafana/helm-charts/blob/main/charts/grafana/values.yaml
 ##
