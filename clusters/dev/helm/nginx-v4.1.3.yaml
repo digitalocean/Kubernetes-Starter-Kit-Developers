@@ -15,11 +15,11 @@ spec:
       releaseName: ingress-nginx
       values: |
         controller:
-        replicaCount: 2
-        resources:
-          requests:
-            cpu: 100m
-            memory: 90Mi
+          replicaCount: 2
+          resources:
+            requests:
+              cpu: 100m
+              memory: 90Mi
   destination:
     server: "https://kubernetes.default.svc"
     namespace: ingress-nginx
