@@ -22,4 +22,5 @@ jobs:
       uses: docker://avtodev/markdown-lint:v1 # fastest way
       with:
         config: './assets/markdown/markdownlint.yml'
+        config: 'markdown/markdownlint.yml'
         args: "**/*.md"
