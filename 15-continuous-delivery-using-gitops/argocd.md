@@ -77,7 +77,7 @@ To complete this tutorial, you will need:
 3. A [Git](https://git-scm.com/downloads) client, for cloning the `Starter Kit` repository.
 4. [Kubectl](https://kubernetes.io/docs/tasks/tools) CLI, for `Kubernetes` interaction. Follow these [instructions](https://www.digitalocean.com/docs/kubernetes/how-to/connect-to-cluster/) to connect to your cluster with `kubectl` and `doctl`.
 5. [Argo CLI](https://argo-cd.readthedocs.io/en/stable/cli_installation), to interact with `Argo CD` using the command line interface.
-6. [Kubeseal](https://github.com/bitnami-labs/sealed-secrets/releases/tag/v0.17.3), for encrypting secrets and [Sealed Secrets Controller](https://github.com/bitnami-labs/sealed-secrets) interaction.
+6. [Kubeseal](https://github.com/bitnami-labs/sealed-secrets/releases/tag/v0.18.1), for encrypting secrets and [Sealed Secrets Controller](https://github.com/bitnami-labs/sealed-secrets) interaction.
 7. [Helm](https://www.helm.sh), for managing `Argo CD` releases and upgrades (optional, but recommended in general for production systems).
 
 ## Understanding Argo CD Concepts for Application Deployment
@@ -146,7 +146,7 @@ spec:
   source:
     chart: sealed-secrets
     repoURL: https://bitnami-labs.github.io/sealed-secrets
-    targetRevision: 1.16.1
+    targetRevision: 2.4.0
     helm:
       releaseName: sealed-secrets
       values: |
@@ -249,7 +249,7 @@ Please follow below steps to complete the Helm based installation:
     ```text
     NAME                            CHART VERSION   APP VERSION     DESCRIPTION                                       
     argo/argo                       1.0.0           v2.12.5         A Helm chart for Argo Workflows                   
-    argo/argo-cd                    4.2.1           v2.3.1          A Helm chart for Argo CD, a declarative, GitOps...
+    argo/argo-cd                    4.9.4           v2.4.0          A Helm chart for Argo CD, a declarative, GitOps...
     ...
     ```
 
@@ -262,7 +262,7 @@ Please follow below steps to complete the Helm based installation:
 5. Finally, deploy Argo CD to your DOKS cluster:
 
     ```shell
-    HELM_CHART_VERSION="4.2.1"
+    HELM_CHART_VERSION="4.9.4"
 
     helm install argocd argo/argo-cd --version "${HELM_CHART_VERSION}" \
       --namespace argocd \
@@ -272,7 +272,7 @@ Please follow below steps to complete the Helm based installation:
 
 **Note:**
 
-A `specific` version for the `Helm` chart is used. In this case `4.2.1` is picked, which maps to the `2.3.1` version of the application. It’s good practice in general, to lock on a specific version. This helps to have predictable results, and allows versioning control via `Git`.
+A `specific` version for the `Helm` chart is used. In this case `4.9.4` is picked, which maps to the `2.4.0` version of the application. It’s good practice in general, to lock on a specific version. This helps to have predictable results, and allows versioning control via `Git`.
 
 Now, check if the Helm release was successful:
 
@@ -284,7 +284,7 @@ The output looks similar to (`STATUS` column value should be set to `deployed`):
 
 ```text
 NAME    NAMESPACE       REVISION        UPDATED                                 STATUS          CHART           APP VERSION
-argocd  argocd          1               2022-03-23 11:22:48.486199 +0200 EET    deployed        argo-cd-4.2.1   v2.3.1
+argocd  argocd          1               2022-03-23 11:22:48.486199 +0200 EET    deployed        argo-cd-4.9.4   v2.4.0
 ```
 
 Finally, verify Argo CD application deployment status:
@@ -409,11 +409,11 @@ First you need to prepare your Git repository to use a consistent layout. In the
 clusters
 └── dev
     └── helm
-        ├── cert-manager-v1.6.1.yaml
-        ├── nginx-v4.0.13.yaml
-        ├── prometheus-stack-v30.0.1.yaml
-        ├── sealed-secrets-v2.1.6.yaml
-        └── velero-v2.27.3.yaml
+        ├── cert-manager-v1.8.0.yaml
+        ├── nginx-v4.1.3.yaml
+        ├── prometheus-stack-v35.5.1.yaml
+        ├── sealed-secrets-v2.4.0.yaml
+        └── velero-v2.29.7.yaml
 ```
 
 Please open a terminal, and follow below steps to create the layout for your Git repository:
@@ -435,11 +435,11 @@ Please open a terminal, and follow below steps to create the layout for your Git
 3. Copy application manifests provided for each component in the Starter Kit repository (you can also take a look and see how each [manifest](assets/manifests/argocd/applications/helm) is structured):
 
     ```shell
-    CERT_MANAGER_CHART_VERSION="1.6.1"
-    NGINX_CHART_VERSION="4.0.13"
-    PROMETHEUS_CHART_VERSION="30.0.1"
-    SEALED_SECRETS_CHART_VERSION="2.1.6"
-    VELERO_CHART_VERSION="2.27.3"
+    CERT_MANAGER_CHART_VERSION="1.8.0"
+    NGINX_CHART_VERSION="4.1.3"
+    PROMETHEUS_CHART_VERSION="35.5.1"
+    SEALED_SECRETS_CHART_VERSION="2.4.0"
+    VELERO_CHART_VERSION="2.29.7"
 
     curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/15-continuous-delivery-using-gitops/assets/manifests/argocd/applications/helm/cert-manager-v${CERT_MANAGER_CHART_VERSION}.yaml" > "clusters/dev/helm/cert-manager-v${CERT_MANAGER_CHART_VERSION}.yaml"
 
