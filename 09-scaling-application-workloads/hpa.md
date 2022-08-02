@@ -860,6 +860,16 @@ Now that you know how to set up `discovery rules` for `prometheus-adapter`, it's
       -f "09-scaling-application-workloads/assets/manifests/prometheus-adapter-values-v${HELM_CHART_VERSION}.yaml"
     ```
 
+**Note:**
+
+Please note that with no incoming requests, only the `version` metric is reported. To generate some HTTP requests you need to:
+
+  ```shell
+  kubectl port-forward svc/prometheus-example-app 8080:8080 -n prometheus-custom-metrics-test
+  ```
+
+Open a web browser on [localhost:8080](http://localhost:8080) and refresh the application's homepage a few times.
+
 If everything went well, you can query the custom metrics API, and observe the new metric (you can install [jq](https://stedolan.github.io/jq), and have the results printed nicely):
 
 ```shell
