@@ -507,7 +507,7 @@ So far you learned how to horizontally scale applications based on CPU metrics (
 
 To accomplish this task, you need to install a special piece of software called the [prometheus-adapter](https://github.com/kubernetes-sigs/prometheus-adapter). Main purpose of the `prometheus-adapter` is to act as a bridge (or translator) between Prometheus and the Kubernetes API server.
 
-When to choose `metrics-server` over `prometheus-adapter` or vice versa ?
+When to choose `metrics-server` over `prometheus-adapter` or vice versa?
 
 Well, `metrics-server` is fast, low on resources, and provides only the basic set of metrics (CPU and memory) for HPAs to work, thus making it a good candidate when you don't want to use a full blown monitoring system. On the other hand, when you need more granular control over HPAs and scale on other metrics not covered by the metrics server, then `Prometheus` in combination with the `prometheus-adapter` is a better choice.
 
@@ -546,28 +546,28 @@ Prometheus adapter can be installed the usual way, via Helm. Please follow below
 
     ```text
     NAME                                                    CHART VERSION   APP VERSION     DESCRIPTION                                       
-    prometheus-community/alertmanager                       0.15.0          v0.23.0         The Alertmanager handles alerts sent by client ...
-    prometheus-community/kube-prometheus-stack              33.1.0          0.54.1          kube-prometheus-stack collects Kubernetes manif...
-    prometheus-community/kube-state-metrics                 4.7.0           2.4.1           Install kube-state-metrics to generate and expo...
-    prometheus-community/prometheus                         15.5.1          2.31.1          Prometheus is a monitoring system and time seri...
-    prometheus-community/prometheus-adapter                 3.0.2           v0.9.1          A Helm chart for k8s prometheus adapter
+    prometheus-community/alertmanager                       0.18.0          v0.23.0         The Alertmanager handles alerts sent by client ...
+    prometheus-community/kube-prometheus-stack              35.5.1          0.56.3          kube-prometheus-stack collects Kubernetes manif...
+    prometheus-community/kube-state-metrics                 4.9.2           2.5.1           Install kube-state-metrics to generate and expo...
+    prometheus-community/prometheus                         15.10.1         2.34.0          Prometheus is a monitoring system and time seri...
+    prometheus-community/prometheus-adapter                 3.3.1           v0.9.1          A Helm chart for k8s prometheus adapter
     ...
     ```
 
     **Note:**
 
     The chart of interest is `prometheus-community/prometheus-adapter`, which will install `prometheus-adapter` on the cluster. Please visit the [prometheus-adapter](https://github.com/prometheus-community/helm-charts/tree/main/charts/prometheus-adapter) chart page, for more details.
-3. Then, open and inspect the `prometheus-adapter` Helm [values file](assets/manifests/prometheus-adapter-values-v3.0.2.yaml) provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://code.visualstudio.com):
+3. Then, open and inspect the `prometheus-adapter` Helm [values file](assets/manifests/prometheus-adapter-values-v3.3.1.yaml) provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://code.visualstudio.com):
 
     ```shell
-    code 09-scaling-application-workloads/assets/manifests/prometheus-adapter-values-v3.0.2.yaml
+    code 09-scaling-application-workloads/assets/manifests/prometheus-adapter-values-v3.3.1.yaml
     ```
 
-4. Make sure to adjust the prometheus endpoint setting based on your setup (explanations are provided in the Helm [values](assets/manifests/prometheus-adapter-values-v3.0.2.yaml#L6) file).
+4. Make sure to adjust the prometheus endpoint setting based on your setup (explanations are provided in the Helm [values](assets/manifests/prometheus-adapter-values-v3.3.1.yaml#L6) file).
 5. Finally, save the values file and install `prometheus-adapter` using `Helm` (a dedicated `prometheus-adapter` namespace is being provisioned as well):
 
     ```shell
-    HELM_CHART_VERSION="3.0.2"
+    HELM_CHART_VERSION="3.3.1"
 
     helm install prometheus-adapter prometheus-community/prometheus-adapter \
       --version "$HELM_CHART_VERSION" \
@@ -578,7 +578,7 @@ Prometheus adapter can be installed the usual way, via Helm. Please follow below
 
     **Note:**
 
-    A `specific` version for the prometheus-adapter `Helm` chart is used. In this case `3.0.2` was picked, which maps to the `0.9.1` release of the prometheus-adapter application (see the output from `Step 2.`). It’s good practice in general, to lock on a specific version. This helps to have predictable results, and allows versioning control via `Git`.
+    A `specific` version for the prometheus-adapter `Helm` chart is used. In this case `3.3.1` was picked, which maps to the `0.9.1` release of the prometheus-adapter application (see the output from `Step 2.`). It’s good practice in general, to lock on a specific version. This helps to have predictable results, and allows versioning control via `Git`.
 
 **Observations and results:**
 
@@ -592,7 +592,7 @@ The output looks similar to (notice the `STATUS` column value set to `deployed`)
 
 ```text
 NAME                 NAMESPACE            REVISION   UPDATED                STATUS     CHART                      APP VERSION
-prometheus-adapter   prometheus-adapter   1          2022-03-01 12:06:22    deployed   prometheus-adapter-3.0.2   v0.9.1
+prometheus-adapter   prometheus-adapter   1          2022-03-01 12:06:22    deployed   prometheus-adapter-3.3.1   v0.9.1
 ```
 
 Next, check the Kubernetes resources status from the `prometheus-adapter` namespace:
@@ -717,7 +717,7 @@ Before creating the `ServiceMonitor` resource, you have to check the `serviceMon
 
     ```text
     NAME                                    VERSION   REPLICAS   AGE
-    kube-prom-stack-kube-prome-prometheus   v2.32.1   1          7h4m
+    kube-prom-stack-kube-prome-prometheus   v2.35.0   1          7h4m
     ```
 
 2. Now, pick the prometheus instance discovered in the previous step (if you have multiple instances, just pick the correct one based on your setup), and fetch the `serviceMonitorSelector.matchLabels` field value:
@@ -779,6 +779,8 @@ After completing above steps, you should see a new target being present in the `
 kubectl port-forward svc/kube-prom-stack-kube-prome-prometheus 9090:9090 -n monitoring
 ```
 
+Open a web browser on [localhost:9090](http://localhost:9090). Once in, you can go to `Status -> Targets`, and see that the target has been added.
+
 The output looks similar to (notice the `prometheus-example-app` present in the discovered targets list):
 
 ![prometheus-example-app target](assets/images/prom-example-app-target.png)
@@ -827,10 +829,10 @@ Now that you know how to set up `discovery rules` for `prometheus-adapter`, it's
     cd Kubernetes-Starter-Kit-Developers
     ```
 
-2. Next, please open the `prometheus-adapter` Helm [values file](assets/manifests/prometheus-adapter-values-v3.0.2.yaml) provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://code.visualstudio.com):
+2. Next, please open the `prometheus-adapter` Helm [values file](assets/manifests/prometheus-adapter-values-v3.3.1.yaml) provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://code.visualstudio.com):
 
     ```shell
-    code 09-scaling-application-workloads/assets/manifests/prometheus-adapter-values-v3.0.2.yaml
+    code 09-scaling-application-workloads/assets/manifests/prometheus-adapter-values-v3.3.1.yaml
     ```
 
 3. Look for the `rules` section, and uncomment everything. It should look like below:
@@ -850,13 +852,23 @@ Now that you know how to set up `discovery rules` for `prometheus-adapter`, it's
 4. Save the values file, and apply changes via a `Helm` upgrade:
 
     ```shell
-    HELM_CHART_VERSION="3.0.2"
+    HELM_CHART_VERSION="3.3.1"
 
     helm upgrade prometheus-adapter prometheus-community/prometheus-adapter \
       --version "$HELM_CHART_VERSION" \
       --namespace prometheus-adapter \
       -f "09-scaling-application-workloads/assets/manifests/prometheus-adapter-values-v${HELM_CHART_VERSION}.yaml"
     ```
+
+**Note:**
+
+Please note that with no incoming requests, only the `version` metric is reported. To generate some HTTP requests you need to:
+
+  ```shell
+  kubectl port-forward svc/prometheus-example-app 8080:8080 -n prometheus-custom-metrics-test
+  ```
+
+Open a web browser on [localhost:8080](http://localhost:8080) and refresh the application's homepage a few times.
 
 If everything went well, you can query the custom metrics API, and observe the new metric (you can install [jq](https://stedolan.github.io/jq), and have the results printed nicely):
 

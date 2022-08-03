@@ -2,28 +2,32 @@
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
-  name: sealed-secrets-controller
+  name: ambassador-stack
   namespace: flux-system
 spec:
   chart:
     spec:
-      chart: sealed-secrets
+      chart: edge-stack
       sourceRef:
         kind: HelmRepository
-        name: sealed-secrets
-      version: 2.1.6
+        name: ambassador
+      version: 7.3.2
   install:
     createNamespace: true
-    crds: Create
     remediation:
       retries: 3
   upgrade:
-    crds: CreateReplace
     remediation:
       retries: 3
-  releaseName: sealed-secrets-controller
-  targetNamespace: flux-system
+  releaseName: ambassador
+  targetNamespace: ambassador
   interval: 1m0s
   values:
-    ingress:
-      enabled: false
+    replicaCount: 2
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 600Mi
+      requests:
+        cpu: 200m
+        memory: 200Mi

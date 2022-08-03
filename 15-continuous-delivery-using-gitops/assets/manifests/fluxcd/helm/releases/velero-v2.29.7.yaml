@@ -11,7 +11,7 @@ spec:
       sourceRef:
         kind: HelmRepository
         name: vmware-tanzu
-      version: 2.27.3
+      version: 2.29.7
   install:
     createNamespace: true
     remediation:

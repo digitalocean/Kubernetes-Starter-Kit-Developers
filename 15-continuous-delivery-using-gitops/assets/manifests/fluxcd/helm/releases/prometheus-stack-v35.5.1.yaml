@@ -11,7 +11,7 @@ spec:
       sourceRef:
         kind: HelmRepository
         name: prometheus-community
-      version: 30.0.1
+      version: 35.5.1
   install:
     createNamespace: true
     remediation:

@@ -2,16 +2,16 @@
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
-  name: ambassador-stack
+  name: cert-manager
   namespace: flux-system
 spec:
   chart:
     spec:
-      chart: edge-stack
+      chart: cert-manager
       sourceRef:
         kind: HelmRepository
-        name: ambassador
-      version: 7.2.2
+        name: jetstack
+      version: 1.8.0
   install:
     createNamespace: true
     remediation:
@@ -19,15 +19,11 @@ spec:
   upgrade:
     remediation:
       retries: 3
-  releaseName: ambassador
-  targetNamespace: ambassador
+  releaseName: cert-manager
+  targetNamespace: cert-manager
   interval: 1m0s
   values:
-    replicaCount: 2
-    resources:
-      limits:
-        cpu: 1000m
-        memory: 600Mi
-      requests:
-        cpu: 200m
-        memory: 200Mi
+    installCRDs: true
+    prometheus:
+      # set to true if you want to enable prometheus monitoring for cert-manager
+      enabled: false

@@ -1,28 +1,23 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: ingress-nginx
+  name: cert-manager
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
   source:
-    chart: ingress-nginx
-    repoURL: https://kubernetes.github.io/ingress-nginx
-    targetRevision: 4.0.13
+    chart: cert-manager
+    repoURL: https://charts.jetstack.io
+    targetRevision: 1.8.0
     helm:
-      releaseName: ingress-nginx
+      releaseName: cert-manager
       values: |
-        controller:
-        replicaCount: 2
-        resources:
-          requests:
-            cpu: 100m
-            memory: 90Mi
+        installCRDs: true
   destination:
     server: "https://kubernetes.default.svc"
-    namespace: ingress-nginx
+    namespace: cert-manager
   syncPolicy:
     automated:
       prune: true

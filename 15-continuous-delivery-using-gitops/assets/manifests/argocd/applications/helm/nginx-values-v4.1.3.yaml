@@ -1,21 +1,28 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: velero
+  name: ingress-nginx
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
   source:
-    chart: velero
-    repoURL: https://vmware-tanzu.github.io/helm-charts
-    targetRevision: 2.27.3
+    chart: ingress-nginx
+    repoURL: https://kubernetes.github.io/ingress-nginx
+    targetRevision: 4.0.13
     helm:
-      releaseName: velero
+      releaseName: ingress-nginx
+      values: |
+        controller:
+          replicaCount: 2
+          resources:
+            requests:
+              cpu: 100m
+              memory: 90Mi
   destination:
     server: "https://kubernetes.default.svc"
-    namespace: velero
+    namespace: ingress-nginx
   syncPolicy:
     automated:
       prune: true

@@ -141,7 +141,7 @@ spec:
       sourceRef:
         kind: HelmRepository
         name: ambassador
-      version: 7.2.2
+      version: 7.3.2
   install:
     createNamespace: true
   interval: 1m0s
@@ -398,11 +398,11 @@ After finishing all the steps from this tutorial, you should have a `Git` reposi
 │       │   └── kustomization.yaml
 │       └── helm
 │           ├── releases
-│           │   ├── ambassador-stack-v7.2.2.yaml
-│           │   ├── loki-stack-v2.5.1.yaml
-│           │   ├── prometheus-stack-v30.0.1.yaml
-│           │   ├── sealed-secrets-v2.1.6.yaml
-│           │   └── velero-v2.27.3.yaml
+│           │   ├── ambassador-stack-v7.3.2.yaml
+│           │   ├── loki-stack-v2.6.4.yaml
+│           │   ├── prometheus-stack-v35.5.1.yaml
+│           │   ├── sealed-secrets-v2.4.0.yaml
+│           │   └── velero-v2.29.7.yaml
 │           ├── repositories
 │           │   ├── ambassador.yaml
 │           │   ├── grafana.yaml
@@ -461,7 +461,7 @@ Please use the following steps, to create required manifests for the `Sealed Sec
 3. Next, fetch the `Starter Kit` values file for `Sealed Secrets`. Please make sure to inspect the values file first, and replace the `<>` placeholders where needed:
 
     ```shell
-    SEALED_SECRETS_CHART_VERSION="2.1.6"
+    SEALED_SECRETS_CHART_VERSION="2.4.0"
 
     curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/08-kubernetes-sealed-secrets/assets/manifests/sealed-secrets-values-v${SEALED_SECRETS_CHART_VERSION}.yaml" > "sealed-secrets-values-v${SEALED_SECRETS_CHART_VERSION}.yaml"
     ```
@@ -469,7 +469,7 @@ Please use the following steps, to create required manifests for the `Sealed Sec
 4. Now, create the `Sealed Secrets` HelmRelease manifest for `Flux CD`. `Kubeseal` CLI expects by default to find the controller in the `kube-system` namespace and to be named `sealed-secrets-controller`, hence we override the release name via the `--release-name` and `--target-namespace` flags. This is not mandatory, but `kube-system` is usually accessible only to power users (administrators):
 
     ```shell
-    SEALED_SECRETS_CHART_VERSION="2.1.6"
+    SEALED_SECRETS_CHART_VERSION="2.4.0"
 
     flux create helmrelease "sealed-secrets-controller" \
       --release-name="sealed-secrets-controller" \
@@ -509,7 +509,7 @@ Please use the following steps, to create required manifests for the `Sealed Sec
           sourceRef:
             kind: HelmRepository
             name: sealed-secrets
-          version: 2.1.6
+          version: 2.4.0
       interval: 1m0s
       releaseName: sealed-secrets-controller
       targetNamespace: flux-system
@@ -525,7 +525,7 @@ Please use the following steps, to create required manifests for the `Sealed Sec
 5. Finally, commit `Git` changes to `remote` branch:
 
     ```shell
-    SEALED_SECRETS_CHART_VERSION="2.1.6"
+    SEALED_SECRETS_CHART_VERSION="2.4.0"
 
     git add "${FLUXCD_HELM_MANIFESTS_PATH}/repositories/sealed-secrets.yaml"
 
@@ -552,7 +552,7 @@ The output looks similar to:
 
 ```text
 NAME                        READY   MESSAGE                                 REVISION        SUSPENDED 
-sealed-secrets-controller   True    Release reconciliation succeeded        2.1.6          False 
+sealed-secrets-controller   True    Release reconciliation succeeded        2.4.0          False 
 ```
 
 Look for the `READY` column value - it should say `True`. Reconciliation status is displayed in the `MESSAGE` column, along with the `REVISION` number, which represents the `Helm` chart `version`. Please bear in mind that some releases take longer to complete (like `Prometheus` stack, for example), so please be patient.
@@ -565,6 +565,12 @@ Look for the `READY` column value - it should say `True`. Reconciliation status 
 
     ```shell
     flux logs --kind=HelmRelease
+    ```
+
+- In case the `Flux` logs do not offer sufficient information you can use the `describe` command on the `helmrelease` using `kubectl` as follows:
+
+    ```shell
+    kubectl describe helmrelease sealed-secrets-controller -n flux-system
     ```
 
 ### Exporting the Sealed Secrets Controller Public Key
@@ -625,7 +631,7 @@ Steps to follow:
 3. Now, fetch the Cert-Manager `HelmRelease` manifest file provided by the `Starter Kit` Git repository:
 
     ```shell
-    CERT_MANAGER_CHART_VERSION="1.6.1"
+    CERT_MANAGER_CHART_VERSION="1.8.0"
 
     curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/15-continuous-delivery-using-gitops/assets/manifests/fluxcd/helm/releases/cert-manager-v${CERT_MANAGER_CHART_VERSION}.yaml" > "${FLUXCD_HELM_MANIFESTS_PATH}/releases/cert-manager-v${CERT_MANAGER_CHART_VERSION}.yaml"
     ```
@@ -633,7 +639,7 @@ Steps to follow:
 4. Next, inspect the downloaded `HelmRelease` manifest file using an editor of your choice (preferably with `YAML` lint support), and adjust to your needs. For example, you can use [VS Code](https://code.visualstudio.com) (make sure to replace the `<>` placeholders accordingly, if present):
 
     ```shell
-    CERT_MANAGER_CHART_VERSION="1.6.1"
+    CERT_MANAGER_CHART_VERSION="1.8.0"
 
     code "${FLUXCD_HELM_MANIFESTS_PATH}/releases/cert-manager-v${CERT_MANAGER_CHART_VERSION}.yaml"
     ```
@@ -641,7 +647,7 @@ Steps to follow:
 5. Finally, commit `Git` changes to `remote` branch:
 
     ```shell
-    CERT_MANAGER_CHART_VERSION="1.6.1"
+    CERT_MANAGER_CHART_VERSION="1.8.0"
 
     git add "${FLUXCD_HELM_MANIFESTS_PATH}/repositories/jetstack.yaml"
 
@@ -683,6 +689,12 @@ Look for the `READY` column value - it should say `True`. Reconciliation status 
     flux logs --kind=HelmRelease
     ```
 
+- In case the `Flux` logs do not offer sufficient information you can use the `describe` command on the `helmrelease` using ``kubectl` as follows:
+
+    ```shell
+    kubectl describe helmrelease cert-manager -n flux-system
+    ```
+
 Next, you're going to create `Flux CD` manifests for the `Ambassador` (or `Nginx`) ingress.
 
 ## Step 7 - Creating the Ingress Controller Helm Release
@@ -716,7 +728,7 @@ Steps to follow:
     `Ambassador` Ingress:
 
     ```shell
-    AMBASSADOR_CHART_VERSION="7.2.2"
+    AMBASSADOR_CHART_VERSION="7.3.2"
 
     curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/15-continuous-delivery-using-gitops/assets/manifests/fluxcd/helm/releases/ambassador-stack-v${AMBASSADOR_CHART_VERSION}.yaml" > "${FLUXCD_HELM_MANIFESTS_PATH}/releases/ambassador-stack-v${AMBASSADOR_CHART_VERSION}.yaml"
     ```
@@ -724,7 +736,7 @@ Steps to follow:
     `Nginx` Ingress:
 
     ```shell
-    NGINX_CHART_VERSION="4.0.13"
+    NGINX_CHART_VERSION="4.1.3"
 
     curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/15-continuous-delivery-using-gitops/assets/manifests/fluxcd/helm/releases/nginx-v${NGINX_CHART_VERSION}.yaml" > "${FLUXCD_HELM_MANIFESTS_PATH}/releases/nginx-v${NGINX_CHART_VERSION}.yaml"
     ```
@@ -734,7 +746,7 @@ Steps to follow:
     `Ambassador` Ingress:
 
     ```shell
-    AMBASSADOR_CHART_VERSION="7.2.2"
+    AMBASSADOR_CHART_VERSION="7.3.2"
 
     code "${FLUXCD_HELM_MANIFESTS_PATH}/releases/ambassador-stack-v${AMBASSADOR_CHART_VERSION}.yaml"
     ```
@@ -742,7 +754,7 @@ Steps to follow:
     `Nginx` Ingress:
 
     ```shell
-    NGINX_CHART_VERSION="4.0.13"
+    NGINX_CHART_VERSION="4.1.3"
 
     code "${FLUXCD_HELM_MANIFESTS_PATH}/releases/nginx-v${NGINX_CHART_VERSION}.yaml"
     ```
@@ -768,7 +780,7 @@ Steps to follow:
     `Ambassador` Ingress:
 
     ```shell
-    AMBASSADOR_CHART_VERSION="7.2.2"
+    AMBASSADOR_CHART_VERSION="7.3.2"
 
     git add "${FLUXCD_HELM_MANIFESTS_PATH}/repositories/ambassador.yaml"
 
@@ -782,7 +794,7 @@ Steps to follow:
     `Nginx` Ingress:
 
     ```shell
-    NGINX_CHART_VERSION="4.0.13"
+    NGINX_CHART_VERSION="4.1.3"
 
     git add "${FLUXCD_HELM_MANIFESTS_PATH}/repositories/kubernetes-community-nginx.yaml"
 
@@ -810,8 +822,8 @@ flux get helmrelease ambassador-stack
 The output looks similar to:
 
 ```text
-NAME                    READY   MESSAGE                                 REVISION        SUSPENDED
-ambassador-stack        True    Release reconciliation succeeded        7.2.2          False
+NAME                    READY   MESSAGE                                 REVISION       SUSPENDED
+ambassador-stack        True    Release reconciliation succeeded        7.3.2          False
 ```
 
 `Nginx` Ingress:
@@ -824,7 +836,7 @@ The output looks similar to:
 
 ```text
 NAME                 READY   MESSAGE                                 REVISION       SUSPENDED
-ingress-nginx        True    Release reconciliation succeeded        4.0.13          False
+ingress-nginx        True    Release reconciliation succeeded        4.1.3          False
 ```
 
 Look for the `READY` column value - it should say `True`. Reconciliation status is displayed in the `MESSAGE` column, along with the `REVISION` number, which represents the `Helm` chart `version`. Please bear in mind that some releases take longer to complete (like `Prometheus` stack, for example), so please be patient.
@@ -837,6 +849,12 @@ Look for the `READY` column value - it should say `True`. Reconciliation status 
 
     ```shell
     flux logs --kind=HelmRelease
+    ```
+  
+- In case the `Flux` logs do not offer sufficient information you can use the `describe` command on the `helmrelease` using `kubectl` as follows:
+
+    ```shell
+    kubectl describe helmrelease ingress-nginx -n flux-system
     ```
 
 Please refer to the [Ambassador Ingress](../03-setup-ingress-controller/ambassador.md) or [Nginx Ingress](../03-setup-ingress-controller/nginx.md) tutorial, for more details about checking `Ingress Controller` deployment status and functionality.
@@ -872,12 +890,12 @@ Steps to follow:
     Explanations for the above command:
 
     - `--namespace`: Namespace where the Kubernetes secret should be created.
-    - `--from-literal`: Create a Kubernetes secret from a literal value containing the `grafana_admin_password`. The `prometheus-stack-credentials` secret and `grafana_admin_password` value is used by the [prometheus-stack-v30.0.1.yaml](assets/manifests/fluxcd/helm/releases/prometheus-stack-v30.0.1.yaml#L81) manifest (`spec.valuesFrom` key).
+    - `--from-literal`: Create a Kubernetes secret from a literal value containing the `grafana_admin_password`. The `prometheus-stack-credentials` secret and `grafana_admin_password` value is used by the [prometheus-stack-v35.5.1.yaml](assets/manifests/fluxcd/helm/releases/prometheus-stack-v35.5.1.yaml#L81) manifest (`spec.valuesFrom` key).
     - `--dry-run=client`: Exports the Kubernetes secret on your local machine using standard output (and afterwards, piped to `kubeseal` to encrypt the final result).
 4. Now, fetch the `Prometheus` HelmRelease manifest provided by the `Starter Kit` Git repository:
 
     ```shell
-    PROMETHEUS_CHART_VERSION="30.0.1"
+    PROMETHEUS_CHART_VERSION="35.5.1"
 
     curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/15-continuous-delivery-using-gitops/assets/manifests/fluxcd/helm/releases/prometheus-stack-v${PROMETHEUS_CHART_VERSION}.yaml" > "${FLUXCD_HELM_MANIFESTS_PATH}/releases/prometheus-stack-v${PROMETHEUS_CHART_VERSION}.yaml"
     ```
@@ -885,7 +903,7 @@ Steps to follow:
 5. Then, inspect the downloaded Prometheus `HelmRelease` manifest using an editor of your choice (preferably with `YAML` lint support), and adjust to your needs. For example, you can use [VS Code](https://code.visualstudio.com) (please make sure to replace the `<>` placeholders accordingly, if present):
 
     ```shell
-    PROMETHEUS_CHART_VERSION="30.0.1"
+    PROMETHEUS_CHART_VERSION="35.5.1"
 
     code "${FLUXCD_HELM_MANIFESTS_PATH}/releases/prometheus-stack-v${PROMETHEUS_CHART_VERSION}.yaml"
     ```
@@ -905,7 +923,7 @@ Steps to follow:
 6. Finally, commit `Git` changes to `remote` branch:
 
     ```shell
-    PROMETHEUS_CHART_VERSION="30.0.1"
+    PROMETHEUS_CHART_VERSION="35.5.1"
 
     git add "${FLUXCD_HELM_MANIFESTS_PATH}/repositories/prometheus-community.yaml"
 
@@ -928,7 +946,7 @@ The output looks similar to:
 
 ```text
 NAME                    READY   MESSAGE                                 REVISION        SUSPENDED 
-kube-prometheus-stack   True    Release reconciliation succeeded        30.0.1          False
+kube-prometheus-stack   True    Release reconciliation succeeded        35.5.1          False
 ```
 
 Look for the `READY` column value - it should say `True`. Reconciliation status is displayed in the `MESSAGE` column, along with the `REVISION` number, which represents the `Helm` chart `version`. Please bear in mind that some releases take longer to complete (like `Prometheus` stack, for example), so please be patient.
@@ -941,6 +959,12 @@ Look for the `READY` column value - it should say `True`. Reconciliation status 
 
     ```shell
     flux logs --kind=HelmRelease
+    ```
+
+- In case the `Flux` logs do not offer sufficient information you can use the `describe` command on the `helmrelease` using `kubectl` as follows:
+
+    ```shell
+    kubectl describe helmrelease kube-prometheus-stack -n flux-system
     ```
 
 Now, check if the `prometheus-stack-credentials` Kubernetes secret was created as well (then, you can use `kubectl get secret prometheus-stack-credentials -n flux-system -o yaml` for secret contents inspection):
@@ -990,12 +1014,12 @@ Steps to follow:
    Explanations for the above command:
 
    - `--namespace`: Namespace where the Kubernetes secret should be created.
-   - `--from-literal`: Create a Kubernetes secret from a literal value containing the DO Spaces `access_key_id` and `secret_access_key`. The `do-spaces-credentials` secret and `access_key_id/secret_access_key` value is used by the [loki-stack-v2.5.1.yaml](assets/manifests/fluxcd/helm/releases/loki-stack-v2.5.1.yaml#L51) manifest (`spec.valuesFrom` key).
+   - `--from-literal`: Create a Kubernetes secret from a literal value containing the DO Spaces `access_key_id` and `secret_access_key`. The `do-spaces-credentials` secret and `access_key_id/secret_access_key` value is used by the [loki-stack-v2.6.4.yaml](assets/manifests/fluxcd/helm/releases/loki-stack-v2.5.1.yaml#L51) manifest (`spec.valuesFrom` key).
    - `--dry-run=client`: Exports the Kubernetes secret on your local machine using standard output (and afterwards, piped to `kubeseal` to encrypt the final result).
 4. Now, fetch the `Loki` stack HelmRelease manifest provided by the `Starter Kit` Git repository:
 
     ```shell
-    LOKI_CHART_VERSION="2.5.1"
+    LOKI_CHART_VERSION="2.6.4"
 
     curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/15-continuous-delivery-using-gitops/assets/manifests/fluxcd/helm/releases/loki-stack-v${LOKI_CHART_VERSION}.yaml" > "${FLUXCD_HELM_MANIFESTS_PATH}/releases/loki-stack-v${LOKI_CHART_VERSION}.yaml"
     ```
@@ -1003,7 +1027,7 @@ Steps to follow:
 5. Then, inspect the downloaded Loki `HelmRelease` manifest using an editor of your choice (preferably with `YAML` lint support), and adjust to your needs. For example, you can use [VS Code](https://code.visualstudio.com) (please make sure to replace the `<>` placeholders accordingly, if present):
 
     ```shell
-    LOKI_CHART_VERSION="2.5.1"
+    LOKI_CHART_VERSION="2.6.4"
 
     code "${FLUXCD_HELM_MANIFESTS_PATH}/releases/loki-stack-v${LOKI_CHART_VERSION}.yaml"
     ```
@@ -1028,7 +1052,7 @@ Steps to follow:
 6. Finally, commit `Git` changes to `remote` branch:
 
     ```shell
-    LOKI_CHART_VERSION="2.5.1"
+    LOKI_CHART_VERSION="2.6.4"
 
     git add "${FLUXCD_HELM_MANIFESTS_PATH}/repositories/grafana.yaml"
 
@@ -1051,7 +1075,7 @@ The output looks similar to:
 
 ```text
 NAME         READY   MESSAGE                                 REVISION       SUSPENDED 
-loki-stack   True    Release reconciliation succeeded        2.5.1          False
+loki-stack   True    Release reconciliation succeeded        2.6.4          False
 ```
 
 Look for the `READY` column value - it should say `True`. Reconciliation status is displayed in the `MESSAGE` column, along with the `REVISION` number, which represents the `Helm` chart `version`. Please bear in mind that some releases take longer to complete (like `Prometheus` stack, for example), so please be patient.
@@ -1064,6 +1088,12 @@ Look for the `READY` column value - it should say `True`. Reconciliation status 
 
     ```shell
     flux logs --kind=HelmRelease
+    ```
+
+- In case the `Flux` logs do not offer sufficient information you can use the `describe` command on the `helmrelease` using `kubectl` as follows:
+
+    ```shell
+    kubectl describe helmrelease loki-stack -n flux-system
     ```
 
 Finally, check if the `do-spaces-credentials` Kubernetes secret was created as well (then, you can use `kubectl get secret do-spaces-credentials -n flux-system -o yaml` for secret contents inspection):
@@ -1114,7 +1144,7 @@ Steps to follow:
 4. Now, fetch the `Loki` stack HelmRelease manifest provided by the `Starter Kit` Git repository:
 
     ```shell
-    VELERO_CHART_VERSION="2.27.3"
+    VELERO_CHART_VERSION="2.29.7"
 
     curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/15-continuous-delivery-using-gitops/assets/manifests/fluxcd/helm/releases/velero-v${VELERO_CHART_VERSION}.yaml" > "${FLUXCD_HELM_MANIFESTS_PATH}/releases/velero-v${VELERO_CHART_VERSION}.yaml"
     ```
@@ -1122,7 +1152,7 @@ Steps to follow:
 5. Then, inspect the downloaded Velero `HelmRelease` manifest using an editor of your choice (preferably with `YAML` lint support), and adjust to your needs. For example, you can use [VS Code](https://code.visualstudio.com) (please make sure to replace the `<>` placeholders accordingly, if present):
 
     ```shell
-    VELERO_CHART_VERSION="2.27.3"
+    VELERO_CHART_VERSION="2.29.7"
 
     code "${FLUXCD_HELM_MANIFESTS_PATH}/releases/velero-v${VELERO_CHART_VERSION}.yaml"
     ```
@@ -1158,7 +1188,7 @@ Steps to follow:
 6. Finally, commit `Git` changes to `remote` branch:
 
     ```shell
-    VELERO_CHART_VERSION="2.27.3"
+    VELERO_CHART_VERSION="2.29.7"
 
     git add "${FLUXCD_HELM_MANIFESTS_PATH}/repositories/vmware-tanzu.yaml"
 
@@ -1181,7 +1211,7 @@ The output looks similar to:
 
 ```text
 NAME                 READY  MESSAGE                             REVISION    SUSPENDED 
-velero-stack         True   Release reconciliation succeeded    2.27.3      False
+velero-stack         True   Release reconciliation succeeded    2.29.7      False
 ```
 
 Look for the `READY` column value - it should say `True`. Reconciliation status is displayed in the `MESSAGE` column, along with the `REVISION` number, which represents the `Helm` chart `version`. Please bear in mind that some releases take longer to complete (like `Prometheus` stack, for example), so please be patient.
@@ -1194,6 +1224,12 @@ Look for the `READY` column value - it should say `True`. Reconciliation status 
 
     ```shell
     flux logs --kind=HelmRelease
+    ```
+
+- In case the `Flux` logs do not offer sufficient information you can use the `describe` command on the `helmrelease` using `kubectl` as follows:
+
+    ```shell
+    kubectl describe helmrelease velero-stack -n flux-system
     ```
 
 Finally, check if the `do-api-credentials` Kubernetes secret was created as well (then, you can use `kubectl get secret do-api-credentials -n flux-system -o yaml` for secret contents inspection):
