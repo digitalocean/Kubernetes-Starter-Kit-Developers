@@ -170,4 +170,3 @@ prometheus:
     #       resources:
     #         requests:
     #           storage: 5Gi
-
