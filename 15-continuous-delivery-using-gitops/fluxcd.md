@@ -227,7 +227,7 @@ In a `GitOps` flow, it's not wise to store `Kubernetes Secrets` directly in a `G
 
 ![Flux CD Sealed Secrets GitOps Flow](./assets/images/fluxcd_sealed_secrets.png)
 
-For more details, please refer to [Section 08 - Encrypt Kubernetes Secrets Using Sealed Secrets](../08-kubernetes-sealed-secrets/README.md).
+For more details, please refer to [Section 06 - Encrypt Kubernetes Secrets Using Sealed Secrets](../06-kubernetes-sealed-secrets/README.md).
 
 Next, you will learn how to deploy Flux CD to your DOKS cluster.
 
@@ -463,7 +463,7 @@ Please use the following steps, to create required manifests for the `Sealed Sec
     ```shell
     SEALED_SECRETS_CHART_VERSION="2.4.0"
 
-    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/08-kubernetes-sealed-secrets/assets/manifests/sealed-secrets-values-v${SEALED_SECRETS_CHART_VERSION}.yaml" > "sealed-secrets-values-v${SEALED_SECRETS_CHART_VERSION}.yaml"
+    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/06-kubernetes-sealed-secrets/assets/manifests/sealed-secrets-values-v${SEALED_SECRETS_CHART_VERSION}.yaml" > "sealed-secrets-values-v${SEALED_SECRETS_CHART_VERSION}.yaml"
     ```
 
 4. Now, create the `Sealed Secrets` HelmRelease manifest for `Flux CD`. `Kubeseal` CLI expects by default to find the controller in the `kube-system` namespace and to be named `sealed-secrets-controller`, hence we override the release name via the `--release-name` and `--target-namespace` flags. This is not mandatory, but `kube-system` is usually accessible only to power users (administrators):
@@ -979,7 +979,7 @@ Finally, perform a quick check of `Prometheus` stack main `services`, and `PVC`:
 - Grafana dashboards: `kubectl --namespace monitoring port-forward svc/kube-prom-stack-grafana 3000:80`.
 - Prometheus PVC: `kubectl get pvc -n monitoring`.
 
-Please refer to the [04-setup-prometheus-stack](../04-setup-prometheus-stack/README.md) tutorial, for more details about checking `Loki` stack deployment status and functionality.
+Please refer to the [04-setup-observability](../04-setup-observability/prometheus-stack.md) tutorial, for more details about checking `Prometheus` stack deployment status and functionality.
 
 Next, you're going to create the manifests for `Loki` stack, and let `Flux CD` handle the `Helm` release automatically.
 
@@ -1102,7 +1102,7 @@ Finally, check if the `do-spaces-credentials` Kubernetes secret was created as w
 kubectl get secret do-spaces-credentials -n flux-system
 ```
 
-Please refer to the [05-setup-loki-stack](../05-setup-loki-stack/README.md) tutorial, for more details about checking `Loki Stack` deployment status and functionality.
+Please refer to the [04-setup-observability](../04-setup-observability/prometheus-stack.md) tutorial, for more details about checking `Loki Stack` deployment status and functionality.
 
 Next, you're going to create the manifests and let `Flux CD` handle the `Velero` Helm release automatically.
 
@@ -1238,7 +1238,7 @@ Finally, check if the `do-api-credentials` Kubernetes secret was created as well
 kubectl get secret do-api-credentials -n flux-system
 ```
 
-Please refer to the [Velero](../06-setup-backup-restore/velero.md) tutorial, for more details about checking `Velero` deployment status and functionality.
+Please refer to the [Velero](../05-setup-backup-restore/velero.md) tutorial, for more details about checking `Velero` deployment status and functionality.
 
 ## Conclusion
 

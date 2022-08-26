@@ -219,4 +219,4 @@ Steps to follow:
 7. From this page you can filter the log results further. For example to filter the logs for the `web-svc` container of the `emojivoto` namespace you can enter the following query: `{namespace="emojivoto", container="web-svc"}`. More explanations about using `LogQL` can be found in [Step 3 - Using LogQL](loki-stack.md#step-3---using-logql) from [Loki Stack](loki-stack.md).
 8. You can also make use of the [Exported Kubernetes Events](event-exporter.md) installed previously and filter for events related to the `emojivoto` namespace. Enter the following query in the log browser: `{app="event-exporter"} |= "emojivoto"`. This will return the kubernetes events related to the `emojivoto` namespace.
 
-Go to [Section 08 - Encrypt Kubernetes Secrets Using Sealed Secrets](../08-kubernetes-sealed-secrets/README.md).
+Go to [Section 05 - Setup Backup and Restore](../05-setup-backup-restore/README.md).

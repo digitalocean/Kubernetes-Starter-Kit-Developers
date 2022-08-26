@@ -106,10 +106,10 @@ NAME                            CHART VERSION   APP VERSION     DESCRIPTION
 sealed-secrets/sealed-secrets   2.4.0           v0.18.1         Helm chart for the sealed-secrets controller.
 ```
 
-Now, open and inspect the `08-kubernetes-sealed-secrets/assets/manifests/sealed-secrets-values-v2.4.0.yaml` file provided in the `Starter kit` repository, using an editor of your choice (preferably with `YAML` lint support). You can use [VS Code](https://code.visualstudio.com), for example:
+Now, open and inspect the `06-kubernetes-sealed-secrets/assets/manifests/sealed-secrets-values-v2.4.0.yaml` file provided in the `Starter kit` repository, using an editor of your choice (preferably with `YAML` lint support). You can use [VS Code](https://code.visualstudio.com), for example:
 
 ```shell
-code 08-kubernetes-sealed-secrets/assets/manifests/sealed-secrets-values-v2.4.0.yaml
+code 06-kubernetes-sealed-secrets/assets/manifests/sealed-secrets-values-v2.4.0.yaml
 ```
 
 Next, install the `sealed-secrets/sealed-secrets` chart, using `Helm` (notice that a dedicated `sealed-secrets` namespace is created as well):
@@ -120,7 +120,7 @@ HELM_CHART_VERSION="2.4.0"
 helm install sealed-secrets-controller sealed-secrets/sealed-secrets --version "${HELM_CHART_VERSION}" \
   --namespace sealed-secrets \
   --create-namespace \
-  -f "08-kubernetes-sealed-secrets/assets/manifests/sealed-secrets-values-v${HELM_CHART_VERSION}.yaml"
+  -f "06-kubernetes-sealed-secrets/assets/manifests/sealed-secrets-values-v${HELM_CHART_VERSION}.yaml"
 ```
 
 **Notes:**
@@ -361,4 +361,4 @@ Even though there are some cons to using `Sealed Secrets`, the `ease` of `manage
 
 Next, you will learn how to automatically scale your application workloads based on external load (or traffic). You will learn how to leverage `metrics-server` as well as `Prometheus` via `prometheus-adapter` to do the job, and let the Kubernetes horizontal (or vertical) Pod autoscaling system take smart decisions.
 
-Go to [Section 9 - Scaling Application Workloads](../09-scaling-application-workloads/README.md).
+Go to [Section 7 - Scaling Application Workloads](../07-scaling-application-workloads/README.md).

@@ -16,8 +16,11 @@ Observability is a measure of how well the system’s internal states can be inf
 During this chapter you will install and configure the `Prometheus` stack for monitoring your DOKS cluster, `Loki` to fetch and aggregate logs from your cluster's resources and view them in `Grafana` and configure `AlertManager` to alert and notify when there is a critical issue in your cluster.
 You will also configure the `events exporter` tool to grab `Kubernetes events` and send and store them in `Loki` as they are a great way to monitor the health and activity of your K8s clusters.
 
-You will start by installing and configuring the `Prometheus` stack:
+For a complete observability stack you should go thorugh every one of the guides:
 
-| Prometheus Stack |
-|:------------------------------------------------------:|
-| [![prometheus-stack](assets/images/prometheus-logo.png)](prometheus-stack.md) |
+- [Prometheus](prometheus-stack.md)
+- [Loki](loki-stack.md)
+- [Kubernetes Events Exporter](event-exporter.md)
+- [Alerting and Notifiying](alerting-and-notifiying.md)
+
+You will start by installing and configuring the [Prometheus stack](prometheus-stack.md).
