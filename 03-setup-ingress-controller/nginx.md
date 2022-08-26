@@ -857,6 +857,6 @@ For different `DigitalOcean` load balancer configurations, please refer to the e
 
 In this tutorial you learned how to set up an `Ingress Controller` for your `DOKS` cluster using `Nginx`. Then, you discovered how `cert-manager` simplifies `TLS` certificates management for your applications (thus enabling `TLS` termination).
 
-Next, `monitoring` plays a key role in every `production ready` system. In [Section 4 - Set up Prometheus Stack](../04-setup-prometheus-stack), you will learn how to enable monitoring for your `DOKS` cluster using `Prometheus`.
+Next, `observability` plays a key role in every `production ready` system. In [Section 4 - Set up Observability](../04-setup-observability/README.md), you will learn how to enable monitoring for your `DOKS` cluster using `Prometheus`.
 
-Go to [Section 4 - Set up Prometheus Stack](../04-setup-prometheus-stack/README.md).
+Go to [Section 4 - Set up Observability](../04-setup-observability/README.md).

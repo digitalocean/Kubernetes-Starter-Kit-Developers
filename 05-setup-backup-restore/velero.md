@@ -120,7 +120,7 @@ Steps to follow:
     ```shell
     VELERO_CHART_VERSION="2.29.7"
 
-    code 06-setup-backup-restore/assets/manifests/velero-values-v${VELERO_CHART_VERSION}.yaml
+    code 05-setup-backup-restore/assets/manifests/velero-values-v${VELERO_CHART_VERSION}.yaml
     ```
 
 4. Next, please replace the `<>` placeholders accordingly for your DO Spaces `Velero` bucket (like: name, region and secrets). Make sure that you provide your DigitalOcean `API` token as well (`DIGITALOCEAN_TOKEN` key).
@@ -132,7 +132,7 @@ Steps to follow:
     helm install velero vmware-tanzu/velero --version "${VELERO_CHART_VERSION}" \
       --namespace velero \
       --create-namespace \
-      -f 06-setup-backup-restore/assets/manifests/velero-values-v${VELERO_CHART_VERSION}.yaml
+      -f 05-setup-backup-restore/assets/manifests/velero-values-v${VELERO_CHART_VERSION}.yaml
     ```
 
     **Note:**
@@ -703,6 +703,6 @@ You can learn more about `Velero`, by following below topics:
 - [Cluster Migration](https://velero.io/docs/v1.6/migration-case/)
 - [Velero Troubleshooting](https://velero.io/docs/v1.6/troubleshooting)
 
-Next, you will learn how to set up `Alerts` and `Notifications` using `AlertManager`, to give you real time notifications (e.g. `Slack`), if something bad happens in your `DOKS` cluster.
+Next, you will learn how to set up `Sealed Secrets` using the `Sealed Secrets Controller`.
 
-Go to [Section 7 - Alerts and Notifications](../07-alerting-and-notification/README.md).
+Go to [Section 6 - Kubernetes Sealed Secrets](../06-kubernetes-sealed-secrets/README.md).

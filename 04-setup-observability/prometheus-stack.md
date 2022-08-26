@@ -78,8 +78,8 @@ Steps to follow:
     **Note:**
 
     The chart of interest is `prometheus-community/kube-prometheus-stack`, which will install `Prometheus`, `Promtail`, `Alertmanager` and `Grafana` on the cluster. Please visit the [kube-prometheus-stack](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack) page for more details about this chart.
-3. Then, open and inspect the `04-setup-prometheus-stack/assets/manifests/prom-stack-values-v35.5.1.yaml` file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). By default, `kubeSched` and `etcd` metrics are disabled - those components are managed by `DOKS` and are not accessible to `Prometheus`. Note that `storage` is set to `emptyDir`. It means the **storage will be gone** if `Prometheus` pods restart (you will fix this later on, in the [Configuring Persistent Storage for Prometheus](#configuring-persistent-storage-for-prometheus) section).
-4. [OPTIONAL] If you followed - [Step 4 - Adding a dedicated node for observability](../01-setup-DOKS/README.md#step-4-optional---adding-a-dedicated-node-for-observability) from [Chapter 1 - 01-setup-DOKS](../01-setup-DOKS/README.md) you will need to edit the `04-setup-prometheus-stack/assets/manifests/prom-stack-values-v35.5.1.yaml` file provided in the `Starter Kit` repository, and uncomment the `affinity` sections for both `Grafana` and `Prometheus`.
+3. Then, open and inspect the `04-setup-observability/assets/manifests/prom-stack-values-v35.5.1.yaml` file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). By default, `kubeSched` and `etcd` metrics are disabled - those components are managed by `DOKS` and are not accessible to `Prometheus`. Note that `storage` is set to `emptyDir`. It means the **storage will be gone** if `Prometheus` pods restart (you will fix this later on, in the [Configuring Persistent Storage for Prometheus](#configuring-persistent-storage-for-prometheus) section).
+4. [OPTIONAL] If you followed - [Step 4 - Adding a dedicated node for observability](../01-setup-DOKS/README.md#step-4-optional---adding-a-dedicated-node-for-observability) from [Chapter 1 - 01-setup-DOKS](../01-setup-DOKS/README.md) you will need to edit the `04-setup-observability/assets/manifests/prom-stack-values-v35.5.1.yaml` file provided in the `Starter Kit` repository, and uncomment the `affinity` sections for both `Grafana` and `Prometheus`.
 
     ```yaml
     prometheusSpec:
@@ -124,7 +124,7 @@ Steps to follow:
     helm install kube-prom-stack prometheus-community/kube-prometheus-stack --version "${HELM_CHART_VERSION}" \
       --namespace monitoring \
       --create-namespace \
-      -f "04-setup-prometheus-stack/assets/manifests/prom-stack-values-v${HELM_CHART_VERSION}.yaml"
+      -f "04-setup-observability/assets/manifests/prom-stack-values-v${HELM_CHART_VERSION}.yaml"
     ```
 
     **Note:**
@@ -272,7 +272,7 @@ Steps required to add all `Emojivoto` services for `Prometheus` monitoring:
     cd Kubernetes-Starter-Kit-Developers
     ```
 
-2. Next, open the `04-setup-prometheus-stack/assets/manifests/prom-stack-values-v35.5.1.yaml` file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support). Please remove the comments surrounding the `additionalServiceMonitors` section. The output looks similar to:
+2. Next, open the `04-setup-observability/assets/manifests/prom-stack-values-v35.5.1.yaml` file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support). Please remove the comments surrounding the `additionalServiceMonitors` section. The output looks similar to:
 
     ```yaml
     additionalServiceMonitors:
@@ -304,7 +304,7 @@ Steps required to add all `Emojivoto` services for `Prometheus` monitoring:
 
     helm upgrade kube-prom-stack prometheus-community/kube-prometheus-stack --version "${HELM_CHART_VERSION}" \
       --namespace monitoring \
-      -f "04-setup-prometheus-stack/assets/manifests/prom-stack-values-v${HELM_CHART_VERSION}.yaml"
+      -f "04-setup-observability/assets/manifests/prom-stack-values-v${HELM_CHART_VERSION}.yaml"
     ```
 
 Next, please check if the `Emojivoto` target is added to `Prometheus` for scraping. Create a port forward for `Prometheus` on port `9090`:
@@ -445,7 +445,7 @@ Steps to follow:
     cd Kubernetes-Starter-Kit-Developers
     ```
 
-3. Then, open the `04-setup-prometheus-stack/assets/manifests/prom-stack-values-v35.5.1.yaml` file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support). Search for the `storageSpec` line, and uncomment the required section for `Prometheus`. The `storageSpec` definition should look like:
+3. Then, open the `04-setup-observability/assets/manifests/prom-stack-values-v35.5.1.yaml` file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support). Search for the `storageSpec` line, and uncomment the required section for `Prometheus`. The `storageSpec` definition should look like:
 
     ```yaml
     prometheusSpec:
@@ -472,7 +472,7 @@ Steps to follow:
 
     helm upgrade kube-prom-stack prometheus-community/kube-prometheus-stack --version "${HELM_CHART_VERSION}" \
       --namespace monitoring \
-      -f "04-setup-prometheus-stack/assets/manifests/prom-stack-values-v${HELM_CHART_VERSION}.yaml"
+      -f "04-setup-observability/assets/manifests/prom-stack-values-v${HELM_CHART_VERSION}.yaml"
     ```
 
 After completing the above steps, check the `PVC` status:
@@ -496,7 +496,7 @@ A new `Volume` should appear in the [Volumes](https://cloud.digitalocean.com/vol
 
 In this step, you will learn how to enable `persistent` storage for `Grafana`, so that the graphs are persisted across server restarts, or in case of cluster failures. You will define a `5 Gi Persistent Volume Claim` (PVC), using the DigitalOcean Block Storage. The next steps are the same as [Step 5 - Configuring Persistent Storage for Prometheus](#step-5---configuring-persistent-storage-for-prometheus).
 
-First, open the `04-setup-prometheus-stack/assets/manifests/prom-stack-values-v35.5.1.yaml` file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support). The `persistence`  storage section for `grafana` should look like:
+First, open the `04-setup-observability/assets/manifests/prom-stack-values-v35.5.1.yaml` file provided in the `Starter Kit` repository, using a text editor of your choice (preferably with `YAML` lint support). The `persistence`  storage section for `grafana` should look like:
 
 ```yaml
 grafana:
@@ -515,7 +515,7 @@ Next, apply settings using `Helm`:
 
   helm upgrade kube-prom-stack prometheus-community/kube-prometheus-stack --version "${HELM_CHART_VERSION}" \
     --namespace monitoring \
-    -f "04-setup-prometheus-stack/assets/manifests/prom-stack-values-v${HELM_CHART_VERSION}.yaml"
+    -f "04-setup-observability/assets/manifests/prom-stack-values-v${HELM_CHART_VERSION}.yaml"
   ```
 
 After completing the above steps, check the `PVC` status:
@@ -555,4 +555,4 @@ In this tutorial, you learned how to `install` and `configure` the `Prometheus` 
 
 Next, you will learn about application `logs` collection and `aggregation` via `Loki`, to help you `troubleshoot` running `Kubernetes` cluster `applications` in case something goes wrong.
 
-Go to [Section 5 - Logs Aggregation via Loki Stack](../05-setup-loki-stack/README.md).
+Go to [Logs Aggregation via Loki Stack](loki-stack.md).

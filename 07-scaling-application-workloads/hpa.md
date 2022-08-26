@@ -116,7 +116,7 @@ Steps to deploy metrics server via Helm:
 3. Then, open and inspect the metrics-server Helm values file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://code.visualstudio.com):
 
     ```shell
-    code 09-scaling-application-workloads/assets/manifests/metrics-server-values-v3.8.2.yaml
+    code 07-scaling-application-workloads/assets/manifests/metrics-server-values-v3.8.2.yaml
     ```
 
 4. Finally, install the `Kubernetes Metrics Server` using `Helm` (a dedicated `metrics-server` namespace will be created as well):
@@ -127,7 +127,7 @@ Steps to deploy metrics server via Helm:
     helm install metrics-server metrics-server/metrics-server --version "$HELM_CHART_VERSION" \
       --namespace metrics-server \
       --create-namespace \
-      -f "09-scaling-application-workloads/assets/manifests/metrics-server-values-v${HELM_CHART_VERSION}.yaml"
+      -f "07-scaling-application-workloads/assets/manifests/metrics-server-values-v${HELM_CHART_VERSION}.yaml"
     ```
 
     **Note:**
@@ -249,7 +249,7 @@ First option is for performing a quick test (or spin), and you don't want to mes
 2. Then, create the [myapp-test](assets/manifests/hpa/metrics-server/myapp-test.yaml) deployment (main purpose is to create some CPU load, by printing a message indefinitely):
 
     ```shell
-    kubectl apply -f 09-scaling-application-workloads/assets/manifests/hpa/metrics-server/myapp-test.yaml
+    kubectl apply -f 07-scaling-application-workloads/assets/manifests/hpa/metrics-server/myapp-test.yaml
     ```
 
 3. Finally, create a `HorizontalPodAutoscaler` targeting the `myapp-test` deployment:
@@ -355,7 +355,7 @@ Then, create the sample deployment for the first scenario via `kubectl` (a `sepa
 ```shell
 kubectl create ns hpa-constant-load
 
-kubectl apply -f 09-scaling-application-workloads/assets/manifests/hpa/metrics-server/constant-load-deployment-test.yaml -n hpa-constant-load
+kubectl apply -f 07-scaling-application-workloads/assets/manifests/hpa/metrics-server/constant-load-deployment-test.yaml -n hpa-constant-load
 ```
 
 **Note:**
@@ -378,7 +378,7 @@ constant-load-deployment-test   1/1     1            1           8s
 Next, create the [constant-load-hpa-test](assets/manifests/hpa/metrics-server/constant-load-hpa-test.yaml) resource in your cluster, via `kubectl`:
 
 ```shell
-kubectl apply -f 09-scaling-application-workloads/assets/manifests/hpa/metrics-server/constant-load-hpa-test.yaml -n hpa-constant-load
+kubectl apply -f 07-scaling-application-workloads/assets/manifests/hpa/metrics-server/constant-load-hpa-test.yaml -n hpa-constant-load
 ```
 
 The above command will create a `HPA` resource, targeting the sample deployment created earlier. You can check the `constant-load-test` HPA state via:
@@ -407,7 +407,7 @@ First, please create the [quote](assets/manifests/hpa/metrics-server/quote_deplo
 ```shell
 kubectl create ns hpa-external-load
 
-kubectl apply -f 09-scaling-application-workloads/assets/manifests/hpa/metrics-server/quote_deployment.yaml -n hpa-external-load
+kubectl apply -f 07-scaling-application-workloads/assets/manifests/hpa/metrics-server/quote_deployment.yaml -n hpa-external-load
 ```
 
 Now, verify if the `quote` application deployment and services are healthy:
@@ -435,7 +435,7 @@ replicaset.apps/quote-6c8f564ff        1         1         1       3m5s
 Next, create the `HPA` for the `quote` deployment using `kubectl`:
 
 ```shell
-kubectl apply -f 09-scaling-application-workloads/assets/manifests/hpa/metrics-server/quote-deployment-hpa-test.yaml -n hpa-external-load
+kubectl apply -f 07-scaling-application-workloads/assets/manifests/hpa/metrics-server/quote-deployment-hpa-test.yaml -n hpa-external-load
 ```
 
 Now, check if the HPA resource is in place and alive:
@@ -484,7 +484,7 @@ In the final step, you will run the helper script provided in this repository to
 Please make sure to split the terminal in two separate windows, in order to observe better the results (you can use [tmux](https://github.com/tmux/tmux/wiki), for example). Then, in the first window please invoke the quote service load test shell script (you can cancel execution anytime by pressing `Ctrl+C`):
 
 ```shell
-./09-scaling-application-workloads/assets/scripts/quote_service_load_test.sh
+./07-scaling-application-workloads/assets/scripts/quote_service_load_test.sh
 ```
 
 Next, in the second window, run a kubectl `watch` (via the `-w` flag) on the `HPA` resource:
@@ -560,7 +560,7 @@ Prometheus adapter can be installed the usual way, via Helm. Please follow below
 3. Then, open and inspect the `prometheus-adapter` Helm [values file](assets/manifests/prometheus-adapter-values-v3.3.1.yaml) provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://code.visualstudio.com):
 
     ```shell
-    code 09-scaling-application-workloads/assets/manifests/prometheus-adapter-values-v3.3.1.yaml
+    code 07-scaling-application-workloads/assets/manifests/prometheus-adapter-values-v3.3.1.yaml
     ```
 
 4. Make sure to adjust the prometheus endpoint setting based on your setup (explanations are provided in the Helm [values](assets/manifests/prometheus-adapter-values-v3.3.1.yaml#L6) file).
@@ -573,7 +573,7 @@ Prometheus adapter can be installed the usual way, via Helm. Please follow below
       --version "$HELM_CHART_VERSION" \
       --namespace prometheus-adapter \
       --create-namespace \
-      -f "09-scaling-application-workloads/assets/manifests/prometheus-adapter-values-v${HELM_CHART_VERSION}.yaml"
+      -f "07-scaling-application-workloads/assets/manifests/prometheus-adapter-values-v${HELM_CHART_VERSION}.yaml"
     ```
 
     **Note:**
@@ -678,7 +678,7 @@ Then, please deploy the `prometheus-example` application using the YAML manifest
 ```shell
 kubectl create ns prometheus-custom-metrics-test
 
-kubectl apply -f 09-scaling-application-workloads/assets/manifests/hpa/prometheus-adapter/prometheus-example-deployment.yaml -n prometheus-custom-metrics-test
+kubectl apply -f 07-scaling-application-workloads/assets/manifests/hpa/prometheus-adapter/prometheus-example-deployment.yaml -n prometheus-custom-metrics-test
 ```
 
 Next, verify the resources created in the `prometheus-custom-metrics-test` namespace:
@@ -743,7 +743,7 @@ cd Kubernetes-Starter-Kit-Developers
 Now open the `prometheus-example-service-monitor` manifest provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://code.visualstudio.com):
 
 ```shell
-code 09-scaling-application-workloads/assets/manifests/hpa/prometheus-adapter/prometheus-example-service-monitor.yaml
+code 07-scaling-application-workloads/assets/manifests/hpa/prometheus-adapter/prometheus-example-service-monitor.yaml
 ```
 
 In the `metadata.labels` section, make sure to add the label discovered earlier (`release: kube-prom-stack`). The `ServiceMonitor` manifest looks similar to:
@@ -770,7 +770,7 @@ spec:
 Finally, create the required `ServiceMonitor` for Prometheus to scrape the `/metrics` endpoint of the `prometheus-example-app`:
 
 ```shell
-kubectl apply -f 09-scaling-application-workloads/assets/manifests/hpa/prometheus-adapter/prometheus-example-service-monitor.yaml -n prometheus-custom-metrics-test
+kubectl apply -f 07-scaling-application-workloads/assets/manifests/hpa/prometheus-adapter/prometheus-example-service-monitor.yaml -n prometheus-custom-metrics-test
 ```
 
 After completing above steps, you should see a new target being present in the `Targets` panel from the Prometheus dashboard. First, you need to `port-forward` the main Prometheus service to access the dashboard (below sample command is using the `Starter Kit` naming conventions, so please adjust based on your current setup):
@@ -832,7 +832,7 @@ Now that you know how to set up `discovery rules` for `prometheus-adapter`, it's
 2. Next, please open the `prometheus-adapter` Helm [values file](assets/manifests/prometheus-adapter-values-v3.3.1.yaml) provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://code.visualstudio.com):
 
     ```shell
-    code 09-scaling-application-workloads/assets/manifests/prometheus-adapter-values-v3.3.1.yaml
+    code 07-scaling-application-workloads/assets/manifests/prometheus-adapter-values-v3.3.1.yaml
     ```
 
 3. Look for the `rules` section, and uncomment everything. It should look like below:
@@ -857,7 +857,7 @@ Now that you know how to set up `discovery rules` for `prometheus-adapter`, it's
     helm upgrade prometheus-adapter prometheus-community/prometheus-adapter \
       --version "$HELM_CHART_VERSION" \
       --namespace prometheus-adapter \
-      -f "09-scaling-application-workloads/assets/manifests/prometheus-adapter-values-v${HELM_CHART_VERSION}.yaml"
+      -f "07-scaling-application-workloads/assets/manifests/prometheus-adapter-values-v${HELM_CHART_VERSION}.yaml"
     ```
 
 **Note:**
@@ -944,7 +944,7 @@ cd Kubernetes-Starter-Kit-Developers
 Next, create the [prometheus-custom-metrics-hpa](assets/manifests/hpa/prometheus-adapter/prometheus-custom-metrics-hpa.yaml) resource in your cluster, via `kubectl`:
 
 ```shell
-kubectl apply -f 09-scaling-application-workloads/assets/manifests/hpa/prometheus-adapter/prometheus-custom-metrics-hpa.yaml -n prometheus-custom-metrics-test
+kubectl apply -f 07-scaling-application-workloads/assets/manifests/hpa/prometheus-adapter/prometheus-custom-metrics-hpa.yaml -n prometheus-custom-metrics-test
 ```
 
 The above command will create a `HPA` resource, targeting the sample deployment created earlier. You can check the `HPA state` via:
@@ -965,7 +965,7 @@ In the final step, you will run the helper script provided in this repository to
 Please make sure to split the terminal in two separate windows, in order to observe better the results (you can use [tmux](https://github.com/tmux/tmux/wiki), for example). Then, in the first window please invoke the [custom_metrics_service_load_test](assets/scripts/custom_metrics_service_load_test.sh) shell script (you can cancel execution anytime by pressing `Ctrl+C`):
 
 ```shell
-./09-scaling-application-workloads/assets/scripts/custom_metrics_service_load_test.sh
+./07-scaling-application-workloads/assets/scripts/custom_metrics_service_load_test.sh
 ```
 
 Next, in the second window set a kubectl watch (via the `-w` flag) for the `HPA` resource:

@@ -336,7 +336,7 @@ After running the above command, please look at the `Events` section (last line 
 
 ## Step 4 [OPTIONAL] - Adding a dedicated node for observability
 
-If you plan to use this cluster to serve in a production environment it is recommended that you also setup, apart from the basic nodes, another fixed size node pool with the purpose of serving the observability stack from [Chapter 4 - 04-setup-prometheus-stack](../04-setup-prometheus-stack/README.md).
+If you plan to use this cluster to serve in a production environment it is recommended that you also setup, apart from the basic nodes, another fixed size node pool with the purpose of serving the observability stack from [Chapter 4 Setup Observability](../04-setup-observability/README.md).
 In general, it is good practice to separate the observability stack from user applications. This way, one cannot interfere with another or get affected by downtime when performing cluster or node pool maintenance, etc.
 On the other hand, monitoring is a crucial aspect of any modern infrastructure hence high-availability is a must.
 Later on, you will use [Node affinity](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#affinity-and-anti-affinity) to schedule `observability` related pods on the dedicated node pool.

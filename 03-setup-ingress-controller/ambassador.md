@@ -863,6 +863,6 @@ If everything looks like above, you configured the `Ambassador Edge Stack` succe
 
 In this tutorial you learned how to set up an `Ingress Controller` for your `DOKS` cluster using the `Ambassador Edge Stack`. Then, you discovered how `AES` simplifies some of the common tasks, like: handling `TLS` certificates for your applications (thus enabling `TLS` termination), `routing` traffic to `backend` services, and `adjusting` resource `requests` and `limits` for the stack.
 
-Next, `monitoring` plays a key role in every `production ready` system. In [Section 4 - Set up Prometheus Stack](../04-setup-prometheus-stack), you will learn how to enable monitoring for your `DOKS` cluster using `Prometheus`.
+Next, `observability` plays a key role in every `production ready` system. In [Section 4 - Set up Observability](../04-setup-observability/README.md), you will learn how to enable monitoring for your `DOKS` cluster using `Prometheus`.
 
-Go to [Section 4 - Set up Prometheus Stack](../04-setup-prometheus-stack/README.md).
+Go to [Section 4 - Set up Observability](../04-setup-observability/README.md).
