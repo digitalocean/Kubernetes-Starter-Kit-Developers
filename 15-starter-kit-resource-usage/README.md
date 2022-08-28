@@ -1,5 +1,9 @@
 # Estimate Resource Usage for Startup Kit
 
+**Important note:**
+
+**This chapter is not complete yet.**
+
 In this part, you’ll focus on some introductory `CPU` monitoring by using `Grafana` which has some custom dashboards for this purposes. When you click `Manage`, you will see the `Kubernetes/Compute Resources/Cluster` section available with `kubernetes-mixin` tag.
 
 The value for each metric, like: `CPU Utilisation`, `CPU Requests Commitment`, `CPU Limits Commitment`, `Memory Utilisation`, `Memory Requests Commitment` and `Memory Limits Commitment` is included in the header. Besides this, if you scroll down, you can see more tables, such as: `Cpu Usage`, `Memory Usage`,`Network Usage`, `Request by Namespace` and `Bandwidth`.
@@ -16,5 +20,3 @@ Our observation on the resource utilization of the starter kit components are as
 - Monitoring (`Prometheus`, `Alert Manager`, `Grafana`) uses up to `1GB`.
 
 So the starting resource requirements for these components is `~1CPU` and `~2GB` of RAM.
-
-To automate everything in the `Starter Kit`, please refer to [Section 15 - Continuous Delivery using GitOps](../15-continuous-delivery-using-gitops/README.md).
