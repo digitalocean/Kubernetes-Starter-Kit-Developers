@@ -1253,3 +1253,5 @@ Going further, `Flux CD` supports other features, like:
 - [Security Considerations](https://fluxcd.io/docs/security)
 
 You can visit the official [Flux CD Guides](https://fluxcd.io/docs/guides) page for more interesting stuff and ideas, like how to structure your `Git` repositories, as well as application `manifests` for `multi-cluster` and `multi-environment` setups.
+
+To estimate the resource usage of the Starter Kit, please follow the [Starter Kit Resource Usage](../15-starter-kit-resource-usage/README.md) chapter.

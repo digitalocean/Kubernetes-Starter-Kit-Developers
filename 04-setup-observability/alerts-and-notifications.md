@@ -1,9 +1,9 @@
-# Alerting and Notification
+# Alerts and Notifications
 
 ## Table of contents
 
 - [Prerequisites](#prerequisites)
-- [Alerting and Notification Overview](#alerting-and-notification-overview)
+- [Alerts and Notifications Overview](#alerts-and-notifications-overview)
 - [List of Included Alerts](#list-of-included-alerts)
 - [Creating a New Alert](#creating-a-new-alert)
 - [Configuring Alertmanager to Send Notifications to Slack](#configuring-alertmanager-to-send-notifications-to-slack)
@@ -18,7 +18,7 @@ To complete this tutorial, you will need:
 3. [Emojivoto Sample App](https://github.com/digitalocean/kubernetes-sample-apps/tree/master/emojivoto-example) deployed in the cluster. Please follow the [steps](https://github.com/digitalocean/kubernetes-sample-apps/tree/master/emojivoto-example#deploying-to-kubernetes) from the main repository. You will be creating alerts for this application.
 4. Administrative rights over a `Slack` workspace. Later on you will be creating an application with an incoming `webhook` which will be used to send notifications from `Alertmanager`.
 
-## Alerting and Notification Overview
+## Alerts and Notifications Overview
 
 Often times you need to be notified immediately about any critical issue in your cluster. That is where `Alertmanager` comes into the picture. `Alertmanager` helps in aggregating the `alerts`, and sending `notifications` as shown in the diagram below.
 

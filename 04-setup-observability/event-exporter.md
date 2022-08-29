@@ -152,8 +152,8 @@ Any of the fields in the `Detected fields` section of a log detail view can be u
 
 Due to the fact that storage and retention has been configured for [Loki](loki-stack.md) the events will be persisted and will not be wiped after 1 hour.
 
-## Conclussion
+## Conclusion
 
 In this tutorial, you learned how to install `Event Exporter` for event forwarding in your `DOKS` cluster. Then, you used `Grafana` together with the `Loki` data source to view those events.
 
-Next go to [Alerting and Notification](alerting-and-notification.md).
+Next go to [Alerts and Notification](alerts-and-notifications.md).

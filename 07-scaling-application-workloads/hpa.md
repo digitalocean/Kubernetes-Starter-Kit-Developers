@@ -1001,4 +1001,4 @@ You can learn more about `HPAs` using below resources:
 - [Kubecost blog on HPAs](https://www.kubecost.com/kubernetes-autoscaling/kubernetes-hpa/)
 - [Official prometheus adapter walkthrough](https://github.com/kubernetes-sigs/prometheus-adapter/blob/master/docs/walkthrough.md)
 
-Go to [Section 14 - Starter Kit Resource Usage](../14-starter-kit-resource-usage/README.md).
+To automate everything in the `Starter Kit`, please refer to [Section 15 - Continuous Delivery using GitOps](../14-continuous-delivery-using-gitops/README.md).

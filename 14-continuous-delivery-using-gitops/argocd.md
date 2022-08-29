@@ -806,3 +806,5 @@ Going further, `Argo CD` offers more interesting features, like:
 External resources:
 
 - [Using Argo CD with Sealed Secrets](https://utkuozdemir.org/blog/argocd-helm-secrets)
+
+To estimate the resource usage of the Starter Kit, please follow the [Starter Kit Resource Usage](../15-starter-kit-resource-usage/README.md) chapter.
