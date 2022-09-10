@@ -443,3 +443,5 @@ For more advanced funtionalities make sure you read their documentation here:
 
 - [Vault](https://www.vaultproject.io/)
 - [External Secrets Operator](https://external-secrets.io/)
+
+Go to [Section 7 - Scaling Application Workloads](../07-scaling-application-workloads/README.md).
