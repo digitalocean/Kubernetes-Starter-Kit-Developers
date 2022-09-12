@@ -7,6 +7,10 @@ You will be installing and configuring Vault server on an external DO Droplet.
 
 The goal of External Secrets Operator is to synchronize secrets from external APIs into Kubernetes. ESO is a collection of custom API resources - ExternalSecret, SecretStore and ClusterSecretStore that provide a user-friendly abstraction for the external API that stores and manages the lifecycle of the secrets for you.
 
+If you are using an external secrets manager to handle sensitive data then ESO if the way to go. Examples of secrets managers include HashiCorp Vault, AWS Secrets Manager, IBM Secrets Manager, Azure Key Vault, Akeyless, Google Secrets Manager, etc. To get secrets from you secrets manager into your cluster is by using the External Secrets Operator, a Kubernetes operator that enables you to integrate and read values from your external secrets management system and insert them as Secrets in your cluster.
+On the other hand if you are not using an external secrets manager you can use Sealed Secrets to handle sensitive data. Sealed Secrets allow for “one-way” encryption of your Kubernetes Secrets and can only be decrypted by the Sealed Secrets controller running in your target cluster. This mechanism is based on public-key encryption, a form of cryptography consisting of a public key and a private key pair. One can be used for encryption, and only the other key can be used to decrypt what was encrypted.
+To use Sealed Secrets, you have to deploy the controller to your target cluster and download the kubeseal CLI tool.
+
 ## External Operator Architecture
 
 ![External Secrets Operator Architecture](assets/images/external-secrets-operator.png)
@@ -18,6 +22,7 @@ The goal of External Secrets Operator is to synchronize secrets from external AP
 - [Step - 1](#step-1---understanding-external-secrets-operator)
 - [Step - 2](#step-2---configuring-the-vault-server)
 - [Step - 3](#step-3---installing-and-configuring-the-external-secrets-operator)
+- [Step - 4](#step-4---fetching-an-example-secret)
 - [Conclusion](#conclusion)
 
 ## Prerequisites
@@ -28,7 +33,7 @@ To complete this tutorial, you will need:
 2. [Helm](https://www.helm.sh), for installing the `Loki` stack chart.
 3. [Kubectl](https://kubernetes.io/docs/tasks/tools), for `Kubernetes` interaction.
 4. A text editor with `YAML` lint support, for example: [Visual Studio Code](https://code.visualstudio.com).
-5. Vault sever installed on a DO Droplet as explained in this [article](https://www.digitalocean.com/community/tutorials/how-to-build-a-hashicorp-vault-server-using-packer-and-terraform-on-digitalocean).
+5. Vault sever installed on a DO Droplet as explained in this [article](https://www.digitalocean.com/community/tutorials/how-to-build-a-hashicorp-vault-server-using-packer-and-terraform-on-digitalocean). Please install the Vault sever on the same VPC Network as the Kubernetes droplet for easier access via private address.
 
 **Note:**
 Please make sure that you replace the vault version in the packer `template.json` from 1.8.4 to 1.11.3. That is specified in the `provisioner` block on line 16.
@@ -57,6 +62,10 @@ The External Secrets Operator uses the following CRDs:
 During this guide you will be using [Hashicorp Vault](https://www.vaultproject.io/) as a provider for secrets management. Vault itself implements lots of different secret engines. ESO only supports the [KV Secrets Engine](https://www.vaultproject.io/docs/secrets/kv).
 
 ## Step 2 - Configuring the Vault Server
+
+**Note:**
+
+The vault server in this chapter is for development/demonstration purposes only.
 
 HashiCorp Vault is an identity-based secrets and encryption management system. A secret is anything that you want to tightly control access to, such as API encryption keys, passwords, and certificates. Vault provides encryption services that are gated by authentication and authorization methods. Using Vault’s UI, CLI, or HTTP API, access to secrets and other sensitive data can be securely stored and managed, tightly controlled (restricted), and auditable.
 
@@ -192,6 +201,16 @@ Please follow the next steps to configure vault:
 
     **Note:**
     Take note of the `Initialized` and `Sealed` lines. They should show `true` and `false`, respectively.
+
+As a precaution you should also restrict incoming connections to the Vault Server Droplet to just the Kubernetes cluster. This is necessary as for the time being as TLS is disabled in the vault config file. To achieve this please follow the next steps:
+
+1. Log into your DO account and go to the "Networking" --> "Firewalls" menu.
+2. Click on the "Create Firewall" button.
+3. Add a name to the firewall and from the Inbound rules configure the following rule: "Custom" rule type, "TCP" protocol, 8200 port and the "Source" should be set the Kubernetes Cluster which will consume secrets from the Vault server.
+4. After the rule is created make sure you add this rule to the droplet from the "Droplets" menu.
+
+**Note:**
+TBD - Securing the Vault Server with TLS certificates.
 
 At this point the Vault Server should be initialized and ready for use. In the next section you will create a `ClusterSecretStore` and `ExternalSecret` CRD.
 
@@ -352,7 +371,9 @@ vault-backend   97s   Valid    True
 **Note:**
 If you created the SecretStore successfully, you should see the `STATUS` column with a `Valid` value. If not, a very common issue is `message: unable to validate store`. This generally means that the authentication method for your client has failed as the ClusterSecretStore will try and create a client for your provider to verify everything is working. Recheck the secret containing the token and the status of the vault server.
 
-Next, you will create an `ExternalSecret`, which is the main resource in the `External Secrets Operator`. The `ExternalSecret` resource tells ESO to fetch a specific secret from a specific `SecretStore` and where to put the information. This resource is very important because it defines what secret you’d like to get from the external secret provider, where to put it, which secret store to use, and how often to sync the secret, among several other options.
+## Step 4 - Fetching an Example Secret
+
+In this section, you will create an `ExternalSecret`, which is the main resource in the `External Secrets Operator`. The `ExternalSecret` resource tells ESO to fetch a specific secret from a specific `SecretStore` and where to put the information. This resource is very important because it defines what secret you’d like to get from the external secret provider, where to put it, which secret store to use, and how often to sync the secret, among several other options.
 
 Before creating the `ExternalSecret` you need to have a secret available in the `VaultServer`. If you do not have one, follow the next steps:
 
