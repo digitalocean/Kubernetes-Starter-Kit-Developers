@@ -343,16 +343,16 @@ Explanations for the above configuration:
 - `auth.tokenSecretRef.name`: Name of the previously created secret holding the Root Token of the Vault server.
 - `auth.tokenSecretRef.key`: Key name in the secret since the secret was created with a key-value pair.
 
-Then, open and inspect the `06-kubernetes-sealed-secrets/assets/manifests/cluster-secret-store.yaml` file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). Please make sure to replace the `<>` placeholders accordingly:
+Then, open and inspect the `06-kubernetes-secrets/assets/manifests/cluster-secret-store.yaml` file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). Please make sure to replace the `<>` placeholders accordingly:
 
 ```shell
-code 06-kubernetes-sealed-secrets/assets/manifests/cluster-secret-store.yaml
+code 06-kubernetes-secrets/assets/manifests/cluster-secret-store.yaml
 ```
 
 Next, create the `ClusterSecretStore` resource:
 
 ```shell
-kubectl apply -f 06-kubernetes-sealed-secrets/assets/manifests/cluster-secret-store.yaml
+kubectl apply -f 06-kubernetes-secrets/assets/manifests/cluster-secret-store.yaml
 ```
 
 This command applies the `ClusterSecretStore` CRD to your cluster and creates the object. You can see the object by running the following command, which will show you all of the information about the object inside of Kubernetes:
@@ -423,16 +423,16 @@ Explanations for the above configuration:
 - `data.[].remoteRef.key`: This is the remote key in the secret provider. (As an example the previously created secret would be: `secret/secret`)
 - `data.[].remoteRef.property`: This is the property inside of the secret at the path specified in in `data.[].remoteRef.key`. (As an example the previously created secret would be: `key`)
 
-Then, open and inspect the `06-kubernetes-sealed-secrets/assets/manifests/external-secret.yaml` file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). Please make sure to replace the `<>` placeholders accordingly:
+Then, open and inspect the `06-kubernetes-secrets/assets/manifests/external-secret.yaml` file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). Please make sure to replace the `<>` placeholders accordingly:
 
 ```shell
-code 06-kubernetes-sealed-secrets/assets/manifests/cluster-secret-store.yaml
+code 06-kubernetes-secrets/assets/manifests/cluster-secret-store.yaml
 ```
 
 Next, create the `ExternalSecret` resource:
 
 ```shell
-kubectl apply -f 06-kubernetes-sealed-secrets/assets/manifests/external-secret.yaml
+kubectl apply -f 06-kubernetes-secrets/assets/manifests/external-secret.yaml
 ```
 
 This command applies the `ExternalSecret` CRD to your cluster and creates the object. You can see the object by running the following command, which will show you all of the information about the object inside of Kubernetes:

@@ -1343,4 +1343,4 @@ All the basic tasks and operations explained in this tutorial, are meant to give
 - [Multi-Cluster Management](https://docs.trilio.io/kubernetes/management-console/user-interface/use-cases-with-trilio/multicloud-management).
 - [Restore Transforms](https://docs.trilio.io/kubernetes/overview/features-and-use-cases#restore-transforms).
 
-Go to [Section 6 - Kubernetes Sealed Secrets](../06-kubernetes-sealed-secrets/README.md).
+Go to [Section 6 - Kubernetes Secrets](../06-kubernetes-secrets/README.md).
