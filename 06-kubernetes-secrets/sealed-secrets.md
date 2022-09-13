@@ -106,10 +106,10 @@ NAME                            CHART VERSION   APP VERSION     DESCRIPTION
 sealed-secrets/sealed-secrets   2.4.0           v0.18.1         Helm chart for the sealed-secrets controller.
 ```
 
-Now, open and inspect the `06-kubernetes-sealed-secrets/assets/manifests/sealed-secrets-values-v2.4.0.yaml` file provided in the `Starter kit` repository, using an editor of your choice (preferably with `YAML` lint support). You can use [VS Code](https://code.visualstudio.com), for example:
+Now, open and inspect the `06-kubernetes-secrets/assets/manifests/sealed-secrets-values-v2.4.0.yaml` file provided in the `Starter kit` repository, using an editor of your choice (preferably with `YAML` lint support). You can use [VS Code](https://code.visualstudio.com), for example:
 
 ```shell
-code 06-kubernetes-sealed-secrets/assets/manifests/sealed-secrets-values-v2.4.0.yaml
+code 06-kubernetes-secrets/assets/manifests/sealed-secrets-values-v2.4.0.yaml
 ```
 
 Next, install the `sealed-secrets/sealed-secrets` chart, using `Helm` (notice that a dedicated `sealed-secrets` namespace is created as well):
@@ -120,7 +120,7 @@ HELM_CHART_VERSION="2.4.0"
 helm install sealed-secrets-controller sealed-secrets/sealed-secrets --version "${HELM_CHART_VERSION}" \
   --namespace sealed-secrets \
   --create-namespace \
-  -f "06-kubernetes-sealed-secrets/assets/manifests/sealed-secrets-values-v${HELM_CHART_VERSION}.yaml"
+  -f "06-kubernetes-secrets/assets/manifests/sealed-secrets-values-v${HELM_CHART_VERSION}.yaml"
 ```
 
 **Notes:**

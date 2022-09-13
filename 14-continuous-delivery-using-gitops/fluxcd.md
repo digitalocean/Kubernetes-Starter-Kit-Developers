@@ -227,7 +227,7 @@ In a `GitOps` flow, it's not wise to store `Kubernetes Secrets` directly in a `G
 
 ![Flux CD Sealed Secrets GitOps Flow](./assets/images/fluxcd_sealed_secrets.png)
 
-For more details, please refer to [Section 06 - Encrypt Kubernetes Secrets Using Sealed Secrets](../06-kubernetes-sealed-secrets/README.md).
+For more details, please refer to [Section 06 - Encrypt Kubernetes Secrets](../06-kubernetes-secrets/README.md).
 
 Next, you will learn how to deploy Flux CD to your DOKS cluster.
 
@@ -463,7 +463,7 @@ Please use the following steps, to create required manifests for the `Sealed Sec
     ```shell
     SEALED_SECRETS_CHART_VERSION="2.4.0"
 
-    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/06-kubernetes-sealed-secrets/assets/manifests/sealed-secrets-values-v${SEALED_SECRETS_CHART_VERSION}.yaml" > "sealed-secrets-values-v${SEALED_SECRETS_CHART_VERSION}.yaml"
+    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/06-kubernetes-secrets/assets/manifests/sealed-secrets-values-v${SEALED_SECRETS_CHART_VERSION}.yaml" > "sealed-secrets-values-v${SEALED_SECRETS_CHART_VERSION}.yaml"
     ```
 
 4. Now, create the `Sealed Secrets` HelmRelease manifest for `Flux CD`. `Kubeseal` CLI expects by default to find the controller in the `kube-system` namespace and to be named `sealed-secrets-controller`, hence we override the release name via the `--release-name` and `--target-namespace` flags. This is not mandatory, but `kube-system` is usually accessible only to power users (administrators):

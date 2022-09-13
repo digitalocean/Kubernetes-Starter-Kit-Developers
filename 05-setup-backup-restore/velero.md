@@ -703,6 +703,6 @@ You can learn more about `Velero`, by following below topics:
 - [Cluster Migration](https://velero.io/docs/v1.6/migration-case/)
 - [Velero Troubleshooting](https://velero.io/docs/v1.6/troubleshooting)
 
-Next, you will learn how to set up `Sealed Secrets` using the `Sealed Secrets Controller`.
+Next, you will learn how to handle Kubernetes Secrets using the `Sealed Secrets Controller` or `External Secrets Operator`.
 
-Go to [Section 6 - Kubernetes Sealed Secrets](../06-kubernetes-sealed-secrets/README.md).
+Go to [Section 6 - Kubernetes Secrets](../06-kubernetes-secrets/README.md).
