@@ -256,7 +256,7 @@ Please follow below steps to complete the Helm based installation:
 4. Then, open and inspect the Argo CD Helm values file provided in the Starter Kit repository, using an editor of your choice (preferably with YAML lint support). For example, you can use [VS Code](https://code.visualstudio.com):
 
     ```shell
-    code 15-continuous-delivery-using-gitops/assets/manifests/argocd/argocd-values-v4.9.4.yaml
+    code 14-continuous-delivery-using-gitops/assets/manifests/argocd/argocd-values-v4.9.4.yaml
     ```
 
 5. Finally, deploy Argo CD to your DOKS cluster:
