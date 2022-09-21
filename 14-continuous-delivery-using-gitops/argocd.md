@@ -267,7 +267,7 @@ Please follow below steps to complete the Helm based installation:
     helm install argocd argo/argo-cd --version "${HELM_CHART_VERSION}" \
       --namespace argocd \
       --create-namespace \
-      -f "15-continuous-delivery-using-gitops/assets/manifests/argocd/argocd-values-v${HELM_CHART_VERSION}.yaml"
+      -f "14-continuous-delivery-using-gitops/assets/manifests/argocd/argocd-values-v${HELM_CHART_VERSION}.yaml"
     ```
 
 **Note:**
@@ -441,15 +441,15 @@ Please open a terminal, and follow below steps to create the layout for your Git
     SEALED_SECRETS_CHART_VERSION="2.4.0"
     VELERO_CHART_VERSION="2.29.7"
 
-    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/15-continuous-delivery-using-gitops/assets/manifests/argocd/applications/helm/cert-manager-v${CERT_MANAGER_CHART_VERSION}.yaml" > "clusters/dev/helm/cert-manager-v${CERT_MANAGER_CHART_VERSION}.yaml"
+    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/14-continuous-delivery-using-gitops/assets/manifests/argocd/applications/helm/cert-manager-v${CERT_MANAGER_CHART_VERSION}.yaml" > "clusters/dev/helm/cert-manager-v${CERT_MANAGER_CHART_VERSION}.yaml"
 
-    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/15-continuous-delivery-using-gitops/assets/manifests/argocd/applications/helm/nginx-v${NGINX_CHART_VERSION}.yaml" > "clusters/dev/helm/nginx-v${NGINX_CHART_VERSION}.yaml"
+    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/14-continuous-delivery-using-gitops/assets/manifests/argocd/applications/helm/nginx-v${NGINX_CHART_VERSION}.yaml" > "clusters/dev/helm/nginx-v${NGINX_CHART_VERSION}.yaml"
 
-    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/15-continuous-delivery-using-gitops/assets/manifests/argocd/applications/helm/prometheus-stack-v${PROMETHEUS_CHART_VERSION}.yaml" > "clusters/dev/helm/prometheus-stack-v${PROMETHEUS_CHART_VERSION}.yaml"
+    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/14-continuous-delivery-using-gitops/assets/manifests/argocd/applications/helm/prometheus-stack-v${PROMETHEUS_CHART_VERSION}.yaml" > "clusters/dev/helm/prometheus-stack-v${PROMETHEUS_CHART_VERSION}.yaml"
 
-    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/15-continuous-delivery-using-gitops/assets/manifests/argocd/applications/helm/sealed-secrets-v${SEALED_SECRETS_CHART_VERSION}.yaml" > "clusters/dev/helm/sealed-secrets-v${SEALED_SECRETS_CHART_VERSION}.yaml"
+    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/14-continuous-delivery-using-gitops/assets/manifests/argocd/applications/helm/sealed-secrets-v${SEALED_SECRETS_CHART_VERSION}.yaml" > "clusters/dev/helm/sealed-secrets-v${SEALED_SECRETS_CHART_VERSION}.yaml"
 
-    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/15-continuous-delivery-using-gitops/assets/manifests/argocd/applications/helm/velero-v${VELERO_CHART_VERSION}.yaml" > "clusters/dev/helm/velero-v${VELERO_CHART_VERSION}.yaml"
+    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/14-continuous-delivery-using-gitops/assets/manifests/argocd/applications/helm/velero-v${VELERO_CHART_VERSION}.yaml" > "clusters/dev/helm/velero-v${VELERO_CHART_VERSION}.yaml"
     ```
 
 4. Finally, commit changes and push to origin.
