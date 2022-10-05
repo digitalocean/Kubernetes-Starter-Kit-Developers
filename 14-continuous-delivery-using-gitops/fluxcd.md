@@ -625,7 +625,7 @@ Steps to follow:
 2. Then, fetch the Jetstack `HelmRepository` manifest file provided by the `Starter Kit` Git repository:
 
     ```shell
-    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/15-continuous-delivery-using-gitops/assets/manifests/fluxcd/helm/repositories/jetstack.yaml" > "${FLUXCD_HELM_MANIFESTS_PATH}/repositories/jetstack.yaml"
+    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/14-continuous-delivery-using-gitops/assets/manifests/fluxcd/helm/repositories/jetstack.yaml" > "${FLUXCD_HELM_MANIFESTS_PATH}/repositories/jetstack.yaml"
     ```
 
 3. Now, fetch the Cert-Manager `HelmRelease` manifest file provided by the `Starter Kit` Git repository:
@@ -633,7 +633,7 @@ Steps to follow:
     ```shell
     CERT_MANAGER_CHART_VERSION="1.8.0"
 
-    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/15-continuous-delivery-using-gitops/assets/manifests/fluxcd/helm/releases/cert-manager-v${CERT_MANAGER_CHART_VERSION}.yaml" > "${FLUXCD_HELM_MANIFESTS_PATH}/releases/cert-manager-v${CERT_MANAGER_CHART_VERSION}.yaml"
+    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/14-continuous-delivery-using-gitops/assets/manifests/fluxcd/helm/releases/cert-manager-v${CERT_MANAGER_CHART_VERSION}.yaml" > "${FLUXCD_HELM_MANIFESTS_PATH}/releases/cert-manager-v${CERT_MANAGER_CHART_VERSION}.yaml"
     ```
 
 4. Next, inspect the downloaded `HelmRelease` manifest file using an editor of your choice (preferably with `YAML` lint support), and adjust to your needs. For example, you can use [VS Code](https://code.visualstudio.com) (make sure to replace the `<>` placeholders accordingly, if present):
@@ -714,13 +714,13 @@ Steps to follow:
     `Ambassador` Ingress:
 
     ```shell
-    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/15-continuous-delivery-using-gitops/assets/manifests/fluxcd/helm/repositories/ambassador.yaml" > "${FLUXCD_HELM_MANIFESTS_PATH}/repositories/ambassador.yaml"
+    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/14-continuous-delivery-using-gitops/assets/manifests/fluxcd/helm/repositories/ambassador.yaml" > "${FLUXCD_HELM_MANIFESTS_PATH}/repositories/ambassador.yaml"
     ```
 
     `Nginx` Ingress:
 
     ```shell
-    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/15-continuous-delivery-using-gitops/assets/manifests/fluxcd/helm/repositories/kubernetes-community-nginx.yaml" > "${FLUXCD_HELM_MANIFESTS_PATH}/repositories/kubernetes-community-nginx.yaml"
+    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/14-continuous-delivery-using-gitops/assets/manifests/fluxcd/helm/repositories/kubernetes-community-nginx.yaml" > "${FLUXCD_HELM_MANIFESTS_PATH}/repositories/kubernetes-community-nginx.yaml"
     ```
 
 3. Now, fetch the `HelmRelease` manifest file provided by the `Starter Kit` Git repository (please pick only one option, depending on what `Ingress Controller` you want to install and configure):
@@ -730,7 +730,7 @@ Steps to follow:
     ```shell
     AMBASSADOR_CHART_VERSION="7.3.2"
 
-    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/15-continuous-delivery-using-gitops/assets/manifests/fluxcd/helm/releases/ambassador-stack-v${AMBASSADOR_CHART_VERSION}.yaml" > "${FLUXCD_HELM_MANIFESTS_PATH}/releases/ambassador-stack-v${AMBASSADOR_CHART_VERSION}.yaml"
+    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/14-continuous-delivery-using-gitops/assets/manifests/fluxcd/helm/releases/ambassador-stack-v${AMBASSADOR_CHART_VERSION}.yaml" > "${FLUXCD_HELM_MANIFESTS_PATH}/releases/ambassador-stack-v${AMBASSADOR_CHART_VERSION}.yaml"
     ```
 
     `Nginx` Ingress:
@@ -738,7 +738,7 @@ Steps to follow:
     ```shell
     NGINX_CHART_VERSION="4.1.3"
 
-    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/15-continuous-delivery-using-gitops/assets/manifests/fluxcd/helm/releases/nginx-v${NGINX_CHART_VERSION}.yaml" > "${FLUXCD_HELM_MANIFESTS_PATH}/releases/nginx-v${NGINX_CHART_VERSION}.yaml"
+    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/14-continuous-delivery-using-gitops/assets/manifests/fluxcd/helm/releases/nginx-v${NGINX_CHART_VERSION}.yaml" > "${FLUXCD_HELM_MANIFESTS_PATH}/releases/nginx-v${NGINX_CHART_VERSION}.yaml"
     ```
 
 4. Next, inspect the downloaded `HelmRelease` manifest file using an editor of your choice (preferably with `YAML` lint support), and adjust to your needs. For example, you can use [VS Code](https://code.visualstudio.com). Make sure to replace the `<>` placeholders accordingly, if present ((please pick only one option, depending on what `Ingress Controller` you want to install and configure):
@@ -871,7 +871,7 @@ Steps to follow:
 2. Then, fetch the `Prometheus` HelmRepository manifest provided by the `Starter Kit` Git repository:
 
     ```shell
-    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/15-continuous-delivery-using-gitops/assets/manifests/fluxcd/helm/repositories/prometheus-community.yaml" > "${FLUXCD_HELM_MANIFESTS_PATH}/repositories/prometheus-community.yaml"
+    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/14-continuous-delivery-using-gitops/assets/manifests/fluxcd/helm/repositories/prometheus-community.yaml" > "${FLUXCD_HELM_MANIFESTS_PATH}/repositories/prometheus-community.yaml"
     ```
 
 3. Next, `create` and `encrypt` the `Kubernetes Secret` holding your `Grafana` dashboard `admin password`. Make sure that you have the `Sealed Secrets` public key exported as mentioned in [Exporting the Sealed Secrets Controller Public Key](#exporting-the-sealed-secrets-controller-public-key) (please replace the `<>` placeholders accordingly):
@@ -897,7 +897,7 @@ Steps to follow:
     ```shell
     PROMETHEUS_CHART_VERSION="35.5.1"
 
-    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/15-continuous-delivery-using-gitops/assets/manifests/fluxcd/helm/releases/prometheus-stack-v${PROMETHEUS_CHART_VERSION}.yaml" > "${FLUXCD_HELM_MANIFESTS_PATH}/releases/prometheus-stack-v${PROMETHEUS_CHART_VERSION}.yaml"
+    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/14-continuous-delivery-using-gitops/assets/manifests/fluxcd/helm/releases/prometheus-stack-v${PROMETHEUS_CHART_VERSION}.yaml" > "${FLUXCD_HELM_MANIFESTS_PATH}/releases/prometheus-stack-v${PROMETHEUS_CHART_VERSION}.yaml"
     ```
 
 5. Then, inspect the downloaded Prometheus `HelmRelease` manifest using an editor of your choice (preferably with `YAML` lint support), and adjust to your needs. For example, you can use [VS Code](https://code.visualstudio.com) (please make sure to replace the `<>` placeholders accordingly, if present):
@@ -993,7 +993,7 @@ Steps to follow:
 2. Then, fetch the `Loki` HelmRepository manifest provided by the `Starter Kit` Git repository:
 
     ```shell
-    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/15-continuous-delivery-using-gitops/assets/manifests/fluxcd/helm/repositories/grafana.yaml" > "${FLUXCD_HELM_MANIFESTS_PATH}/repositories/grafana.yaml"
+    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/14-continuous-delivery-using-gitops/assets/manifests/fluxcd/helm/repositories/grafana.yaml" > "${FLUXCD_HELM_MANIFESTS_PATH}/repositories/grafana.yaml"
     ```
 
 3. Next, `create` and `encrypt` the Kubernetes secret for your `DO Spaces` credentials. Make sure that you have the `Sealed Secrets` public key exported as mentioned in [Exporting the Sealed Secrets Controller Public Key](#exporting-the-sealed-secrets-controller-public-key) (please replace the `<>` placeholders accordingly):
@@ -1021,7 +1021,7 @@ Steps to follow:
     ```shell
     LOKI_CHART_VERSION="2.6.4"
 
-    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/15-continuous-delivery-using-gitops/assets/manifests/fluxcd/helm/releases/loki-stack-v${LOKI_CHART_VERSION}.yaml" > "${FLUXCD_HELM_MANIFESTS_PATH}/releases/loki-stack-v${LOKI_CHART_VERSION}.yaml"
+    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/14-continuous-delivery-using-gitops/assets/manifests/fluxcd/helm/releases/loki-stack-v${LOKI_CHART_VERSION}.yaml" > "${FLUXCD_HELM_MANIFESTS_PATH}/releases/loki-stack-v${LOKI_CHART_VERSION}.yaml"
     ```
 
 5. Then, inspect the downloaded Loki `HelmRelease` manifest using an editor of your choice (preferably with `YAML` lint support), and adjust to your needs. For example, you can use [VS Code](https://code.visualstudio.com) (please make sure to replace the `<>` placeholders accordingly, if present):
@@ -1120,7 +1120,7 @@ Steps to follow:
 2. Then, fetch the `Velero` HelmRepository manifest provided by the `Starter Kit` Git repository:
 
     ```shell
-    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/15-continuous-delivery-using-gitops/assets/manifests/fluxcd/helm/repositories/vmware-tanzu.yaml" > "${FLUXCD_HELM_MANIFESTS_PATH}/repositories/vmware-tanzu.yaml"
+    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/14-continuous-delivery-using-gitops/assets/manifests/fluxcd/helm/repositories/vmware-tanzu.yaml" > "${FLUXCD_HELM_MANIFESTS_PATH}/repositories/vmware-tanzu.yaml"
     ```
 
 3. Next, `create` and `encrypt` the Kubernetes secret for Velero `HelmRelease` to consume (`DO API TOKEN`). Make sure that you have the `Sealed Secrets` public key exported as mentioned in [Exporting the Sealed Secrets Controller Public Key](#exporting-the-sealed-secrets-controller-public-key) (please replace the `<>` placeholders accordingly):
@@ -1146,7 +1146,7 @@ Steps to follow:
     ```shell
     VELERO_CHART_VERSION="2.29.7"
 
-    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/15-continuous-delivery-using-gitops/assets/manifests/fluxcd/helm/releases/velero-v${VELERO_CHART_VERSION}.yaml" > "${FLUXCD_HELM_MANIFESTS_PATH}/releases/velero-v${VELERO_CHART_VERSION}.yaml"
+    curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/14-continuous-delivery-using-gitops/assets/manifests/fluxcd/helm/releases/velero-v${VELERO_CHART_VERSION}.yaml" > "${FLUXCD_HELM_MANIFESTS_PATH}/releases/velero-v${VELERO_CHART_VERSION}.yaml"
     ```
 
 5. Then, inspect the downloaded Velero `HelmRelease` manifest using an editor of your choice (preferably with `YAML` lint support), and adjust to your needs. For example, you can use [VS Code](https://code.visualstudio.com) (please make sure to replace the `<>` placeholders accordingly, if present):
