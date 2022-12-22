@@ -73,7 +73,7 @@ grafana:
 #       - weight: 1
 #         preference:
 #           matchExpressions:
-#           - key: prefered
+#           - key: preferred
 #             operator: In
 #             values:
 #             - observability
@@ -158,7 +158,7 @@ prometheus:
   #       - weight: 1
   #         preference:
   #           matchExpressions:
-  #           - key: prefered
+  #           - key: preferred
   #             operator: In
   #             values:
   #             - observability
