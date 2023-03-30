@@ -267,7 +267,7 @@ This is great, but how does Promtail discover `Kubernetes` pods and assigns labe
 The `scrape_configs` section from the `Promtail` main `configuration` will show you the details. You can use `kubectl` for inspection (notice that the application `configuration` is stored using a `Kubernetes ConfigMap`):
 
 ```shell
-kubectl get cm loki-stack -n loki-stack -o yaml > loki-promtail-config.yaml
+kubectl get cm loki-loki-stack -n loki-stack -o yaml > loki-promtail-config.yaml
 ```
 
 Next, please open the `loki-promtail-config.yaml` file using a text editor of your choice (preferably with `YAML` support). For example you can use [VS Code](https://code.visualstudio.com):
