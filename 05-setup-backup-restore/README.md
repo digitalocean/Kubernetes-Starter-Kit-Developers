@@ -37,6 +37,6 @@ Without further ado, please pick one to start with from the list below.
 
 ## Starter Kit Backup/Restore Solutions
 
-| VELERO | TRILIOVAULT |
-|:-----------------------------------------------------:|:-----------------------------------------------------:|
-| [![trilio](assets/images/velero-logo.png)](velero.md) | [![trilio](assets/images/trilio-logo.png)](trilio.md) |
+| VELERO | 
+|:-----------------------------------------------------:|
+| [![trilio](assets/images/velero-logo.png)](velero.md) |
