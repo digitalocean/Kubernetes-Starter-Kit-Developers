@@ -235,7 +235,7 @@ Please follow below steps to complete the Helm based installation:
     ```shell
     helm repo add argo https://argoproj.github.io/argo-helm
 
-    helm repo update argo 
+    helm repo update argo
     ```
 
 3. Now, search the `argo` Helm repository for available charts to install:
@@ -247,8 +247,8 @@ Please follow below steps to complete the Helm based installation:
     The output looks similar to:
 
     ```text
-    NAME                            CHART VERSION   APP VERSION     DESCRIPTION                                       
-    argo/argo                       1.0.0           v2.12.5         A Helm chart for Argo Workflows                   
+    NAME                            CHART VERSION   APP VERSION     DESCRIPTION
+    argo/argo                       1.0.0           v2.12.5         A Helm chart for Argo Workflows
     argo/argo-cd                    4.9.4           v2.4.0          A Helm chart for Argo CD, a declarative, GitOps...
     ...
     ```
@@ -387,7 +387,7 @@ Usage:
 Examples:
   # List all the applications.
   argocd app list
-  
+
   # Get the details of a application
   argocd app get my-app
 ...
@@ -409,7 +409,7 @@ First you need to prepare your Git repository to use a consistent layout. In the
 clusters
 └── dev
     └── helm
-        ├── cert-manager-v1.8.0.yaml
+        ├── cert-manager-v1.14.5.yaml
         ├── nginx-v4.1.3.yaml
         ├── prometheus-stack-v35.5.1.yaml
         ├── sealed-secrets-v2.4.0.yaml
@@ -435,7 +435,7 @@ Please open a terminal, and follow below steps to create the layout for your Git
 3. Copy application manifests provided for each component in the Starter Kit repository (you can also take a look and see how each [manifest](assets/manifests/argocd/applications/helm) is structured):
 
     ```shell
-    CERT_MANAGER_CHART_VERSION="1.8.0"
+    CERT_MANAGER_CHART_VERSION="1.14.5"
     NGINX_CHART_VERSION="4.1.3"
     PROMETHEUS_CHART_VERSION="35.5.1"
     SEALED_SECRETS_CHART_VERSION="2.4.0"
@@ -503,15 +503,15 @@ Above command will create a new `Argo CD application` named `starter-kit-apps` i
 Next, you need to sync the `starter-kit-apps` application (remember that Argo CD doesn't sync anything by default, unless specified):
 
 ```shell
-argocd app sync starter-kit-apps 
+argocd app sync starter-kit-apps
 ```
 
 The output looks similar to:
 
 ```text
 TIMESTAMP                  GROUP        KIND             NAMESPACE   NAME                       STATUS     HEALTH  ...
-2022-03-23T17:39:38+02:00  argoproj.io  Application      argocd      sealed-secrets-controller  OutOfSync  Missing ...            
-2022-03-23T17:39:38+02:00  argoproj.io  Application      argocd      velero                     OutOfSync  Missing ...             
+2022-03-23T17:39:38+02:00  argoproj.io  Application      argocd      sealed-secrets-controller  OutOfSync  Missing ...
+2022-03-23T17:39:38+02:00  argoproj.io  Application      argocd      velero                     OutOfSync  Missing ...
 2022-03-23T17:39:38+02:00  argoproj.io  Application      argocd      ingress-nginx              OutOfSync  Missing ...
 ...
 GROUP        KIND         NAMESPACE  NAME                       STATUS  HEALTH  HOOK  MESSAGE
@@ -540,7 +540,7 @@ ingress-nginx              https://kubernetes.default.svc  ingress-nginx   defau
 cert-manager               https://kubernetes.default.svc  cert-manager    default  OutOfSync  Missing  Auto-Prune  ...
 kube-prometheus-stack      https://kubernetes.default.svc  monitoring      default  OutOfSync  Missing  Auto-Prune  ...
 sealed-secrets-controller  https://kubernetes.default.svc  sealed-secrets  default  OutOfSync  Missing  Auto-Prune  ...
-starter-kit-apps           https://kubernetes.default.svc  argocd          default  Synced     Healthy  <none>      ...  
+starter-kit-apps           https://kubernetes.default.svc  argocd          default  Synced     Healthy  <none>      ...
 velero                     https://kubernetes.default.svc  velero          default  OutOfSync  Missing  Auto-Prune  ...
 ```
 
@@ -607,7 +607,7 @@ Bootstrapping the parent application is a one-time operation. On subsequent Git 
     URL:                https://argocd.example.com/applications/velero
     Repo:               https://vmware-tanzu.github.io/helm-charts
     Target:             2.27.3
-    Path:               
+    Path:
     SyncWindow:         Sync Allowed
     Sync Policy:        Automated (Prune)
     Sync Status:        OutOfSync from 2.27.3

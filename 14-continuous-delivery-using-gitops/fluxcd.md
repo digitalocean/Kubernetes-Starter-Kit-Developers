@@ -296,11 +296,11 @@ flux get all
 The output looks similar to the following (you can notice the `gitrepository/flux-system` component fetching the latest revision from your main branch, as well as the `kustomization/flux-system` component):
 
 ```text
-NAME                            READY   MESSAGE                         REVISION        SUSPENDED 
-gitrepository/flux-system       True    Fetched revision: main/6e9b41b  main/6e9b41b    False 
+NAME                            READY   MESSAGE                         REVISION        SUSPENDED
+gitrepository/flux-system       True    Fetched revision: main/6e9b41b  main/6e9b41b    False
 
-NAME                            READY   MESSAGE                         REVISION        SUSPENDED 
-kustomization/flux-system       True    Applied revision: main/6e9b41b  main/6e9b41b    False  
+NAME                            READY   MESSAGE                         REVISION        SUSPENDED
+kustomization/flux-system       True    Applied revision: main/6e9b41b  main/6e9b41b    False
 ```
 
 In case you need to perform some troubleshooting, and see what `Flux CD` is doing, you can access the logs via:
@@ -313,14 +313,14 @@ The output looks similar to the following:
 
 ```text
 ...
-2022-03-17T10:47:21.976Z info Kustomization/flux-system.flux-system - server-side apply completed 
-2022-03-17T10:47:22.662Z info Kustomization/flux-system.flux-system - server-side apply completed 
-2022-03-17T10:47:22.702Z info Kustomization/flux-system.flux-system - Reconciliation finished in 9.631064885s, next run in 10m0s 
-2022-03-17T10:47:19.167Z info GitRepository/flux-system.flux-system - Discarding event, no alerts found for the involved object 
-2022-03-17T10:47:22.691Z info Kustomization/flux-system.flux-system - Discarding event, no alerts found for the involved object 
-2022-03-17T10:47:22.709Z info Kustomization/flux-system.flux-system - Discarding event, no alerts found for the involved object 
-2022-03-17T10:47:19.168Z info GitRepository/flux-system.flux-system - Reconciliation finished in 7.79283477s, next run in 1m0s 
-2022-03-17T10:48:20.594Z info GitRepository/flux-system.flux-system - Reconciliation finished in 1.424279853s, next run in 1m0s 
+2022-03-17T10:47:21.976Z info Kustomization/flux-system.flux-system - server-side apply completed
+2022-03-17T10:47:22.662Z info Kustomization/flux-system.flux-system - server-side apply completed
+2022-03-17T10:47:22.702Z info Kustomization/flux-system.flux-system - Reconciliation finished in 9.631064885s, next run in 10m0s
+2022-03-17T10:47:19.167Z info GitRepository/flux-system.flux-system - Discarding event, no alerts found for the involved object
+2022-03-17T10:47:22.691Z info Kustomization/flux-system.flux-system - Discarding event, no alerts found for the involved object
+2022-03-17T10:47:22.709Z info Kustomization/flux-system.flux-system - Discarding event, no alerts found for the involved object
+2022-03-17T10:47:19.168Z info GitRepository/flux-system.flux-system - Reconciliation finished in 7.79283477s, next run in 1m0s
+2022-03-17T10:48:20.594Z info GitRepository/flux-system.flux-system - Reconciliation finished in 1.424279853s, next run in 1m0s
 ...
 ```
 
@@ -369,10 +369,10 @@ Please make sure that the following steps are performed in order:
     FLUXCD_SYNC_PATH="clusters/dev"
     FLUXCD_HELM_MANIFESTS_PATH="${FLUXCD_SYNC_PATH}/helm"
 
-    mkdir -p "${FLUXCD_HELM_MANIFESTS_PATH}/repositories" 
-    
-    mkdir -p "${FLUXCD_HELM_MANIFESTS_PATH}/releases" 
-    
+    mkdir -p "${FLUXCD_HELM_MANIFESTS_PATH}/repositories"
+
+    mkdir -p "${FLUXCD_HELM_MANIFESTS_PATH}/releases"
+
     mkdir -p "${FLUXCD_HELM_MANIFESTS_PATH}/secrets"
     ```
 
@@ -547,12 +547,12 @@ After a few moments, please inspect the Flux CD `Sealed Secrets` Helm release:
 ```shell
 flux get helmrelease sealed-secrets-controller
 ```
-  
+
 The output looks similar to:
 
 ```text
-NAME                        READY   MESSAGE                                 REVISION        SUSPENDED 
-sealed-secrets-controller   True    Release reconciliation succeeded        2.4.0          False 
+NAME                        READY   MESSAGE                                 REVISION        SUSPENDED
+sealed-secrets-controller   True    Release reconciliation succeeded        2.4.0          False
 ```
 
 Look for the `READY` column value - it should say `True`. Reconciliation status is displayed in the `MESSAGE` column, along with the `REVISION` number, which represents the `Helm` chart `version`. Please bear in mind that some releases take longer to complete (like `Prometheus` stack, for example), so please be patient.
@@ -590,7 +590,7 @@ If for some reason the `kubeseal` certificate fetch command hangs (or you get an
 - First, open a new terminal window, and `expose` the `Sealed Secrets Controller` service on your `localhost` (you can use `CTRL - C` to terminate, after fetching the public key):
 
   ```shell
-  kubectl port-forward service/sealed-secrets-controller 8080:8080 -n flux-system 
+  kubectl port-forward service/sealed-secrets-controller 8080:8080 -n flux-system
   ```
 
 - Then, you can go back to your working terminal and fetch the public key (please replace the `<>` placeholders accordingly):
@@ -631,7 +631,7 @@ Steps to follow:
 3. Now, fetch the Cert-Manager `HelmRelease` manifest file provided by the `Starter Kit` Git repository:
 
     ```shell
-    CERT_MANAGER_CHART_VERSION="1.8.0"
+    CERT_MANAGER_CHART_VERSION="1.14.5"
 
     curl "https://raw.githubusercontent.com/digitalocean/Kubernetes-Starter-Kit-Developers/main/14-continuous-delivery-using-gitops/assets/manifests/fluxcd/helm/releases/cert-manager-v${CERT_MANAGER_CHART_VERSION}.yaml" > "${FLUXCD_HELM_MANIFESTS_PATH}/releases/cert-manager-v${CERT_MANAGER_CHART_VERSION}.yaml"
     ```
@@ -639,7 +639,7 @@ Steps to follow:
 4. Next, inspect the downloaded `HelmRelease` manifest file using an editor of your choice (preferably with `YAML` lint support), and adjust to your needs. For example, you can use [VS Code](https://code.visualstudio.com) (make sure to replace the `<>` placeholders accordingly, if present):
 
     ```shell
-    CERT_MANAGER_CHART_VERSION="1.8.0"
+    CERT_MANAGER_CHART_VERSION="1.14.5"
 
     code "${FLUXCD_HELM_MANIFESTS_PATH}/releases/cert-manager-v${CERT_MANAGER_CHART_VERSION}.yaml"
     ```
@@ -647,7 +647,7 @@ Steps to follow:
 5. Finally, commit `Git` changes to `remote` branch:
 
     ```shell
-    CERT_MANAGER_CHART_VERSION="1.8.0"
+    CERT_MANAGER_CHART_VERSION="1.14.5"
 
     git add "${FLUXCD_HELM_MANIFESTS_PATH}/repositories/jetstack.yaml"
 
@@ -669,12 +669,12 @@ After a few moments, please inspect the `HelmRelease` status:
 ```shell
 flux get helmrelease cert-manager
 ```
-  
+
 The output looks similar to:
 
 ```text
-NAME                READY   MESSAGE                                 REVISION       SUSPENDED 
-cert-manager        True    Release reconciliation succeeded        v1.6.1         False 
+NAME                READY   MESSAGE                                 REVISION       SUSPENDED
+cert-manager        True    Release reconciliation succeeded        v1.6.1         False
 ```
 
 Look for the `READY` column value - it should say `True`. Reconciliation status is displayed in the `MESSAGE` column, along with the `REVISION` number, which represents the `Helm` chart `version`. Please bear in mind that some releases take longer to complete (like `Prometheus` stack, for example), so please be patient.
@@ -850,7 +850,7 @@ Look for the `READY` column value - it should say `True`. Reconciliation status 
     ```shell
     flux logs --kind=HelmRelease
     ```
-  
+
 - In case the `Flux` logs do not offer sufficient information you can use the `describe` command on the `helmrelease` using `kubectl` as follows:
 
     ```shell
@@ -941,11 +941,11 @@ After a few moments, please inspect the Prometheus `HelmRelease`:
 ```shell
 flux get helmrelease kube-prometheus-stack
 ```
-  
+
 The output looks similar to:
 
 ```text
-NAME                    READY   MESSAGE                                 REVISION        SUSPENDED 
+NAME                    READY   MESSAGE                                 REVISION        SUSPENDED
 kube-prometheus-stack   True    Release reconciliation succeeded        35.5.1          False
 ```
 
@@ -1070,11 +1070,11 @@ After a few moments, please inspect the Loki `HelmRelease`:
 ```shell
 flux get helmrelease loki-stack
 ```
-  
+
 The output looks similar to:
 
 ```text
-NAME         READY   MESSAGE                                 REVISION       SUSPENDED 
+NAME         READY   MESSAGE                                 REVISION       SUSPENDED
 loki-stack   True    Release reconciliation succeeded        2.6.4          False
 ```
 
@@ -1210,7 +1210,7 @@ flux get helmrelease velero-stack
 The output looks similar to:
 
 ```text
-NAME                 READY  MESSAGE                             REVISION    SUSPENDED 
+NAME                 READY  MESSAGE                             REVISION    SUSPENDED
 velero-stack         True   Release reconciliation succeeded    2.29.7      False
 ```
 
