@@ -502,16 +502,16 @@ Next, update the `jetstack` chart repository:
 helm repo update jetstack
 ```
 
-Then, open and inspect the `03-setup-ingress-controller/assets/manifests/cert-manager-values-v1.8.0.yaml` file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://code.visualstudio.com):
+Then, open and inspect the `03-setup-ingress-controller/assets/manifests/cert-manager-values-v1.14.5.yaml` file provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://code.visualstudio.com):
 
 ```shell
-code 03-setup-ingress-controller/assets/manifests/cert-manager-values-v1.8.0.yaml
+code 03-setup-ingress-controller/assets/manifests/cert-manager-values-v1.14.5.yaml
 ```
 
 Finally, you can install the `jetstack/cert-manager` chart using Helm:
 
 ```shell
-CERT_MANAGER_HELM_CHART_VERSION="1.8.0"
+CERT_MANAGER_HELM_CHART_VERSION="1.14.5"
 
 helm install cert-manager jetstack/cert-manager --version "$CERT_MANAGER_HELM_CHART_VERSION" \
   --namespace cert-manager \
@@ -529,7 +529,7 @@ The output looks similar to (notice the `STATUS` column which has the `deployed`
 
 ```text
 NAME            NAMESPACE       REVISION        UPDATED                                 STATUS          CHART                   APP VERSION
-cert-manager    cert-manager    1               2021-10-20 12:13:05.124264 +0300 EEST   deployed        cert-manager-v1.8.0     v1.8.0
+cert-manager    cert-manager    1               2021-10-20 12:13:05.124264 +0300 EEST   deployed        cert-manager-v1.14.5     v1.14.5
 ```
 
 Inspect `Kubernetes` resources created by the `cert-manager` Helm release:
@@ -709,7 +709,7 @@ Content-Length: 164
 Connection: keep-alive
 Location: https://echo.starter-kit.online
 
-HTTP/2 200 
+HTTP/2 200
 date: Thu, 04 Nov 2021 16:00:10 GMT
 content-type: text/plain
 content-length: 351
@@ -746,7 +746,7 @@ Content-Length: 164
 Connection: keep-alive
 Location: https://quote.starter-kit.online
 
-HTTP/2 200 
+HTTP/2 200
 date: Tue, 07 Jun 2022 06:10:27 GMT
 content-type: application/json
 content-length: 159

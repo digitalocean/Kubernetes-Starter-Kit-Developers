@@ -60,7 +60,7 @@ helm repo update jetstack
 Then, open and inspect the `Helm` values file for `Cert-Manager` provided in the `Starter Kit` repository, using an editor of your choice (preferably with `YAML` lint support). For example, you can use [VS Code](https://code.visualstudio.com):
 
 ```shell
-CERT_MANAGER_HELM_CHART_VERSION="1.8.0"
+CERT_MANAGER_HELM_CHART_VERSION="1.14.5"
 
 code 03-setup-ingress-controller/assets/manifests/cert-manager-values-v${CERT_MANAGER_HELM_CHART_VERSION}.yaml
 ```
@@ -68,7 +68,7 @@ code 03-setup-ingress-controller/assets/manifests/cert-manager-values-v${CERT_MA
 Finally, you can install the `jetstack/cert-manager` chart using Helm:
 
 ```shell
-CERT_MANAGER_HELM_CHART_VERSION="1.8.0"
+CERT_MANAGER_HELM_CHART_VERSION="1.14.5"
 
 helm install cert-manager jetstack/cert-manager --version "$CERT_MANAGER_HELM_CHART_VERSION" \
   --namespace cert-manager \
@@ -86,7 +86,7 @@ The output looks similar to (notice the `STATUS` column which has the `deployed`
 
 ```text
 NAME            NAMESPACE       REVISION        UPDATED                                 STATUS          CHART                   APP VERSION
-cert-manager    cert-manager    1               2021-10-20 12:13:05.124264 +0300 EEST   deployed        cert-manager-v1.8.0     v1.8.0
+cert-manager    cert-manager    1               2021-10-20 12:13:05.124264 +0300 EEST   deployed        cert-manager-v1.14.5     v1.14.5
 ```
 
 Inspect `Kubernetes` resources created by the `cert-manager` Helm release:
@@ -440,11 +440,11 @@ Finally, you can verify the `Kubernetes` secret which contains your `TLS` certif
   Annotations:  cert-manager.io/alt-names: *.starter-kit.online,starter-kit.online
                 cert-manager.io/certificate-name: starter-kit.online
                 cert-manager.io/common-name: *.starter-kit.online
-                cert-manager.io/ip-sans: 
+                cert-manager.io/ip-sans:
                 cert-manager.io/issuer-group: cert-manager.io
                 cert-manager.io/issuer-kind: Issuer
                 cert-manager.io/issuer-name: letsencrypt-ambassador-wcard
-                cert-manager.io/uri-sans: 
+                cert-manager.io/uri-sans:
 
   Type:  kubernetes.io/tls
 
@@ -469,11 +469,11 @@ Finally, you can verify the `Kubernetes` secret which contains your `TLS` certif
   Annotations:  cert-manager.io/alt-names: *.starter-kit.online,starter-kit.online
                 cert-manager.io/certificate-name: starter-kit.online
                 cert-manager.io/common-name: *.starter-kit.online
-                cert-manager.io/ip-sans: 
+                cert-manager.io/ip-sans:
                 cert-manager.io/issuer-group: cert-manager.io
                 cert-manager.io/issuer-kind: Issuer
                 cert-manager.io/issuer-name: letsencrypt-nginx-wcard
-                cert-manager.io/uri-sans: 
+                cert-manager.io/uri-sans:
 
   Type:  kubernetes.io/tls
 
@@ -631,7 +631,7 @@ Content-Length: 164
 Connection: keep-alive
 Location: https://echo.starter-kit.online
 
-HTTP/2 200 
+HTTP/2 200
 date: Mon, 08 Nov 2021 15:53:47 GMT
 content-type: text/plain
 content-length: 351
@@ -670,7 +670,7 @@ Content-Length: 164
 Connection: keep-alive
 Location: https://quote.starter-kit.online
 
-HTTP/2 200 
+HTTP/2 200
 date: Mon, 08 Nov 2021 15:54:13 GMT
 content-type: application/json
 content-length: 162
